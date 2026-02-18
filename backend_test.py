@@ -208,6 +208,9 @@ def main():
     # Test status endpoints
     tester.test_status_endpoints()
     
+    # Test price variance
+    tester.test_price_variance()
+    
     # Print final results
     print("\n" + "=" * 50)
     print(f"📊 Final Results: {tester.tests_passed}/{tester.tests_run} tests passed")
