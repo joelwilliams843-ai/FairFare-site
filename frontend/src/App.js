@@ -77,6 +77,44 @@ function App() {
     }
   };
 
+  const refreshPrices = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API}/compare-rides`, {
+        pickup: {
+          address: pickup,
+          lat: pickupCoords?.lat || null,
+          lng: pickupCoords?.lng || null,
+        },
+        destination: {
+          address: destination,
+          lat: destCoords?.lat || null,
+          lng: destCoords?.lng || null,
+        },
+      });
+      setResults(response.data);
+      toast.success("Prices refreshed!");
+    } catch (error) {
+      console.error("Error refreshing prices:", error);
+      toast.error("Failed to refresh prices.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getBestPrice = () => {
+    if (!results || !results.estimates) return null;
+    const estimates = results.estimates;
+    if (estimates.length < 2) return null;
+    
+    const uber = estimates[0];
+    const lyft = estimates[1];
+    const uberAvg = (uber.price_min + uber.price_max) / 2;
+    const lyftAvg = (lyft.price_min + lyft.price_max) / 2;
+    
+    return uberAvg < lyftAvg ? "Uber" : "Lyft";
+  };
+
   const saveWeekendRide = () => {
     if (!pickup || !destination) {
       toast.error("Enter a route to save");
