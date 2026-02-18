@@ -6,9 +6,11 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
+import math
+import random
 
 
 ROOT_DIR = Path(__file__).parent
@@ -28,7 +30,7 @@ api_router = APIRouter(prefix="/api")
 
 # Define Models
 class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
+    model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
@@ -37,10 +39,117 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+class Location(BaseModel):
+    address: str
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+
+class CompareRequest(BaseModel):
+    pickup: Location
+    destination: Location
+
+class RideEstimate(BaseModel):
+    provider: str
+    ride_type: str
+    price_min: float
+    price_max: float
+    wait_time: int
+    deep_link: str
+
+class CompareResponse(BaseModel):
+    estimates: List[RideEstimate]
+    distance_miles: float
+
+
+def calculate_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """Calculate distance in miles using Haversine formula"""
+    R = 3959  # Earth's radius in miles
+    
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lng = math.radians(lng2 - lng1)
+    
+    a = math.sin(delta_lat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lng / 2) ** 2
+    c = 2 * math.asin(math.sqrt(a))
+    
+    return R * c
+
+
+def generate_ride_estimates(distance_miles: float, pickup: Location, destination: Location) -> List[RideEstimate]:
+    """Generate mock ride estimates based on distance"""
+    
+    # Base prices and per-mile rates
+    uber_base = 2.50
+    uber_per_mile = 1.75
+    lyft_base = 2.00
+    lyft_per_mile = 1.85
+    
+    # Add some variance (surge simulation)
+    surge_factor = random.uniform(1.0, 1.4)
+    
+    # Calculate base prices
+    uber_price = (uber_base + distance_miles * uber_per_mile) * surge_factor
+    lyft_price = (lyft_base + distance_miles * lyft_per_mile) * surge_factor
+    
+    # Wait times (2-12 minutes, inversely proportional to surge)
+    uber_wait = random.randint(2, 8) if surge_factor < 1.2 else random.randint(5, 12)
+    lyft_wait = random.randint(2, 8) if surge_factor < 1.2 else random.randint(5, 12)
+    
+    # Create deep links
+    pickup_encoded = pickup.address.replace(' ', '+')
+    dest_encoded = destination.address.replace(' ', '+')
+    
+    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup.lat or 0}&pickup[longitude]={pickup.lng or 0}&dropoff[latitude]={destination.lat or 0}&dropoff[longitude]={destination.lng or 0}"
+    lyft_deeplink = f"lyft://ridetype?id=lyft&pickup[latitude]={pickup.lat or 0}&pickup[longitude]={pickup.lng or 0}&destination[latitude]={destination.lat or 0}&destination[longitude]={destination.lng or 0}"
+    
+    estimates = [
+        RideEstimate(
+            provider="Uber",
+            ride_type="UberX",
+            price_min=round(uber_price * 0.9, 2),
+            price_max=round(uber_price * 1.1, 2),
+            wait_time=uber_wait,
+            deep_link=uber_deeplink
+        ),
+        RideEstimate(
+            provider="Lyft",
+            ride_type="Standard",
+            price_min=round(lyft_price * 0.9, 2),
+            price_max=round(lyft_price * 1.1, 2),
+            wait_time=lyft_wait,
+            deep_link=lyft_deeplink
+        )
+    ]
+    
+    return estimates
+
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "FairFare API"}
+
+@api_router.post("/compare-rides", response_model=CompareResponse)
+async def compare_rides(request: CompareRequest):
+    """Compare ride estimates between Uber and Lyft"""
+    
+    # Use provided coordinates or mock coordinates based on address
+    pickup_lat = request.pickup.lat or 37.7749
+    pickup_lng = request.pickup.lng or -122.4194
+    dest_lat = request.destination.lat or 37.8044
+    dest_lng = request.destination.lng or -122.2712
+    
+    # Calculate distance
+    distance = calculate_distance(pickup_lat, pickup_lng, dest_lat, dest_lng)
+    
+    # Generate estimates
+    estimates = generate_ride_estimates(distance, request.pickup, request.destination)
+    
+    return CompareResponse(
+        estimates=estimates,
+        distance_miles=round(distance, 2)
+    )
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
