@@ -300,21 +300,45 @@ function App() {
   };
 
   const openDeepLink = (estimate) => {
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    const isMobile = isIOS || isAndroid;
-    
-    if (isMobile) {
-      // Try to open native app
-      window.location.href = estimate.deep_link;
+    try {
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      const isAndroid = /Android/.test(navigator.userAgent);
+      const isMobile = isIOS || isAndroid;
       
-      // Fallback to web after 2.5 seconds if app doesn't open
+      console.log('Opening:', estimate.provider);
+      console.log('Deep link:', estimate.deep_link);
+      console.log('Web link:', estimate.web_link);
+      
+      if (isMobile) {
+        // Mobile: Try native app first
+        const openedApp = window.open(estimate.deep_link, '_self');
+        
+        // Fallback to web if app doesn't open
+        setTimeout(() => {
+          if (!document.hidden) {
+            // If page is still visible, app didn't open
+            window.location.href = estimate.web_link;
+          }
+        }, 2500);
+      } else {
+        // Desktop: Open web version in new tab
+        const newWindow = window.open(estimate.web_link, '_blank', 'noopener,noreferrer');
+        
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          // Pop-up blocked - show message and use current tab
+          toast.info('Opening in current tab...');
+          setTimeout(() => {
+            window.location.href = estimate.web_link;
+          }, 1000);
+        }
+      }
+    } catch (error) {
+      console.error('Deep link error:', error);
+      toast.error('Could not open app. Opening in browser...');
+      // Fallback: Open web link in current tab
       setTimeout(() => {
         window.location.href = estimate.web_link;
-      }, 2500);
-    } else {
-      // Desktop: Open web version directly in new tab
-      window.open(estimate.web_link, '_blank');
+      }, 1000);
     }
   };
 
