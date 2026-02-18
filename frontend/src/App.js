@@ -38,9 +38,92 @@ function App() {
       setSavedRoute(JSON.parse(saved));
     }
     
+    // Load recent locations
+    const recent = localStorage.getItem("recentLocations");
+    if (recent) {
+      setRecentLocations(JSON.parse(recent));
+    }
+    
     // Auto-detect location on load
     detectLocation();
   }, []);
+
+  // Save to recent locations
+  const saveToRecent = (location) => {
+    if (!location || location.length < 3) return;
+    
+    const recent = [...recentLocations];
+    // Remove if already exists
+    const filtered = recent.filter(loc => loc !== location);
+    // Add to beginning
+    filtered.unshift(location);
+    // Keep only last 5
+    const updated = filtered.slice(0, 5);
+    
+    setRecentLocations(updated);
+    localStorage.setItem("recentLocations", JSON.stringify(updated));
+  };
+
+  // Reverse geocode coordinates to address
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const response = await axios.get(`${NOMINATIM_BASE}/reverse`, {
+        params: {
+          lat,
+          lon: lng,
+          format: 'json'
+        },
+        headers: {
+          'User-Agent': 'FairFare/1.0'
+        }
+      });
+      
+      if (response.data && response.data.display_name) {
+        return response.data.display_name;
+      }
+      return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+    } catch (error) {
+      console.error("Reverse geocoding error:", error);
+      return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+    }
+  };
+
+  // Search for address suggestions
+  const searchAddress = async (query, isPickup) => {
+    if (!query || query.length < 3) {
+      if (isPickup) setPickupSuggestions([]);
+      else setDestSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${NOMINATIM_BASE}/search`, {
+        params: {
+          q: query,
+          format: 'json',
+          limit: 5,
+          addressdetails: 1
+        },
+        headers: {
+          'User-Agent': 'FairFare/1.0'
+        }
+      });
+
+      const suggestions = response.data.map(item => ({
+        display_name: item.display_name,
+        lat: parseFloat(item.lat),
+        lon: parseFloat(item.lon)
+      }));
+
+      if (isPickup) {
+        setPickupSuggestions(suggestions);
+      } else {
+        setDestSuggestions(suggestions);
+      }
+    } catch (error) {
+      console.error("Address search error:", error);
+    }
+  };
 
   const detectLocation = () => {
     if (navigator.geolocation) {
