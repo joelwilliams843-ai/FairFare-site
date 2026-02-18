@@ -1,0 +1,91 @@
+{
+  "app_name": "FairFare",
+  "design_style": "iOS Utility Minimalist",
+  "design_philosophy": "Invisible Design. The interface should feel like a native extension of the OS. No decorative gradients, no startup illustrations, no 'delight' animations that slow down the user. Speed and Clarity are the only metrics.",
+  "theme": {
+    "mode": "light",
+    "forced_mode": "light",
+    "background": "#F2F2F7",
+    "surface": "#FFFFFF",
+    "primary": "#000000",
+    "secondary": "#8E8E93",
+    "accent": "#007AFF",
+    "border": "#C6C6C8",
+    "error": "#FF3B30",
+    "success": "#34C759"
+  },
+  "brand_colors": {
+    "uber": "#000000",
+    "lyft": "#FF00BF"
+  },
+  "typography": {
+    "font_family": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+    "headings": {
+      "weight": "600",
+      "tracking": "-0.02em",
+      "size_h1": "text-2xl",
+      "size_h2": "text-xl"
+    },
+    "body": {
+      "weight": "400",
+      "size": "text-[17px]",
+      "leading": "leading-relaxed"
+    },
+    "labels": {
+      "weight": "500",
+      "size": "text-[13px]",
+      "transform": "uppercase",
+      "tracking": "tracking-wide",
+      "color": "text-gray-500"
+    }
+  },
+  "layout": {
+    "container": "max-w-md mx-auto min-h-screen bg-[#F2F2F7] overflow-hidden relative",
+    "spacing": {
+      "page_padding": "p-4",
+      "card_padding": "p-4",
+      "gap": "gap-3"
+    },
+    "structure": "Single view app. The 'Input' is the default state. 'Results' slide up or appear instantly below. No complex navigation bars."
+  },
+  "components": {
+    "cards": {
+      "style": "bg-white rounded-[20px] shadow-[0_1px_3px_rgba(0,0,0,0.05)] border border-black/5",
+      "hover": "active:scale-[0.98] transition-transform duration-100"
+    },
+    "inputs": {
+      "style": "h-12 bg-[#E5E5EA] rounded-[12px] px-4 text-[17px] text-black placeholder:text-[#8E8E93] border-none focus:ring-0 focus:bg-[#D1D1D6] transition-colors",
+      "label_style": "hidden" 
+    },
+    "buttons": {
+      "primary": "h-12 bg-[#007AFF] hover:bg-[#0062CC] text-white text-[17px] font-semibold rounded-[12px] w-full shadow-none active:opacity-80 transition-opacity",
+      "secondary": "h-12 bg-[#E5E5EA] text-[#007AFF] text-[17px] font-semibold rounded-[12px] w-full active:bg-[#D1D1D6]",
+      "uber": "bg-black text-white hover:bg-gray-900",
+      "lyft": "bg-[#FF00BF] text-white hover:bg-[#D900A3]"
+    },
+    "separators": {
+      "style": "h-[0.5px] bg-[#C6C6C8] w-full my-2"
+    }
+  },
+  "assets": {
+    "uber_logo": "https://images.unsplash.com/photo-1657947953120-6e5201f3b3ed?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwxfHxVYmVyJTIwbG9nbyUyMGljb24lMjBtaW5pbWFsfGVufDB8fHx8MTc3MTM5NDM5OHww&ixlib=rb-4.1.0&q=85",
+    "lyft_logo": "https://images.unsplash.com/photo-1657912786836-08739e027d64?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxMeWZ0JTIwbG9nbyUyMGljb24lMjBtaW5pbWFsfGVufDB8fHx8MTc3MTM5NDQwMHww&ixlib=rb-4.1.0&q=85",
+    "map_bg": "https://images.pexels.com/photos/7412072/pexels-photo-7412072.jpeg"
+  },
+  "instructions_to_main_agent": [
+    "1. FORCE LIGHT MODE: Ensure 'dark' class is never applied to the html/body tag. The app must be strictly light mode.",
+    "2. IOS INPUTS: Inputs should feel like iOS Spotlight search. Grey background, no border, clear text.",
+    "3. NO GRADIENTS: Do not use gradients for buttons or backgrounds. Solid colors only.",
+    "4. BOTTOM SHEET FEEL: If possible, make the 'Results' section feel like a sheet sliding up over the map/input area.",
+    "5. FONT SIZING: Use 16px+ for inputs to prevent iOS Safari from zooming in on focus.",
+    "6. DATA-TESTID: Add data-testid to all inputs (pickup-input, dest-input) and buttons (compare-btn, uber-btn, lyft-btn).",
+    "7. MAP FALLBACK: Use the 'map_bg' asset as a subtle background image for the main container if no interactive map is present, with a white overlay (opacity 90%) to ensure text readability.",
+    "8. SAVED ROUTE: The 'Weekend Ride' button should look like a 'Favorite' shortcut in Apple Maps (Circle icon + Label below, or a compact row)."
+  ],
+  "universal_guidelines": [
+    "Avoid 'AI Slop': No generic centered layouts. Use the 'Grouped List' aesthetic of iOS Settings.",
+    "Micro-interactions: Buttons should have a distinct 'active' state (opacity reduction or scale down) to mimic native touch.",
+    "Spacing: Use 'p-4' as the standard edge padding. Use 'gap-3' for lists.",
+    "Shadows: Use very subtle shadows 'shadow-sm' or none. iOS relies on background color contrast (White on Light Grey) more than heavy shadows."
+  ]
+}
