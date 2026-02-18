@@ -29,7 +29,6 @@ function App() {
 
   const detectLocation = () => {
     if (navigator.geolocation) {
-      toast.info("Detecting your location...");
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
@@ -39,12 +38,12 @@ function App() {
           toast.success("Location detected!");
         },
         (error) => {
-          toast.error("Could not detect location. Please enter manually.");
-          console.error("Geolocation error:", error);
+          // Silently fail on initial load, only show error if user clicks button
+          if (error.code !== error.PERMISSION_DENIED) {
+            console.log("Geolocation not available, manual entry enabled");
+          }
         }
       );
-    } else {
-      toast.error("Geolocation not supported by your browser");
     }
   };
 
