@@ -207,6 +207,10 @@ function App() {
       return;
     }
 
+    // Save locations to recent
+    saveToRecent(pickup);
+    saveToRecent(destination);
+
     setLoading(true);
     try {
       const response = await axios.post(`${API}/compare-rides`, {
