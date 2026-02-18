@@ -299,16 +299,23 @@ function App() {
     }
   };
 
-  const openDeepLink = (deepLink) => {
-    window.location.href = deepLink;
+  const openDeepLink = (estimate) => {
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    const isMobile = isIOS || isAndroid;
     
-    setTimeout(() => {
-      if (deepLink.startsWith("uber://")) {
-        window.open("https://m.uber.com/looking", "_blank");
-      } else if (deepLink.startsWith("lyft://")) {
-        window.open("https://www.lyft.com/ride", "_blank");
-      }
-    }, 2000);
+    if (isMobile) {
+      // Try to open native app
+      window.location.href = estimate.deep_link;
+      
+      // Fallback to web after 2.5 seconds if app doesn't open
+      setTimeout(() => {
+        window.location.href = estimate.web_link;
+      }, 2500);
+    } else {
+      // Desktop: Open web version directly in new tab
+      window.open(estimate.web_link, '_blank');
+    }
   };
 
   return (
