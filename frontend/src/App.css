@@ -246,10 +246,26 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.05);
   transition: transform 100ms;
+  position: relative;
 }
 
 .estimate-card:active {
   transform: scale(0.98);
+}
+
+.best-price-badge {
+  position: absolute;
+  top: -0.625rem;
+  right: 1rem;
+  background: #34C759;
+  color: white;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3);
 }
 
 .estimate-header {
