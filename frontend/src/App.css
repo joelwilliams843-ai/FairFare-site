@@ -120,6 +120,96 @@
   opacity: 0.6;
 }
 
+.clear-button {
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #8E8E93;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 100ms;
+}
+
+.clear-button:active {
+  opacity: 0.6;
+}
+
+/* Autocomplete Dropdown */
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 18rem;
+  overflow-y: auto;
+  z-index: 100;
+  -webkit-overflow-scrolling: touch;
+}
+
+.suggestions-header {
+  padding: 0.625rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8E8E93;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #F2F2F7;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  transition: background-color 100ms;
+  border-bottom: 0.5px solid #E5E5EA;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.suggestion-item:active {
+  background: #F2F2F7;
+}
+
+.suggestion-item.recent {
+  background: #FAFAFA;
+}
+
+.suggestion-icon {
+  color: #8E8E93;
+  flex-shrink: 0;
+}
+
+.suggestion-text {
+  font-size: 0.9375rem;
+  color: #000000;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.suggestions-divider {
+  height: 0.5px;
+  background: #E5E5EA;
+  margin: 0.25rem 0;
+}
+
 /* Buttons */
 .compare-button {
   width: 100%;
