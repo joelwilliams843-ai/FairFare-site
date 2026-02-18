@@ -1,34 +1,356 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* iOS-style Utility App Styles */
+
+.app-container {
+  max-width: 28rem;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #F2F2F7;
+  position: relative;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Input View */
+.input-view {
+  padding: 1.5rem 1rem;
+  min-height: 100vh;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-top: 3rem;
 }
 
-.App-link {
-    color: #61dafb;
+.app-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.app-subtitle {
+  font-size: 1.0625rem;
+  color: #8E8E93;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Input Section */
+.input-section {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.input-group {
+  margin-bottom: 0.75rem;
+}
+
+.input-group:last-of-type {
+  margin-bottom: 1rem;
+}
+
+.input-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #8E8E93;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #E5E5EA;
+  border-radius: 12px;
+  transition: background-color 150ms;
+}
+
+.input-wrapper:focus-within {
+  background: #D1D1D6;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  color: #8E8E93;
+  pointer-events: none;
+}
+
+.location-input {
+  flex: 1;
+  height: 3rem;
+  background: transparent;
+  border: none;
+  padding: 0 1rem 0 2.75rem;
+  font-size: 1.0625rem;
+  color: #000000;
+  outline: none;
+  font-weight: 400;
+}
+
+.location-input::placeholder {
+  color: #8E8E93;
+}
+
+.gps-button {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  color: #007AFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 100ms;
+}
+
+.gps-button:active {
+  opacity: 0.6;
+}
+
+/* Buttons */
+.compare-button {
+  width: 100%;
+  height: 3rem;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 100ms;
+  margin-bottom: 0.75rem;
+}
+
+.compare-button:hover {
+  background: #0062CC;
+}
+
+.compare-button:active {
+  opacity: 0.8;
+}
+
+.compare-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.saved-route-btn {
+  width: 100%;
+  height: 3rem;
+  background: #E5E5EA;
+  color: #007AFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  transition: background-color 100ms;
+}
+
+.saved-route-btn:active {
+  background: #D1D1D6;
+}
+
+.star-icon {
+  color: #FFD700;
+}
+
+.save-route-btn {
+  width: 100%;
+  height: 2.5rem;
+  background: transparent;
+  color: #007AFF;
+  border: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 100ms;
+}
+
+.save-route-btn:active {
+  opacity: 0.6;
+}
+
+/* Results View */
+.results-view {
+  padding: 1rem;
+  min-height: 100vh;
+}
+
+.results-header {
+  margin-bottom: 1.5rem;
+  padding-top: 1rem;
+}
+
+.back-button {
+  background: transparent;
+  border: none;
+  color: #007AFF;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+  transition: opacity 100ms;
+}
+
+.back-button:active {
+  opacity: 0.6;
+}
+
+.results-info {
+  text-align: center;
+}
+
+.results-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.02em;
+}
+
+.distance-text {
+  font-size: 0.9375rem;
+  color: #8E8E93;
+  margin: 0;
+}
+
+/* Estimates List */
+.estimates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.estimate-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 100ms;
+}
+
+.estimate-card:active {
+  transform: scale(0.98);
+}
+
+.estimate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 0.5px solid #C6C6C8;
+}
+
+.provider-name {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 0;
+}
+
+.ride-type {
+  font-size: 0.8125rem;
+  color: #8E8E93;
+  font-weight: 500;
+}
+
+.estimate-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detail-label {
+  font-size: 0.8125rem;
+  color: #8E8E93;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.price-range {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #000000;
+}
+
+.clock-icon {
+  color: #8E8E93;
+}
+
+.wait-time {
+  font-size: 0.9375rem;
+  color: #000000;
+  font-weight: 500;
+}
+
+.open-app-button {
+  width: 100%;
+  height: 3rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 100ms, background-color 150ms;
+}
+
+.open-app-button:active {
+  opacity: 0.8;
+}
+
+.open-app-button.uber {
+  background: #000000;
+  color: white;
+}
+
+.open-app-button.uber:hover {
+  background: #1a1a1a;
+}
+
+.open-app-button.lyft {
+  background: #FF00BF;
+  color: white;
+}
+
+.open-app-button.lyft:hover {
+  background: #D900A3;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 480px) {
+  .app-container {
+    max-width: 100%;
+  }
+  
+  .header {
+    padding-top: 2rem;
+  }
 }
