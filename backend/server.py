@@ -131,7 +131,8 @@ def generate_ride_estimates(distance_miles: float, pickup: Location, destination
             price_min=round(uber_price * 0.92, 2),
             price_max=round(uber_price * 1.08, 2),
             wait_time=uber_wait,
-            deep_link=uber_deeplink
+            deep_link=uber_deeplink,
+            web_link=uber_web
         ),
         RideEstimate(
             provider="Lyft",
@@ -139,7 +140,8 @@ def generate_ride_estimates(distance_miles: float, pickup: Location, destination
             price_min=round(lyft_price * 0.92, 2),
             price_max=round(lyft_price * 1.08, 2),
             wait_time=lyft_wait,
-            deep_link=lyft_deeplink
+            deep_link=lyft_deeplink,
+            web_link=lyft_web
         )
     ]
     
