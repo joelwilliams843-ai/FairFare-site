@@ -55,6 +55,7 @@ class RideEstimate(BaseModel):
     price_max: float
     wait_time: int
     deep_link: str
+    web_link: str
 
 class CompareResponse(BaseModel):
     estimates: List[RideEstimate]
