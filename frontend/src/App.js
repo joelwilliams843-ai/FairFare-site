@@ -259,6 +259,11 @@ function App() {
                 data-testid={`${estimate.provider.toLowerCase()}-card`}
                 className={`estimate-card ${estimate.provider.toLowerCase()}`}
               >
+                {getBestPrice() === estimate.provider && (
+                  <div className="best-price-badge" data-testid="best-price-badge">
+                    Best Price
+                  </div>
+                )}
                 <div className="estimate-header">
                   <h3 className="provider-name">{estimate.provider}</h3>
                   <span className="ride-type">{estimate.ride_type}</span>
@@ -287,6 +292,15 @@ function App() {
               </div>
             ))}
           </div>
+
+          <button
+            data-testid="refresh-prices-btn"
+            onClick={refreshPrices}
+            disabled={loading}
+            className="refresh-button"
+          >
+            {loading ? "Refreshing..." : "↻ Refresh Prices"}
+          </button>
         </div>
       )}
     </div>
