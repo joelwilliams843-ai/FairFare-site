@@ -81,19 +81,6 @@
   padding-left: 0.25rem;
 }
 
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: #E5E5EA;
-  border-radius: 12px;
-  transition: background-color 150ms;
-}
-
-.input-wrapper:focus-within {
-  background: #D1D1D6;
-}
-
 .input-icon {
   position: absolute;
   left: 1rem;
