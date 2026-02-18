@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "@/App.css";
 import axios from "axios";
-import { MapPin, Navigation, Star, Clock } from "lucide-react";
+import { MapPin, Navigation, Star, Clock, X } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Nominatim API (OpenStreetMap) - Free, no API key
+const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
 
 function App() {
   const [view, setView] = useState("input");
@@ -16,6 +19,18 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [savedRoute, setSavedRoute] = useState(null);
+  
+  // Autocomplete states
+  const [pickupSuggestions, setPickupSuggestions] = useState([]);
+  const [destSuggestions, setDestSuggestions] = useState([]);
+  const [showPickupSuggestions, setShowPickupSuggestions] = useState(false);
+  const [showDestSuggestions, setShowDestSuggestions] = useState(false);
+  const [recentLocations, setRecentLocations] = useState([]);
+  const [activeField, setActiveField] = useState(null);
+  
+  const pickupRef = useRef(null);
+  const destRef = useRef(null);
+  const autocompleteTimer = useRef(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("weekendRide");
