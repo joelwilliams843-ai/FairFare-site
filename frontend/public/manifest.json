@@ -4,13 +4,19 @@
   "description": "Compare ride prices and wait times between Uber and Lyft instantly",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='48' fill='%23007AFF'/><path d='M96 40c-8 0-15 7-15 15v30H51c-8 0-15 7-15 15s7 15 15 15h30v30c0 8 7 15 15 15s15-7 15-15v-30h30c8 0 15-7 15-15s-7-15-15-15h-30V55c0-8-7-15-15-15z' fill='white'/></svg>",
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='48' fill='%23007AFF'/><path d='M96 48c-8 0-15 7-15 15v18h-18c-8 0-15 7-15 15s7 15 15 15h18v18c0 8 7 15 15 15s15-7 15-15v-18h18c8 0 15-7 15-15s-7-15-15-15h-18V63c0-8-7-15-15-15z' fill='white'/><rect x='48' y='144' width='96' height='12' rx='6' fill='white' opacity='0.8'/></svg>",
       "type": "image/svg+xml",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%23007AFF'/><path d='M256 106c-21 0-40 18-40 40v80h-80c-21 0-40 18-40 40s18 40 40 40h80v80c0 21 18 40 40 40s40-18 40-40v-80h80c21 0 40-18 40-40s-18-40-40-40h-80v-80c0-21-18-40-40-40z' fill='white'/></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%23007AFF'/><path d='M256 128c-14 0-26 12-26 26v76h-76c-14 0-26 12-26 26s12 26 26 26h76v76c0 14 12 26 26 26s26-12 26-26v-76h76c14 0 26-12 26-26s-12-26-26-26h-76v-76c0-14-12-26-26-26z' fill='white'/><rect x='128' y='380' width='256' height='24' rx='12' fill='white' opacity='0.8'/></svg>",
       "type": "image/svg+xml",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -22,5 +28,7 @@
   "background_color": "#F2F2F7",
   "orientation": "portrait",
   "scope": "/",
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "categories": ["travel", "utilities"],
+  "screenshots": []
 }
