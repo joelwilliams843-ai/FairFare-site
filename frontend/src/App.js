@@ -22,6 +22,9 @@ function App() {
     if (saved) {
       setSavedRoute(JSON.parse(saved));
     }
+    
+    // Auto-detect location on load
+    detectLocation();
   }, []);
 
   const detectLocation = () => {
