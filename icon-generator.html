@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas192" width="192" height="192"></canvas>
+    <canvas id="canvas512" width="512" height="512"></canvas>
+    <script>
+        // Generate 192x192 icon
+        const canvas192 = document.getElementById('canvas192');
+        const ctx192 = canvas192.getContext('2d');
+        
+        // Background with rounded corners
+        ctx192.fillStyle = '#007AFF';
+        ctx192.beginPath();
+        ctx192.roundRect(0, 0, 192, 192, 48);
+        ctx192.fill();
+        
+        // Draw "FF" text
+        ctx192.fillStyle = '#FFFFFF';
+        ctx192.font = 'bold 90px Inter, -apple-system, sans-serif';
+        ctx192.textAlign = 'center';
+        ctx192.textBaseline = 'middle';
+        ctx192.fillText('FF', 96, 96);
+        
+        // Generate 512x512 icon
+        const canvas512 = document.getElementById('canvas512');
+        const ctx512 = canvas512.getContext('2d');
+        
+        // Background with rounded corners
+        ctx512.fillStyle = '#007AFF';
+        ctx512.beginPath();
+        ctx512.roundRect(0, 0, 512, 512, 128);
+        ctx512.fill();
+        
+        // Draw "FF" text
+        ctx512.fillStyle = '#FFFFFF';
+        ctx512.font = 'bold 240px Inter, -apple-system, sans-serif';
+        ctx512.textAlign = 'center';
+        ctx512.textBaseline = 'middle';
+        ctx512.fillText('FF', 256, 256);
+        
+        // Export as PNG
+        canvas192.toBlob(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'icon-192.png';
+            a.click();
+        });
+        
+        canvas512.toBlob(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'icon-512.png';
+            a.click();
+        });
+    </script>
+</body>
+</html>
