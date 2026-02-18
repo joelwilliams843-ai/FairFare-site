@@ -325,39 +325,160 @@ function App() {
           <div className="input-section">
             <div className="input-group">
               <label className="input-label">PICKUP</label>
-              <div className="input-wrapper">
-                <MapPin className="input-icon" size={20} />
-                <input
-                  type="text"
-                  data-testid="pickup-input"
-                  placeholder="Enter pickup location"
-                  value={pickup}
-                  onChange={(e) => setPickup(e.target.value)}
-                  className="location-input"
-                />
-                <button
-                  data-testid="detect-location-btn"
-                  onClick={detectLocation}
-                  className="gps-button"
-                  aria-label="Detect location"
-                >
-                  <Navigation size={18} />
-                </button>
+              <div className="input-wrapper-container">
+                <div className="input-wrapper">
+                  <MapPin className="input-icon" size={20} />
+                  <input
+                    type="text"
+                    data-testid="pickup-input"
+                    ref={pickupRef}
+                    placeholder="Enter pickup location"
+                    value={pickup}
+                    onChange={(e) => handlePickupChange(e.target.value)}
+                    onFocus={() => {
+                      setActiveField('pickup');
+                      setShowPickupSuggestions(true);
+                    }}
+                    onBlur={() => {
+                      // Delay to allow click on suggestion
+                      setTimeout(() => setShowPickupSuggestions(false), 200);
+                    }}
+                    className="location-input"
+                  />
+                  {pickup && (
+                    <button
+                      onClick={() => {
+                        setPickup('');
+                        setPickupCoords(null);
+                        setPickupSuggestions([]);
+                      }}
+                      className="clear-button"
+                      aria-label="Clear"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                  <button
+                    data-testid="detect-location-btn"
+                    onClick={detectLocation}
+                    className="gps-button"
+                    aria-label="Detect location"
+                  >
+                    <Navigation size={18} />
+                  </button>
+                </div>
+                
+                {/* Autocomplete suggestions */}
+                {showPickupSuggestions && (activeField === 'pickup') && (
+                  <div className="autocomplete-dropdown" data-testid="pickup-suggestions">
+                    {recentLocations.length > 0 && !pickup && (
+                      <>
+                        <div className="suggestions-header">Recent Locations</div>
+                        {recentLocations.map((loc, idx) => (
+                          <div
+                            key={`recent-${idx}`}
+                            className="suggestion-item recent"
+                            onClick={() => selectRecentLocation(loc, true)}
+                          >
+                            <Clock size={16} className="suggestion-icon" />
+                            <span className="suggestion-text">{loc}</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    
+                    {pickupSuggestions.length > 0 && (
+                      <>
+                        {recentLocations.length > 0 && !pickup && <div className="suggestions-divider" />}
+                        {pickupSuggestions.map((suggestion, idx) => (
+                          <div
+                            key={idx}
+                            className="suggestion-item"
+                            onClick={() => selectSuggestion(suggestion, true)}
+                          >
+                            <MapPin size={16} className="suggestion-icon" />
+                            <span className="suggestion-text">{suggestion.display_name}</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="input-group">
               <label className="input-label">DESTINATION</label>
-              <div className="input-wrapper">
-                <MapPin className="input-icon" size={20} />
-                <input
-                  type="text"
-                  data-testid="dest-input"
-                  placeholder="Enter destination"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  className="location-input"
-                />
+              <div className="input-wrapper-container">
+                <div className="input-wrapper">
+                  <MapPin className="input-icon" size={20} />
+                  <input
+                    type="text"
+                    data-testid="dest-input"
+                    ref={destRef}
+                    placeholder="Enter destination"
+                    value={destination}
+                    onChange={(e) => handleDestChange(e.target.value)}
+                    onFocus={() => {
+                      setActiveField('destination');
+                      setShowDestSuggestions(true);
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => setShowDestSuggestions(false), 200);
+                    }}
+                    className="location-input"
+                  />
+                  {destination && (
+                    <button
+                      onClick={() => {
+                        setDestination('');
+                        setDestCoords(null);
+                        setDestSuggestions([]);
+                      }}
+                      className="clear-button"
+                      aria-label="Clear"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+                
+                {/* Autocomplete suggestions */}
+                {showDestSuggestions && (activeField === 'destination') && (
+                  <div className="autocomplete-dropdown" data-testid="dest-suggestions">
+                    {recentLocations.length > 0 && !destination && (
+                      <>
+                        <div className="suggestions-header">Recent Locations</div>
+                        {recentLocations.map((loc, idx) => (
+                          <div
+                            key={`recent-${idx}`}
+                            className="suggestion-item recent"
+                            onClick={() => selectRecentLocation(loc, false)}
+                          >
+                            <Clock size={16} className="suggestion-icon" />
+                            <span className="suggestion-text">{loc}</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    
+                    {destSuggestions.length > 0 && (
+                      <>
+                        {recentLocations.length > 0 && !destination && <div className="suggestions-divider" />}
+                        {destSuggestions.map((suggestion, idx) => (
+                          <div
+                            key={idx}
+                            className="suggestion-item"
+                            onClick={() => selectSuggestion(suggestion, false)}
+                          >
+                            <MapPin size={16} className="suggestion-icon" />
+                            <span className="suggestion-text">{suggestion.display_name}</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
