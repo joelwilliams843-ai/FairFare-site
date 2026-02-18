@@ -125,23 +125,79 @@ function App() {
     }
   };
 
-  const detectLocation = () => {
+  const detectLocation = async () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           setPickupCoords({ lat, lng });
-          setPickup(`Current Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+          
+          // Reverse geocode to get address
+          const address = await reverseGeocode(lat, lng);
+          setPickup(address);
           toast.success("Location detected!");
         },
         (error) => {
-          // Silently fail on initial load, only show error if user clicks button
+          // Silently fail on initial load
           if (error.code !== error.PERMISSION_DENIED) {
             console.log("Geolocation not available, manual entry enabled");
           }
         }
       );
+    }
+  };
+
+  const handlePickupChange = (value) => {
+    setPickup(value);
+    setPickupCoords(null); // Clear coords when manually typing
+    
+    // Debounce autocomplete search
+    if (autocompleteTimer.current) {
+      clearTimeout(autocompleteTimer.current);
+    }
+    
+    autocompleteTimer.current = setTimeout(() => {
+      searchAddress(value, true);
+    }, 300);
+  };
+
+  const handleDestChange = (value) => {
+    setDestination(value);
+    setDestCoords(null);
+    
+    if (autocompleteTimer.current) {
+      clearTimeout(autocompleteTimer.current);
+    }
+    
+    autocompleteTimer.current = setTimeout(() => {
+      searchAddress(value, false);
+    }, 300);
+  };
+
+  const selectSuggestion = (suggestion, isPickup) => {
+    if (isPickup) {
+      setPickup(suggestion.display_name);
+      setPickupCoords({ lat: suggestion.lat, lng: suggestion.lon });
+      setPickupSuggestions([]);
+      setShowPickupSuggestions(false);
+      saveToRecent(suggestion.display_name);
+    } else {
+      setDestination(suggestion.display_name);
+      setDestCoords({ lat: suggestion.lat, lng: suggestion.lon });
+      setDestSuggestions([]);
+      setShowDestSuggestions(false);
+      saveToRecent(suggestion.display_name);
+    }
+  };
+
+  const selectRecentLocation = (location, isPickup) => {
+    if (isPickup) {
+      setPickup(location);
+      setShowPickupSuggestions(false);
+    } else {
+      setDestination(location);
+      setShowDestSuggestions(false);
     }
   };
 
