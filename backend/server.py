@@ -85,38 +85,47 @@ def generate_ride_estimates(distance_miles: float, pickup: Location, destination
     lyft_base = 2.00
     lyft_per_mile = 1.85
     
-    # Add some variance (surge simulation)
-    surge_factor = random.uniform(1.0, 1.4)
+    # Add realistic variance (±8-12% to simulate live pricing movement)
+    uber_variance = random.uniform(0.88, 1.12)
+    lyft_variance = random.uniform(0.88, 1.12)
     
-    # Calculate base prices
-    uber_price = (uber_base + distance_miles * uber_per_mile) * surge_factor
-    lyft_price = (lyft_base + distance_miles * lyft_per_mile) * surge_factor
+    # Add surge factor (1.0 to 1.5x)
+    surge_factor = random.uniform(1.0, 1.5)
     
-    # Wait times (2-12 minutes, inversely proportional to surge)
-    uber_wait = random.randint(2, 8) if surge_factor < 1.2 else random.randint(5, 12)
-    lyft_wait = random.randint(2, 8) if surge_factor < 1.2 else random.randint(5, 12)
+    # Calculate base prices with variance
+    uber_price = (uber_base + distance_miles * uber_per_mile) * surge_factor * uber_variance
+    lyft_price = (lyft_base + distance_miles * lyft_per_mile) * surge_factor * lyft_variance
     
-    # Create deep links
-    pickup_encoded = pickup.address.replace(' ', '+')
-    dest_encoded = destination.address.replace(' ', '+')
+    # Wait times (2-12 minutes, inversely related to surge)
+    uber_wait = random.randint(2, 8) if surge_factor < 1.3 else random.randint(6, 12)
+    lyft_wait = random.randint(2, 8) if surge_factor < 1.3 else random.randint(6, 12)
     
-    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup.lat or 0}&pickup[longitude]={pickup.lng or 0}&dropoff[latitude]={destination.lat or 0}&dropoff[longitude]={destination.lng or 0}"
-    lyft_deeplink = f"lyft://ridetype?id=lyft&pickup[latitude]={pickup.lat or 0}&pickup[longitude]={pickup.lng or 0}&destination[latitude]={destination.lat or 0}&destination[longitude]={destination.lng or 0}"
+    # Create deep links with coordinates properly structured
+    pickup_lat = pickup.lat or 0
+    pickup_lng = pickup.lng or 0
+    dest_lat = destination.lat or 0
+    dest_lng = destination.lng or 0
+    
+    # Uber deep link format
+    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}"
+    
+    # Lyft deep link format
+    lyft_deeplink = f"lyft://ridetype?id=lyft&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
     
     estimates = [
         RideEstimate(
             provider="Uber",
             ride_type="UberX",
-            price_min=round(uber_price * 0.9, 2),
-            price_max=round(uber_price * 1.1, 2),
+            price_min=round(uber_price * 0.92, 2),
+            price_max=round(uber_price * 1.08, 2),
             wait_time=uber_wait,
             deep_link=uber_deeplink
         ),
         RideEstimate(
             provider="Lyft",
             ride_type="Standard",
-            price_min=round(lyft_price * 0.9, 2),
-            price_max=round(lyft_price * 1.1, 2),
+            price_min=round(lyft_price * 0.92, 2),
+            price_max=round(lyft_price * 1.08, 2),
             wait_time=lyft_wait,
             deep_link=lyft_deeplink
         )
