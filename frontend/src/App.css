@@ -53,6 +53,23 @@
   margin-bottom: 1rem;
 }
 
+.input-wrapper-container {
+  position: relative;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #E5E5EA;
+  border-radius: 12px;
+  transition: background-color 150ms;
+}
+
+.input-wrapper:focus-within {
+  background: #D1D1D6;
+}
+
 .input-label {
   display: block;
   font-size: 0.8125rem;
