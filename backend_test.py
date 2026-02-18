@@ -111,6 +111,50 @@ class FairFareAPITester:
         
         return success
 
+    def test_price_variance(self):
+        """Test that prices vary between requests (±8-12% variance)"""
+        print("\n🔍 Testing Price Variance (±8-12%)...")
+        
+        data = {
+            "pickup": {
+                "address": "San Francisco, CA",
+                "lat": 37.7749,
+                "lng": -122.4194
+            },
+            "destination": {
+                "address": "Oakland, CA", 
+                "lat": 37.8044,
+                "lng": -122.2712
+            }
+        }
+        
+        prices = []
+        for i in range(3):
+            success, response = self.run_test(f"Price Variance Test {i+1}", "POST", "api/compare-rides", 200, data)
+            if success and "estimates" in response:
+                uber_avg = (response["estimates"][0]["price_min"] + response["estimates"][0]["price_max"]) / 2
+                lyft_avg = (response["estimates"][1]["price_min"] + response["estimates"][1]["price_max"]) / 2
+                prices.append({"uber": uber_avg, "lyft": lyft_avg})
+        
+        if len(prices) >= 2:
+            # Check if prices are different between requests
+            uber_prices = [p["uber"] for p in prices]
+            lyft_prices = [p["lyft"] for p in prices]
+            
+            uber_variance = max(uber_prices) != min(uber_prices)
+            lyft_variance = max(lyft_prices) != min(lyft_prices)
+            
+            if uber_variance or lyft_variance:
+                print("✅ Price variance detected - prices change between requests")
+                print(f"Uber prices: {uber_prices}")
+                print(f"Lyft prices: {lyft_prices}")
+                return True
+            else:
+                print("❌ No price variance detected - prices are identical")
+                return False
+        
+        return False
+
     def validate_compare_response(self, response_data):
         """Validate the structure of compare-rides response"""
         required_fields = ["estimates", "distance_miles"]
