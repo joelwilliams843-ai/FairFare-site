@@ -1,18 +1,26 @@
 {
   "short_name": "FairFare",
   "name": "FairFare - Compare Rides",
-  "description": "Compare ride prices and wait times between Uber and Lyft",
+  "description": "Compare ride prices and wait times between Uber and Lyft instantly",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23007AFF'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='system-ui'>F</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='48' fill='%23007AFF'/><path d='M96 40c-8 0-15 7-15 15v30H51c-8 0-15 7-15 15s7 15 15 15h30v30c0 8 7 15 15 15s15-7 15-15v-30h30c8 0 15-7 15-15s-7-15-15-15h-30V55c0-8-7-15-15-15z' fill='white'/></svg>",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%23007AFF'/><path d='M256 106c-21 0-40 18-40 40v80h-80c-21 0-40 18-40 40s18 40 40 40h80v80c0 21 18 40 40 40s40-18 40-40v-80h80c21 0 40-18 40-40s-18-40-40-40h-80v-80c0-21-18-40-40-40z' fill='white'/></svg>",
       "type": "image/svg+xml",
       "sizes": "512x512",
       "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#007AFF",
   "background_color": "#F2F2F7",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "scope": "/",
+  "prefer_related_applications": false
 }
