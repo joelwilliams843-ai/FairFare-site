@@ -106,11 +106,22 @@ def generate_ride_estimates(distance_miles: float, pickup: Location, destination
     dest_lat = destination.lat or 0
     dest_lng = destination.lng or 0
     
-    # Uber deep link format
-    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}"
+    # URL encode addresses for web fallback
+    from urllib.parse import quote
+    pickup_address = quote(pickup.address)
+    dest_address = quote(destination.address)
     
-    # Lyft deep link format
+    # Uber deep link format (mobile app)
+    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&product_id=a1111c8c-c720-46c3-8534-2fcdd730040d"
+    
+    # Uber web fallback with pre-filled trip
+    uber_web = f"https://m.uber.com/ul/?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&pickup[formatted_address]={pickup_address}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&dropoff[formatted_address]={dest_address}"
+    
+    # Lyft deep link format (mobile app)
     lyft_deeplink = f"lyft://ridetype?id=lyft&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
+    
+    # Lyft web fallback with pre-filled trip
+    lyft_web = f"https://lyft.com/ride?pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
     
     estimates = [
         RideEstimate(
