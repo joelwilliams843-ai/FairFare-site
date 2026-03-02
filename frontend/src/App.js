@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import "@/App.css";
 import axios from "axios";
-import { MapPin, Navigation, Star, Clock, X, Sparkles, TrendingDown } from "lucide-react";
+import { MapPin, Navigation, Star, Clock, X, Sparkles, TrendingDown, AlertTriangle, Loader2 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -20,6 +20,13 @@ function App() {
   const [results, setResults] = useState(null);
   const [savedRoute, setSavedRoute] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  
+  // Long trip confirmation modal
+  const [showLongTripModal, setShowLongTripModal] = useState(false);
+  const [pendingResults, setPendingResults] = useState(null);
+  
+  // Deep link loading state
+  const [openingApp, setOpeningApp] = useState(null); // "Uber" | "Lyft" | null
   
   // Ride for someone else
   const [rideForOther, setRideForOther] = useState(false);
