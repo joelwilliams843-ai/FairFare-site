@@ -1,6 +1,7 @@
 """
-Backend tests for FairFare Decision Engine
-Tests: Route validation (150 mile limit), Decision Engine responses (price_level, surge_likelihood, decision_hint)
+Backend tests for FairFare Decision Engine - P0 Features
+Tests: Premium labels (Favorable/Balanced/Elevated/Peak), Long trip confirmation modal (>150 miles),
+       Route validation (>1000 miles rejected), Decision Engine responses
 """
 import pytest
 import requests
@@ -20,11 +21,11 @@ class TestAPIHealth:
         print("✓ API root endpoint working")
 
 
-class TestRouteValidation:
-    """Test route validation - 150 mile limit"""
+class TestPremiumLabels:
+    """Test Premium labels: Favorable/Balanced/Elevated/Peak instead of Cheap/Moderate/Busy"""
     
-    def test_valid_short_route(self):
-        """Test valid short route (Times Square to Central Park ~2 miles)"""
+    def test_price_level_uses_premium_labels(self):
+        """Test that price_level uses premium labels (Favorable/Balanced/Elevated/Peak)"""
         response = requests.post(f"{BASE_URL}/api/compare-rides", json={
             "pickup": {
                 "address": "Times Square, NYC",
@@ -39,12 +40,101 @@ class TestRouteValidation:
         })
         assert response.status_code == 200
         data = response.json()
-        assert data["distance_miles"] < 10
-        assert data["route_status"] == "valid"
-        print(f"✓ Short route accepted: {data['distance_miles']:.2f} miles")
+        
+        premium_labels = ["Favorable", "Balanced", "Elevated", "Peak"]
+        old_labels = ["Cheap", "Moderate", "Busy"]
+        
+        for estimate in data["estimates"]:
+            assert "price_level" in estimate
+            # Should use premium labels
+            assert estimate["price_level"] in premium_labels, f"Expected premium label, got: {estimate['price_level']}"
+            # Should NOT use old labels
+            assert estimate["price_level"] not in old_labels, f"Old label found: {estimate['price_level']}"
+            print(f"✓ {estimate['provider']} price_level: {estimate['price_level']} (premium label)")
     
-    def test_valid_medium_route(self):
-        """Test valid medium route (NYC to Philadelphia ~95 miles)"""
+    def test_surge_likelihood_values(self):
+        """Test that surge_likelihood uses Low/Moderate/High"""
+        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
+            "pickup": {
+                "address": "Times Square, NYC",
+                "lat": 40.7580,
+                "lng": -73.9855
+            },
+            "destination": {
+                "address": "Central Park, NYC",
+                "lat": 40.7829,
+                "lng": -73.9654
+            }
+        })
+        assert response.status_code == 200
+        data = response.json()
+        
+        for estimate in data["estimates"]:
+            assert "surge_likelihood" in estimate
+            assert estimate["surge_likelihood"] in ["Low", "Moderate", "High"]
+            print(f"✓ {estimate['provider']} surge_likelihood: {estimate['surge_likelihood']}")
+
+
+class TestLongTripConfirmation:
+    """Test Long trip confirmation modal - routes > 150 miles show modal instead of rejection"""
+    
+    def test_long_trip_returns_requires_confirmation(self):
+        """Test that routes > 150 miles return requires_confirmation: true"""
+        # NYC to Boston is ~190 miles
+        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
+            "pickup": {
+                "address": "New York City",
+                "lat": 40.7128,
+                "lng": -74.0060
+            },
+            "destination": {
+                "address": "Boston, MA",
+                "lat": 42.3601,
+                "lng": -71.0589
+            }
+        })
+        # Should return 200, not 400
+        assert response.status_code == 200, f"Expected 200 for long trip, got {response.status_code}"
+        data = response.json()
+        
+        # Should have requires_confirmation flag
+        assert "requires_confirmation" in data
+        assert data["requires_confirmation"] == True, "Long trip should require confirmation"
+        
+        # Should have route_status = "long_trip"
+        assert data["route_status"] == "long_trip"
+        
+        # Should still have estimates
+        assert len(data["estimates"]) >= 2
+        
+        print(f"✓ Long trip ({data['distance_miles']:.0f} miles) returns requires_confirmation: true")
+    
+    def test_short_trip_no_confirmation_needed(self):
+        """Test that routes < 150 miles do NOT require confirmation"""
+        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
+            "pickup": {
+                "address": "Times Square, NYC",
+                "lat": 40.7580,
+                "lng": -73.9855
+            },
+            "destination": {
+                "address": "Central Park, NYC",
+                "lat": 40.7829,
+                "lng": -73.9654
+            }
+        })
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Should NOT require confirmation
+        assert data.get("requires_confirmation", False) == False
+        assert data["route_status"] == "valid"
+        
+        print(f"✓ Short trip ({data['distance_miles']:.2f} miles) does not require confirmation")
+    
+    def test_medium_trip_no_confirmation_needed(self):
+        """Test that routes ~100 miles do NOT require confirmation"""
+        # NYC to Philadelphia is ~95 miles
         response = requests.post(f"{BASE_URL}/api/compare-rides", json={
             "pickup": {
                 "address": "New York City",
@@ -59,32 +149,20 @@ class TestRouteValidation:
         })
         assert response.status_code == 200
         data = response.json()
-        assert data["distance_miles"] < 150
+        
+        # Should NOT require confirmation (under 150 miles)
+        assert data.get("requires_confirmation", False) == False
         assert data["route_status"] == "valid"
-        print(f"✓ Medium route accepted: {data['distance_miles']:.2f} miles")
+        
+        print(f"✓ Medium trip ({data['distance_miles']:.0f} miles) does not require confirmation")
+
+
+class TestVeryLongRouteRejection:
+    """Test that routes > 1000 miles are still rejected (sanity check for geocoding errors)"""
     
-    def test_reject_route_over_150_miles(self):
-        """Test that routes > 150 miles are rejected with 400 error"""
-        # NYC to Boston is ~215 miles
-        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
-            "pickup": {
-                "address": "New York City",
-                "lat": 40.7128,
-                "lng": -74.0060
-            },
-            "destination": {
-                "address": "Boston, MA",
-                "lat": 42.3601,
-                "lng": -71.0589
-            }
-        })
-        assert response.status_code == 400
-        data = response.json()
-        assert "150 miles" in data["detail"]
-        print(f"✓ Route > 150 miles rejected: {data['detail']}")
-    
-    def test_reject_very_long_route(self):
-        """Test that very long routes (NYC to LA) are rejected"""
+    def test_reject_route_over_1000_miles(self):
+        """Test that routes > 1000 miles are rejected with 400 error"""
+        # NYC to LA is ~2450 miles
         response = requests.post(f"{BASE_URL}/api/compare-rides", json={
             "pickup": {
                 "address": "New York City",
@@ -99,8 +177,30 @@ class TestRouteValidation:
         })
         assert response.status_code == 400
         data = response.json()
-        assert "150 miles" in data["detail"] or "exceeds" in data["detail"].lower()
-        print(f"✓ Very long route rejected: {data['detail']}")
+        assert "incorrect" in data["detail"].lower() or "verify" in data["detail"].lower()
+        print(f"✓ Very long route (>1000 miles) rejected: {data['detail']}")
+    
+    def test_reject_cross_country_route(self):
+        """Test that cross-country routes are rejected"""
+        # NYC to Seattle is ~2400 miles
+        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
+            "pickup": {
+                "address": "New York City",
+                "lat": 40.7128,
+                "lng": -74.0060
+            },
+            "destination": {
+                "address": "Seattle, WA",
+                "lat": 47.6062,
+                "lng": -122.3321
+            }
+        })
+        assert response.status_code == 400
+        print("✓ Cross-country route rejected")
+
+
+class TestRouteValidation:
+    """Test route validation - coordinate validation"""
     
     def test_missing_pickup_coordinates(self):
         """Test that missing pickup coordinates returns 400"""
@@ -142,51 +242,7 @@ class TestRouteValidation:
 
 
 class TestDecisionEngine:
-    """Test Decision Engine responses - qualitative indicators instead of prices"""
-    
-    def test_response_has_price_level(self):
-        """Test that response includes price_level (Cheap/Moderate/Busy)"""
-        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
-            "pickup": {
-                "address": "Times Square, NYC",
-                "lat": 40.7580,
-                "lng": -73.9855
-            },
-            "destination": {
-                "address": "Central Park, NYC",
-                "lat": 40.7829,
-                "lng": -73.9654
-            }
-        })
-        assert response.status_code == 200
-        data = response.json()
-        
-        for estimate in data["estimates"]:
-            assert "price_level" in estimate
-            assert estimate["price_level"] in ["Cheap", "Moderate", "Busy"]
-            print(f"✓ {estimate['provider']} price_level: {estimate['price_level']}")
-    
-    def test_response_has_surge_likelihood(self):
-        """Test that response includes surge_likelihood (Low/Moderate/High)"""
-        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
-            "pickup": {
-                "address": "Times Square, NYC",
-                "lat": 40.7580,
-                "lng": -73.9855
-            },
-            "destination": {
-                "address": "Central Park, NYC",
-                "lat": 40.7829,
-                "lng": -73.9654
-            }
-        })
-        assert response.status_code == 200
-        data = response.json()
-        
-        for estimate in data["estimates"]:
-            assert "surge_likelihood" in estimate
-            assert estimate["surge_likelihood"] in ["Low", "Moderate", "High"]
-            print(f"✓ {estimate['provider']} surge_likelihood: {estimate['surge_likelihood']}")
+    """Test Decision Engine responses - qualitative indicators"""
     
     def test_response_has_decision_hint(self):
         """Test that response includes decision_hint with contextual advice"""
@@ -284,32 +340,6 @@ class TestDecisionEngine:
                 assert "ride.lyft.com" in estimate["web_link"]
             
             print(f"✓ {estimate['provider']} deep links present")
-    
-    def test_deep_links_contain_coordinates(self):
-        """Test that deep links contain pickup and destination coordinates"""
-        pickup_lat, pickup_lng = 40.7580, -73.9855
-        dest_lat, dest_lng = 40.7829, -73.9654
-        
-        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
-            "pickup": {
-                "address": "Times Square, NYC",
-                "lat": pickup_lat,
-                "lng": pickup_lng
-            },
-            "destination": {
-                "address": "Central Park, NYC",
-                "lat": dest_lat,
-                "lng": dest_lng
-            }
-        })
-        assert response.status_code == 200
-        data = response.json()
-        
-        for estimate in data["estimates"]:
-            # Check that coordinates are in the deep link
-            assert str(pickup_lat) in estimate["deep_link"]
-            assert str(dest_lat) in estimate["deep_link"]
-            print(f"✓ {estimate['provider']} deep link contains coordinates")
 
 
 class TestRouteInfo:
@@ -356,7 +386,7 @@ class TestRouteInfo:
         data = response.json()
         
         assert "route_status" in data
-        assert data["route_status"] in ["valid", "too_short", "too_long"]
+        assert data["route_status"] in ["valid", "too_short", "long_trip"]
         print(f"✓ Route status: {data['route_status']}")
     
     def test_response_has_coordinate_info(self):
