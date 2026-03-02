@@ -64,6 +64,8 @@ class CompareResponse(BaseModel):
     duration_minutes: int
     pickup_coords: dict
     destination_coords: dict
+    route_status: str  # "valid", "too_long", "too_short"
+    decision_hint: str  # Contextual advice for the user
 
 
 def calculate_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
