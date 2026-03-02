@@ -714,7 +714,10 @@ I'll text you when the driver is assigned.`);
                 <Sparkles className="logo-icon" size={28} />
                 <h2 className="results-title">FairFare</h2>
               </div>
-              <p className="distance-text">{results.distance_miles} miles</p>
+              <p className="distance-text">
+                {results.distance_miles} miles • {results.duration_minutes} min
+              </p>
+              <p className="estimate-disclaimer">Price Estimates</p>
               {lastUpdated && (
                 <p className="timestamp-text">
                   <Clock size={14} />
