@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import "@/App.css";
 import axios from "axios";
-import { MapPin, Navigation, Star, Clock, X } from "lucide-react";
+import { MapPin, Navigation, Star, Clock, X, Sparkles, TrendingDown } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -19,6 +19,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [savedRoute, setSavedRoute] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
   
   // Autocomplete states
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
@@ -31,6 +32,7 @@ function App() {
   const pickupRef = useRef(null);
   const destRef = useRef(null);
   const autocompleteTimer = useRef(null);
+  const updateTimer = useRef(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("weekendRide");
