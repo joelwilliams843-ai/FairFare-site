@@ -411,6 +411,14 @@ function App() {
       });
       console.log('Response:', response.data);
       
+      // Check if long trip requires confirmation
+      if (response.data.requires_confirmation) {
+        setPendingResults(response.data);
+        setShowLongTripModal(true);
+        setLoading(false);
+        return;
+      }
+      
       setResults(response.data);
       setLastUpdated(new Date());
       setView("results");
@@ -424,6 +432,23 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Confirm long trip and proceed to results
+  const confirmLongTrip = () => {
+    if (pendingResults) {
+      setResults(pendingResults);
+      setLastUpdated(new Date());
+      setPendingResults(null);
+      setShowLongTripModal(false);
+      setView("results");
+    }
+  };
+
+  // Cancel long trip confirmation
+  const cancelLongTrip = () => {
+    setPendingResults(null);
+    setShowLongTripModal(false);
   };
 
   const refreshPrices = async () => {
