@@ -236,23 +236,47 @@ function App() {
       setPickupSuggestions([]);
       setShowPickupSuggestions(false);
       saveToRecent(suggestion.display_name);
+      console.log('Pickup selected:', {
+        address: suggestion.display_name,
+        lat: suggestion.lat,
+        lng: suggestion.lon
+      });
     } else {
       setDestination(suggestion.display_name);
       setDestCoords({ lat: suggestion.lat, lng: suggestion.lon });
       setDestSuggestions([]);
       setShowDestSuggestions(false);
       saveToRecent(suggestion.display_name);
+      console.log('Destination selected:', {
+        address: suggestion.display_name,
+        lat: suggestion.lat,
+        lng: suggestion.lon
+      });
     }
   };
 
   const selectRecentLocation = (location, isPickup) => {
     if (isPickup) {
       setPickup(location);
+      setPickupCoords(null); // Will need to re-geocode
       setShowPickupSuggestions(false);
     } else {
       setDestination(location);
+      setDestCoords(null); // Will need to re-geocode
       setShowDestSuggestions(false);
     }
+  };
+
+  // Check if we have valid coordinates for comparison
+  const canCompare = () => {
+    return (
+      pickup &&
+      destination &&
+      pickupCoords?.lat &&
+      pickupCoords?.lng &&
+      destCoords?.lat &&
+      destCoords?.lng
+    );
   };
 
   const compareRides = async () => {
