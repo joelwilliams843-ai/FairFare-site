@@ -444,17 +444,24 @@ function App() {
     }
   };
 
-  const getBestPrice = () => {
+  // Best option based on current conditions (not price)
+  const getBestOption = () => {
     if (!results || !results.estimates) return null;
     const estimates = results.estimates;
     if (estimates.length < 2) return null;
     
     const uber = estimates[0];
     const lyft = estimates[1];
-    const uberAvg = (uber.price_min + uber.price_max) / 2;
-    const lyftAvg = (lyft.price_min + lyft.price_max) / 2;
     
-    return uberAvg < lyftAvg ? "Uber" : "Lyft";
+    // Compare by surge likelihood and availability
+    const uberScore = (uber.surge_likelihood === "Low" ? 0 : uber.surge_likelihood === "Moderate" ? 1 : 2);
+    const lyftScore = (lyft.surge_likelihood === "Low" ? 0 : lyft.surge_likelihood === "Moderate" ? 1 : 2);
+    
+    if (uberScore < lyftScore) return "Uber";
+    if (lyftScore < uberScore) return "Lyft";
+    
+    // If tied, use wait time
+    return uber.eta_minutes <= lyft.eta_minutes ? "Uber" : "Lyft";
   };
 
   const saveWeekendRide = () => {
