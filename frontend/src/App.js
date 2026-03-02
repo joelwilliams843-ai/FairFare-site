@@ -341,7 +341,7 @@ function App() {
     }
   };
 
-  const openDeepLink = (estimate) => {
+  const openDeepLink = async (estimate) => {
     try {
       const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
       const isAndroid = /Android/.test(navigator.userAgent);
@@ -353,34 +353,84 @@ function App() {
       
       if (isMobile) {
         // Mobile: Try native app first
-        const openedApp = window.open(estimate.deep_link, '_self');
+        let appOpened = false;
         
-        // Fallback to web if app doesn't open
-        setTimeout(() => {
-          if (!document.hidden) {
-            // If page is still visible, app didn't open
+        // Create hidden iframe to attempt deep link
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = estimate.deep_link;
+        document.body.appendChild(iframe);
+        
+        // Set timeout to detect if app opened
+        const timeout = setTimeout(() => {
+          if (!appOpened) {
+            // App didn't open - try web link
+            console.log('App not detected, opening web link');
             window.location.href = estimate.web_link;
           }
         }, 2500);
+        
+        // Detect if user left the page (app opened)
+        const detectAppOpen = () => {
+          if (document.hidden) {
+            appOpened = true;
+            clearTimeout(timeout);
+            document.body.removeChild(iframe);
+          }
+        };
+        
+        document.addEventListener('visibilitychange', detectAppOpen);
+        
+        // Cleanup
+        setTimeout(() => {
+          document.removeEventListener('visibilitychange', detectAppOpen);
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 3000);
+        
       } else {
         // Desktop: Open web version in new tab
         const newWindow = window.open(estimate.web_link, '_blank', 'noopener,noreferrer');
         
         if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-          // Pop-up blocked - show message and use current tab
-          toast.info('Opening in current tab...');
-          setTimeout(() => {
-            window.location.href = estimate.web_link;
-          }, 1000);
+          // Pop-up blocked - try clipboard fallback
+          await copyRouteToClipboard();
         }
       }
     } catch (error) {
       console.error('Deep link error:', error);
-      toast.error('Could not open app. Opening in browser...');
-      // Fallback: Open web link in current tab
-      setTimeout(() => {
-        window.location.href = estimate.web_link;
-      }, 1000);
+      // Fallback: Copy route to clipboard
+      await copyRouteToClipboard();
+    }
+  };
+
+  const copyRouteToClipboard = async () => {
+    try {
+      const routeText = `Pickup: ${pickup}\nDestination: ${destination}`;
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(routeText);
+        toast.success(`📋 Route copied! Paste into ${results?.estimates?.[0]?.provider || 'app'}.`, {
+          duration: 4000
+        });
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = routeText;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        toast.success('📋 Route copied to clipboard!', {
+          duration: 4000
+        });
+      }
+    } catch (error) {
+      console.error('Clipboard error:', error);
+      toast.error('Could not copy route. Please enter manually.');
     }
   };
 
