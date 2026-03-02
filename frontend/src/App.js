@@ -448,6 +448,48 @@ function App() {
     }
   };
 
+  const copyRiderDetails = async () => {
+    try {
+      const details = `Your ride is being requested.
+Pickup: ${pickup}
+Destination: ${destination}${pickupNote ? `\nNote: ${pickupNote}` : ''}
+I'll text you when the driver is assigned.`;
+      
+      await navigator.clipboard.writeText(details);
+      toast.success('📋 Rider details copied!', { duration: 4000 });
+    } catch (error) {
+      toast.error('Could not copy details.');
+    }
+  };
+
+  const sendSMSToPassenger = () => {
+    const message = encodeURIComponent(`Your ride is being requested.
+Pickup: ${pickup}
+Destination: ${destination}${pickupNote ? `\nNote: ${pickupNote}` : ''}
+I'll text you when the driver is assigned.`);
+    
+    window.location.href = `sms:${passengerPhone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${message}`;
+  };
+
+  const saveFrequentRider = () => {
+    if (!passengerName || !passengerPhone) return;
+    
+    const rider = {
+      name: passengerName,
+      phone: passengerPhone
+    };
+    
+    const updated = [rider, ...frequentRiders.filter(r => r.phone !== passengerPhone)].slice(0, 5);
+    setFrequentRiders(updated);
+    localStorage.setItem('frequentRiders', JSON.stringify(updated));
+    toast.success('Saved as frequent rider!');
+  };
+
+  const loadFrequentRider = (rider) => {
+    setPassengerName(rider.name);
+    setPassengerPhone(rider.phone);
+  };
+
   return (
     <div className="app-container">
       <Toaster position="top-center" richColors />
