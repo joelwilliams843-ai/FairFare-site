@@ -783,10 +783,10 @@ I'll text you when the driver is assigned.`);
             <button
               data-testid="compare-btn"
               onClick={compareRides}
-              disabled={loading}
+              disabled={loading || !canCompare()}
               className="compare-button"
             >
-              {loading ? "Comparing..." : "Compare Rides"}
+              {loading ? "Comparing..." : canCompare() ? "Compare Rides" : getValidationMessage()}
             </button>
 
             {pickup && destination && !savedRoute && (
