@@ -266,6 +266,7 @@ function App() {
         },
       });
       setResults(response.data);
+      setLastUpdated(new Date());
       setView("results");
     } catch (error) {
       console.error("Error comparing rides:", error);
