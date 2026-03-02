@@ -306,13 +306,15 @@ async def compare_rides(request: CompareRequest):
     duration = estimate_duration(distance)
     
     # Generate decision-based estimates (no fake prices)
-    estimates, decision_hint = generate_decision_estimates(distance, request.pickup, request.destination)
+    estimates, decision_hint, recommendation = generate_decision_estimates(distance, request.pickup, request.destination)
     
     # Adjust decision hint for edge cases
     if route_status == "too_short":
-        decision_hint = "Very short trip - consider walking or biking. " + decision_hint
+        decision_hint = "Very short trip — consider walking or biking."
+        recommendation = "Tip: Save money and time by walking this short distance."
     elif route_status == "long_trip":
-        decision_hint = f"Long trip ({distance:.0f} miles). " + decision_hint
+        decision_hint = f"Long trip ({distance:.0f} miles) — plan for extended travel time."
+        recommendation = "Recommended: Book now and confirm driver before starting."
     
     return CompareResponse(
         estimates=estimates,
@@ -330,6 +332,7 @@ async def compare_rides(request: CompareRequest):
         },
         route_status=route_status,
         decision_hint=decision_hint,
+        recommendation=recommendation,
         requires_confirmation=requires_confirmation
     )
 
