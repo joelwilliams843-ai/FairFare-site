@@ -21,6 +21,14 @@ function App() {
   const [savedRoute, setSavedRoute] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   
+  // Ride for someone else
+  const [rideForOther, setRideForOther] = useState(false);
+  const [passengerName, setPassengerName] = useState("");
+  const [passengerPhone, setPassengerPhone] = useState("");
+  const [pickupNote, setPickupNote] = useState("");
+  const [frequentRiders, setFrequentRiders] = useState([]);
+  const [showHelperCard, setShowHelperCard] = useState(false);
+  
   // Autocomplete states
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
   const [destSuggestions, setDestSuggestions] = useState([]);
