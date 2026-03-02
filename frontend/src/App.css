@@ -160,58 +160,64 @@
   right: 0;
   margin-top: 0.5rem;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  max-height: 18rem;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  max-height: 20rem;
   overflow-y: auto;
   z-index: 100;
   -webkit-overflow-scrolling: touch;
+  border: none;
 }
 
 .suggestions-header {
-  padding: 0.625rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #8E8E93;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #9CA3AF;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: #F2F2F7;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+  letter-spacing: 0.08em;
+  background: #F9FAFB;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
 }
 
 .suggestion-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
+  gap: 0.875rem;
+  padding: 1rem 1.25rem;
   cursor: pointer;
-  transition: background-color 100ms;
-  border-bottom: 0.5px solid #E5E5EA;
+  transition: background-color 150ms;
+  border-bottom: 1px solid #F3F4F6;
 }
 
 .suggestion-item:last-child {
   border-bottom: none;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+}
+
+.suggestion-item:hover {
+  background: #F9FAFB;
 }
 
 .suggestion-item:active {
-  background: #F2F2F7;
+  background: #F3F4F6;
 }
 
 .suggestion-item.recent {
-  background: #FAFAFA;
+  background: #FAFBFC;
 }
 
 .suggestion-icon {
-  color: #8E8E93;
+  color: #9CA3AF;
   flex-shrink: 0;
 }
 
 .suggestion-text {
   font-size: 0.9375rem;
-  color: #000000;
+  color: #111827;
+  font-weight: 500;
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -221,9 +227,9 @@
 }
 
 .suggestions-divider {
-  height: 0.5px;
-  background: #E5E5EA;
-  margin: 0.25rem 0;
+  height: 1px;
+  background: #F3F4F6;
+  margin: 0.5rem 0;
 }
 
 /* Buttons */
