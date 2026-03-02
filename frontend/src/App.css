@@ -378,6 +378,15 @@
   font-weight: 500;
 }
 
+.estimate-disclaimer {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .timestamp-text {
   display: flex;
   align-items: center;
