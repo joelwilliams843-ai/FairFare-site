@@ -292,6 +292,7 @@ function App() {
         },
       });
       setResults(response.data);
+      setLastUpdated(new Date());
       toast.success("Prices refreshed!");
     } catch (error) {
       console.error("Error refreshing prices:", error);
