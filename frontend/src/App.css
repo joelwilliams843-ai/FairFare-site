@@ -88,24 +88,25 @@
 .input-icon {
   position: absolute;
   left: 1rem;
-  color: #8E8E93;
+  color: #9CA3AF;
   pointer-events: none;
 }
 
 .location-input {
   flex: 1;
-  height: 3rem;
+  height: 3.25rem;
   background: transparent;
   border: none;
   padding: 0 1rem 0 2.75rem;
-  font-size: 1.0625rem;
-  color: #000000;
+  font-size: 1rem;
+  color: #111827;
   outline: none;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .location-input::placeholder {
-  color: #8E8E93;
+  color: #9CA3AF;
+  font-weight: 400;
 }
 
 .gps-button {
@@ -113,11 +114,16 @@
   border: none;
   padding: 0.75rem 1rem;
   cursor: pointer;
-  color: #007AFF;
+  color: #0A84FF;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 100ms;
+  transition: opacity 150ms;
+  border-radius: 10px;
+}
+
+.gps-button:hover {
+  background: rgba(10, 132, 255, 0.08);
 }
 
 .gps-button:active {
@@ -129,11 +135,17 @@
   border: none;
   padding: 0.5rem;
   cursor: pointer;
-  color: #8E8E93;
+  color: #9CA3AF;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 100ms;
+  transition: all 150ms;
+  border-radius: 8px;
+}
+
+.clear-button:hover {
+  background: rgba(156, 163, 175, 0.1);
+  color: #6B7280;
 }
 
 .clear-button:active {
