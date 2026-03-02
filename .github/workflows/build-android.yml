@@ -1,0 +1,64 @@
+name: Build Android AAB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'yarn'
+        cache-dependency-path: frontend/yarn.lock
+    
+    - name: Install dependencies
+      working-directory: frontend
+      run: yarn install --frozen-lockfile
+    
+    - name: Build web app
+      working-directory: frontend
+      run: yarn build
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Sync Capacitor
+      working-directory: frontend
+      run: npx cap sync android
+    
+    - name: Decode Keystore
+      working-directory: frontend/android
+      run: |
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > fairfare-upload.keystore
+    
+    - name: Build Release AAB
+      working-directory: frontend/android
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      run: |
+        chmod +x gradlew
+        ./gradlew bundleRelease
+    
+    - name: Upload AAB
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release-aab
+        path: frontend/android/app/build/outputs/bundle/release/app-release.aab
+    
+    - name: Upload Keystore (for backup)
+      uses: actions/upload-artifact@v4
+      with:
+        name: upload-keystore
+        path: frontend/android/fairfare-upload.keystore
