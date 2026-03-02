@@ -540,34 +540,34 @@
 .pick-open-button {
   width: 100%;
   height: 3.5rem;
+  background: linear-gradient(135deg, #0A84FF 0%, #0066CC 100%);
+  color: white;
   border: none;
   border-radius: 14px;
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 200ms ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.25), 0 2px 4px rgba(10, 132, 255, 0.15);
+  letter-spacing: 0.01em;
 }
 
 .pick-open-button:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #0071E3 0%, #0055AA 100%);
+  box-shadow: 0 6px 16px rgba(10, 132, 255, 0.3), 0 3px 6px rgba(10, 132, 255, 0.2);
   transform: translateY(-2px);
 }
 
 .pick-open-button:active {
   transform: translateY(0);
+  /* Haptic feedback simulation */
+  animation: tap-feedback 0.1s ease;
 }
 
-.pick-open-button.uber {
-  background: #000000;
-  color: white;
-}
-
-.pick-open-button.lyft {
-  background: #FF00BF;
-  color: white;
+@keyframes tap-feedback {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+  100% { transform: scale(1); }
 }
 
 .section-divider {
