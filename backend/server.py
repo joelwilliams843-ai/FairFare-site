@@ -241,7 +241,7 @@ async def root():
 
 @api_router.post("/compare-rides", response_model=CompareResponse)
 async def compare_rides(request: CompareRequest):
-    """Compare ride estimates between Uber and Lyft"""
+    """Compare ride estimates between Uber and Lyft - Decision Engine"""
     
     # Validate that we have coordinates
     if not request.pickup.lat or not request.pickup.lng:
@@ -273,21 +273,29 @@ async def compare_rides(request: CompareRequest):
         logging.error(f"Distance calculation error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     
-    # Sanity check: flag unreasonable distances
-    if distance > 500:
-        logging.warning(f"Unusually large distance: {distance:.2f} miles. Coordinates may be incorrect.")
-        logging.warning(f"Pickup: {request.pickup.address} = ({pickup_lat}, {pickup_lng})")
-        logging.warning(f"Destination: {request.destination.address} = ({dest_lat}, {dest_lng})")
+    # ROUTE VALIDATION: Reject unreasonable distances
+    route_status = "valid"
     
-    # Very short distances (< 0.1 miles) might indicate same location
+    if distance > 150:
+        logging.error(f"Route too long: {distance:.2f} miles. Rejecting request.")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Route distance ({distance:.0f} miles) exceeds maximum of 150 miles. Please verify your pickup and destination locations are correct."
+        )
+    
     if distance < 0.1:
-        logging.warning(f"Very short distance: {distance:.2f} miles. Pickup and destination may be the same.")
+        logging.warning(f"Very short distance: {distance:.2f} miles.")
+        route_status = "too_short"
     
     # Calculate estimated duration
     duration = estimate_duration(distance)
     
-    # Generate estimates
-    estimates = generate_ride_estimates(distance, request.pickup, request.destination)
+    # Generate decision-based estimates (no fake prices)
+    estimates, decision_hint = generate_decision_estimates(distance, request.pickup, request.destination)
+    
+    # Adjust decision hint for very short trips
+    if route_status == "too_short":
+        decision_hint = "Very short trip - consider walking or biking. " + decision_hint
     
     return CompareResponse(
         estimates=estimates,
@@ -302,7 +310,9 @@ async def compare_rides(request: CompareRequest):
             "lat": dest_lat,
             "lng": dest_lng,
             "address": request.destination.address
-        }
+        },
+        route_status=route_status,
+        decision_hint=decision_hint
     )
 
 @api_router.post("/status", response_model=StatusCheck)
