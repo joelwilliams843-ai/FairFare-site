@@ -626,6 +626,9 @@ function App() {
                   Best Value
                 </div>
               </div>
+              <p className="pick-recommendation">
+                Recommended based on price + arrival time
+              </p>
               <div className="pick-content">
                 <div className="pick-provider-info">
                   <h3 className="pick-provider">{getFairFarePick().provider}</h3>
@@ -646,9 +649,9 @@ function App() {
                 <button
                   data-testid="pick-open-btn"
                   onClick={() => openDeepLink(getFairFarePick())}
-                  className={`pick-open-button ${getFairFarePick().provider.toLowerCase()}`}
+                  className="pick-open-button"
                 >
-                  Request {getFairFarePick().provider}
+                  Continue in {getFairFarePick().provider}
                 </button>
               </div>
             </div>
