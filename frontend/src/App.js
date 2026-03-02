@@ -985,12 +985,11 @@ I'll text you when the driver is assigned.`);
 
                 <div className="estimate-details">
                   <div className={`detail-item demand-level-indicator ${getDemandLevelClass(estimate.price_level)}`}>
-                    <span className="detail-label">Demand estimate</span>
                     <span className="demand-level-badge">{estimate.price_level}</span>
                   </div>
                   <div className="detail-item">
                     <Clock size={16} className="clock-icon" />
-                    <span className="wait-time">{estimate.eta_minutes} min</span>
+                    <span className="wait-time">{estimate.eta_minutes} min away</span>
                   </div>
                 </div>
 
