@@ -255,15 +255,62 @@ function App() {
     }
   };
 
-  const selectRecentLocation = (location, isPickup) => {
+  // Geocode an address to get coordinates
+  const geocodeAddress = async (address) => {
+    try {
+      const response = await axios.get(`${NOMINATIM_BASE}/search`, {
+        params: {
+          q: address,
+          format: 'json',
+          limit: 1
+        },
+        headers: {
+          'User-Agent': 'FairFare/1.0'
+        }
+      });
+      
+      if (response.data && response.data.length > 0) {
+        return {
+          lat: parseFloat(response.data[0].lat),
+          lng: parseFloat(response.data[0].lon)
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      return null;
+    }
+  };
+
+  const selectRecentLocation = async (location, isPickup) => {
     if (isPickup) {
       setPickup(location);
-      setPickupCoords(null); // Will need to re-geocode
+      setPickupCoords(null);
       setShowPickupSuggestions(false);
+      
+      // Auto-geocode the recent location
+      toast.info("Getting location coordinates...");
+      const coords = await geocodeAddress(location);
+      if (coords) {
+        setPickupCoords(coords);
+        console.log('Pickup geocoded:', { address: location, ...coords });
+      } else {
+        toast.error("Could not find coordinates. Please select from suggestions.");
+      }
     } else {
       setDestination(location);
-      setDestCoords(null); // Will need to re-geocode
+      setDestCoords(null);
       setShowDestSuggestions(false);
+      
+      // Auto-geocode the recent location
+      toast.info("Getting location coordinates...");
+      const coords = await geocodeAddress(location);
+      if (coords) {
+        setDestCoords(coords);
+        console.log('Destination geocoded:', { address: location, ...coords });
+      } else {
+        toast.error("Could not find coordinates. Please select from suggestions.");
+      }
     }
   };
 
