@@ -326,6 +326,15 @@ function App() {
     );
   };
 
+  // Get validation message for the compare button
+  const getValidationMessage = () => {
+    if (!pickup) return "Enter pickup location";
+    if (!destination) return "Enter destination";
+    if (!pickupCoords?.lat || !pickupCoords?.lng) return "Select pickup from suggestions";
+    if (!destCoords?.lat || !destCoords?.lng) return "Select destination from suggestions";
+    return null;
+  };
+
   const compareRides = async () => {
     if (!pickup || !destination) {
       toast.error("Please enter both pickup and destination");
