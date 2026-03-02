@@ -25,7 +25,7 @@ uber://?action=setPickup
   &pickup[longitude]=-122.3790
   &dropoff[latitude]=37.7879
   &dropoff[longitude]=-122.4075
-  &product_id=a1111c8c-c720-46c3-8534-2fcdd730040d
+  &product_id=fairfare-decision
 ```
 
 **Lyft:**

@@ -145,7 +145,7 @@ def generate_ride_estimates(distance_miles: float, pickup: Location, destination
     dest_address = quote(destination.address)
     
     # Uber deep link format (mobile app)
-    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&product_id=a1111c8c-c720-46c3-8534-2fcdd730040d"
+    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&product_id=fairfare-decision"
     
     # Uber web fallback with pre-filled trip
     uber_web = f"https://m.uber.com/ul/?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&pickup[formatted_address]={pickup_address}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&dropoff[formatted_address]={dest_address}"

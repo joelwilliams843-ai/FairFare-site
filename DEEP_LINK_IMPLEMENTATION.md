@@ -83,7 +83,7 @@ def generate_ride_estimates(distance_miles, pickup, destination):
         f"&pickup[longitude]={pickup_lng}"
         f"&dropoff[latitude]={dest_lat}"
         f"&dropoff[longitude]={dest_lng}"
-        f"&product_id=a1111c8c-c720-46c3-8534-2fcdd730040d"
+        f"&product_id=fairfare-decision"
     )
     
     # Uber web fallback (coordinates + addresses)
@@ -191,7 +191,7 @@ uber://?action=setPickup
   &pickup[longitude]=-122.378955
   &dropoff[latitude]=37.787994
   &dropoff[longitude]=-122.407437
-  &product_id=a1111c8c-c720-46c3-8534-2fcdd730040d
+  &product_id=fairfare-decision
 ```
 
 **Parameters:**
