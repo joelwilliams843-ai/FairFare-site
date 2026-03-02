@@ -65,7 +65,8 @@ class CompareResponse(BaseModel):
     pickup_coords: dict
     destination_coords: dict
     route_status: str  # "valid", "long_trip", "too_short"
-    decision_hint: str  # Contextual advice for the user
+    decision_hint: str  # Contextual situation info
+    recommendation: str  # Actionable advice for the user
     requires_confirmation: bool = False  # True if user should confirm long trip
 
 
