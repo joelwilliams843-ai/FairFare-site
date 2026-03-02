@@ -111,75 +111,127 @@ def estimate_duration(distance_miles: float) -> int:
     return max(duration_minutes, 5)  # Minimum 5 minutes
 
 
-def generate_ride_estimates(distance_miles: float, pickup: Location, destination: Location) -> List[RideEstimate]:
-    """Generate mock ride estimates based on distance"""
+def get_time_context():
+    """Get current time context for decision making"""
+    now = datetime.now(timezone.utc)
+    hour = now.hour
+    weekday = now.weekday()  # 0=Monday, 6=Sunday
     
-    # Base prices and per-mile rates
-    uber_base = 2.50
-    uber_per_mile = 1.75
-    lyft_base = 2.00
-    lyft_per_mile = 1.85
+    is_weekend = weekday >= 5
+    is_rush_hour = (7 <= hour <= 9) or (17 <= hour <= 19)
+    is_late_night = hour >= 22 or hour <= 5
+    is_midday = 10 <= hour <= 16
     
-    # Add realistic variance (±8-12% to simulate live pricing movement)
-    uber_variance = random.uniform(0.88, 1.12)
-    lyft_variance = random.uniform(0.88, 1.12)
+    return {
+        "is_weekend": is_weekend,
+        "is_rush_hour": is_rush_hour,
+        "is_late_night": is_late_night,
+        "is_midday": is_midday,
+        "hour": hour,
+        "weekday": weekday
+    }
+
+
+def generate_decision_estimates(distance_miles: float, pickup: Location, destination: Location) -> tuple[List[RideEstimate], str]:
+    """Generate decision-based ride estimates without fake prices"""
     
-    # Add surge factor (1.0 to 1.5x)
-    surge_factor = random.uniform(1.0, 1.5)
+    time_ctx = get_time_context()
     
-    # Calculate base prices with variance
-    uber_price = (uber_base + distance_miles * uber_per_mile) * surge_factor * uber_variance
-    lyft_price = (lyft_base + distance_miles * lyft_per_mile) * surge_factor * lyft_variance
+    # Determine price level and surge based on time context (real signals)
+    if time_ctx["is_rush_hour"]:
+        uber_price_level = "Busy"
+        lyft_price_level = "Busy"
+        uber_surge = "High"
+        lyft_surge = "High"
+        uber_availability = "Limited"
+        lyft_availability = "Limited"
+        decision_hint = "Rush hour pricing in effect. Consider waiting 30-60 min for better rates."
+    elif time_ctx["is_late_night"]:
+        uber_price_level = "Moderate"
+        lyft_price_level = "Moderate"
+        uber_surge = "Moderate"
+        lyft_surge = "Low"
+        uber_availability = "Limited"
+        lyft_availability = "Limited"
+        decision_hint = "Late night - fewer drivers. Rides may take longer to arrive."
+    elif time_ctx["is_weekend"] and not time_ctx["is_midday"]:
+        uber_price_level = "Moderate"
+        lyft_price_level = "Moderate"
+        uber_surge = "Moderate"
+        lyft_surge = "Moderate"
+        uber_availability = "Good"
+        lyft_availability = "Good"
+        decision_hint = "Weekend evening - moderate demand. Good time to book."
+    else:
+        uber_price_level = "Cheap"
+        lyft_price_level = "Cheap"
+        uber_surge = "Low"
+        lyft_surge = "Low"
+        uber_availability = "Good"
+        lyft_availability = "Good"
+        decision_hint = "Low demand period - good time to book at standard rates."
     
-    # Wait times (2-12 minutes, inversely related to surge)
-    uber_wait = random.randint(2, 8) if surge_factor < 1.3 else random.randint(6, 12)
-    lyft_wait = random.randint(2, 8) if surge_factor < 1.3 else random.randint(6, 12)
+    # Longer distances may have better highway rates
+    if distance_miles > 20:
+        decision_hint += " Longer trip - highway rates may apply."
     
-    # Create deep links with coordinates properly structured
+    # Wait times based on availability (realistic estimates)
+    if uber_availability == "Good":
+        uber_wait = random.randint(2, 6)
+    elif uber_availability == "Limited":
+        uber_wait = random.randint(6, 12)
+    else:
+        uber_wait = random.randint(10, 18)
+    
+    if lyft_availability == "Good":
+        lyft_wait = random.randint(2, 6)
+    elif lyft_availability == "Limited":
+        lyft_wait = random.randint(6, 12)
+    else:
+        lyft_wait = random.randint(10, 18)
+    
+    # Create deep links with coordinates
     pickup_lat = pickup.lat or 0
     pickup_lng = pickup.lng or 0
     dest_lat = destination.lat or 0
     dest_lng = destination.lng or 0
     
-    # URL encode addresses for web fallback
     from urllib.parse import quote
     pickup_address = quote(pickup.address)
     dest_address = quote(destination.address)
     
-    # Uber deep link format (mobile app)
-    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&product_id=fairfare-decision"
-    
-    # Uber web fallback with pre-filled trip
+    # Uber deep link format
+    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}"
     uber_web = f"https://m.uber.com/ul/?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&pickup[formatted_address]={pickup_address}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&dropoff[formatted_address]={dest_address}"
     
-    # Lyft deep link format (mobile app)
+    # Lyft deep link format
     lyft_deeplink = f"lyft://ridetype?id=lyft&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
-    
-    # Lyft web fallback with pre-filled trip
-    lyft_web = f"https://ride.lyft.com/?action=ride&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
+    lyft_web = f"https://ride.lyft.com/?pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
     
     estimates = [
         RideEstimate(
             provider="Uber",
             ride_type="UberX",
-            price_min=round(uber_price * 0.92, 2),
-            price_max=round(uber_price * 1.08, 2),
-            wait_time=uber_wait,
+            eta_minutes=uber_wait,
+            price_level=uber_price_level,
+            surge_likelihood=uber_surge,
+            availability=uber_availability,
             deep_link=uber_deeplink,
             web_link=uber_web
         ),
         RideEstimate(
             provider="Lyft",
             ride_type="Standard",
-            price_min=round(lyft_price * 0.92, 2),
-            price_max=round(lyft_price * 1.08, 2),
-            wait_time=lyft_wait,
+            eta_minutes=lyft_wait,
+            price_level=lyft_price_level,
+            surge_likelihood=lyft_surge,
+            availability=lyft_availability,
             deep_link=lyft_deeplink,
             web_link=lyft_web
         )
     ]
     
-    return estimates
+    return estimates, decision_hint
 
 
 # Add your routes to the router instead of directly to app
