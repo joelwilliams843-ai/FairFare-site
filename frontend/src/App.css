@@ -1,17 +1,17 @@
-/* iOS-style Utility App Styles */
+/* Premium Marketing Site Style */
 
 .app-container {
   max-width: 28rem;
   margin: 0 auto;
   min-height: 100vh;
-  background: #F2F2F7;
+  background: linear-gradient(180deg, #F8F9FA 0%, #FFFFFF 100%);
   position: relative;
   font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Input View */
 .input-view {
-  padding: 1.5rem 1rem;
+  padding: 2rem 1.25rem;
   min-height: 100vh;
 }
 
@@ -22,35 +22,36 @@
 }
 
 .app-title {
-  font-size: 2rem;
-  font-weight: 600;
+  font-size: 2.25rem;
+  font-weight: 700;
   color: #000000;
-  margin: 0 0 0.5rem 0;
-  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.03em;
 }
 
 .app-subtitle {
   font-size: 1.0625rem;
-  color: #8E8E93;
+  color: #6B7280;
   margin: 0;
-  font-weight: 400;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 /* Input Section */
 .input-section {
   background: #FFFFFF;
-  border-radius: 20px;
-  padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 18px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+  border: none;
 }
 
 .input-group {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .input-group:last-of-type {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .input-wrapper-container {
@@ -61,13 +62,16 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: #E5E5EA;
-  border-radius: 12px;
-  transition: background-color 150ms;
+  background: #F3F4F6;
+  border-radius: 14px;
+  transition: all 200ms ease;
+  border: 2px solid transparent;
 }
 
 .input-wrapper:focus-within {
-  background: #D1D1D6;
+  background: #FFFFFF;
+  border-color: #0A84FF;
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.08);
 }
 
 .input-label {
