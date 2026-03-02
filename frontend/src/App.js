@@ -599,9 +599,63 @@ function App() {
               ← Back
             </button>
             <div className="results-info">
-              <h2 className="results-title">Comparison Results</h2>
+              <div className="logo-container">
+                <Sparkles className="logo-icon" size={28} />
+                <h2 className="results-title">FairFare</h2>
+              </div>
               <p className="distance-text">{results.distance_miles} miles</p>
+              {lastUpdated && (
+                <p className="timestamp-text">
+                  <Clock size={14} />
+                  Updated {getTimeAgo(lastUpdated)}
+                </p>
+              )}
             </div>
+          </div>
+
+          {/* FairFare Pick Card */}
+          {getFairFarePick() && (
+            <div className="fairfare-pick-card" data-testid="fairfare-pick">
+              <div className="pick-header">
+                <div className="pick-badge">
+                  <Sparkles size={16} />
+                  <span>FairFare Pick</span>
+                </div>
+                <div className="pick-subtitle">
+                  <TrendingDown size={14} />
+                  Best Value
+                </div>
+              </div>
+              <div className="pick-content">
+                <div className="pick-provider-info">
+                  <h3 className="pick-provider">{getFairFarePick().provider}</h3>
+                  <span className="pick-ride-type">{getFairFarePick().ride_type}</span>
+                </div>
+                <div className="pick-details">
+                  <div className="pick-price">
+                    <span className="pick-price-label">Price</span>
+                    <span className="pick-price-value">
+                      ${getFairFarePick().price_min} - ${getFairFarePick().price_max}
+                    </span>
+                  </div>
+                  <div className="pick-wait">
+                    <Clock size={18} />
+                    <span>{getFairFarePick().wait_time} min</span>
+                  </div>
+                </div>
+                <button
+                  data-testid="pick-open-btn"
+                  onClick={() => openDeepLink(getFairFarePick())}
+                  className={`pick-open-button ${getFairFarePick().provider.toLowerCase()}`}
+                >
+                  Request {getFairFarePick().provider}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="section-divider">
+            <span>All Options</span>
           </div>
 
           <div className="estimates-list">
