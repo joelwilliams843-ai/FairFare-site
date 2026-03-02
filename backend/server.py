@@ -52,9 +52,9 @@ class RideEstimate(BaseModel):
     provider: str
     ride_type: str
     eta_minutes: int  # Pickup time estimate
-    price_level: str  # "cheap", "moderate", "busy"
-    surge_likelihood: str  # "none", "low", "moderate", "high"
-    surge_indicator: float  # 1.0 = normal, >1.0 = surge
+    price_level: str  # "Cheap", "Moderate", "Busy"
+    surge_likelihood: str  # "Low", "Moderate", "High"
+    availability: str  # "Good", "Limited", "Busy"
     deep_link: str
     web_link: str
 
