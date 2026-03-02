@@ -114,13 +114,13 @@ function App() {
     return scored[0];
   };
 
-  // Get demand level color class (Premium labels: Favorable, Balanced, Elevated, Peak)
+  // Get demand level color class (Traveler-friendly language)
   const getDemandLevelClass = (level) => {
     switch(level) {
-      case "Favorable": return "demand-favorable";
-      case "Balanced": return "demand-balanced";
-      case "Elevated": return "demand-elevated";
-      case "Peak": return "demand-peak";
+      case "Good time to ride": return "demand-good";
+      case "Normal demand": return "demand-normal";
+      case "Busy — expect delays": return "demand-busy";
+      case "High demand — consider waiting": return "demand-high";
       default: return "";
     }
   };
