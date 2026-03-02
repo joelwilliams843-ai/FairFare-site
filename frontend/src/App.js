@@ -1029,6 +1029,50 @@ I'll text you when the driver is assigned.`);
           </button>
         </div>
       )}
+
+      {/* Long Trip Confirmation Modal */}
+      {showLongTripModal && pendingResults && (
+        <div className="modal-overlay" data-testid="long-trip-modal">
+          <div className="modal-content">
+            <div className="modal-icon">
+              <AlertTriangle size={48} className="warning-icon" />
+            </div>
+            <h3 className="modal-title">Long Trip Detected</h3>
+            <p className="modal-distance">
+              {pendingResults.distance_miles} miles • ~{pendingResults.duration_minutes} min
+            </p>
+            <p className="modal-message">
+              This looks like a long trip. Are you sure you want to continue?
+            </p>
+            <div className="modal-actions">
+              <button
+                data-testid="confirm-long-trip-btn"
+                onClick={confirmLongTrip}
+                className="modal-btn-primary"
+              >
+                Yes, Continue
+              </button>
+              <button
+                data-testid="cancel-long-trip-btn"
+                onClick={cancelLongTrip}
+                className="modal-btn-secondary"
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Opening App Overlay */}
+      {openingApp && (
+        <div className="opening-app-overlay" data-testid="opening-app-overlay">
+          <div className="opening-app-content">
+            <Loader2 size={32} className="spinner" />
+            <p>Opening {openingApp}...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
