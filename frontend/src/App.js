@@ -901,6 +901,14 @@ I'll text you when the driver is assigned.`);
             </div>
           </div>
 
+          {/* Recommendation Banner */}
+          {results.recommendation && (
+            <div className="recommendation-banner" data-testid="recommendation-banner">
+              <Sparkles size={16} className="recommendation-icon" />
+              <span>{results.recommendation}</span>
+            </div>
+          )}
+
           {/* FairFare Pick Card */}
           {getFairFarePick() && (
             <div className="fairfare-pick-card" data-testid="fairfare-pick">
@@ -924,7 +932,6 @@ I'll text you when the driver is assigned.`);
                 </div>
                 <div className="pick-details">
                   <div className={`pick-demand-level ${getDemandLevelClass(getFairFarePick().price_level)}`}>
-                    <span className="demand-label">Demand estimate</span>
                     <span className="demand-value">{getFairFarePick().price_level}</span>
                   </div>
                   <div className="pick-wait">
