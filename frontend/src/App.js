@@ -538,46 +538,47 @@ function App() {
       console.log('Deep link:', estimate.deep_link);
       console.log('Web link:', estimate.web_link);
       
+      // Show "Opening..." loader
+      setOpeningApp(estimate.provider);
+      
       if (isMobile) {
-        // Mobile: Try native app first
+        // Mobile: App-first deep linking with fallback
         let appOpened = false;
         
-        // Create hidden iframe to attempt deep link
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = estimate.deep_link;
-        document.body.appendChild(iframe);
-        
-        // Set timeout to detect if app opened
-        const timeout = setTimeout(() => {
-          if (!appOpened) {
-            // App didn't open - try web link
-            console.log('App not detected, opening web link');
-            window.location.href = estimate.web_link;
-          }
-        }, 2500);
-        
-        // Detect if user left the page (app opened)
-        const detectAppOpen = () => {
+        // Track visibility change to detect if app opened
+        const handleVisibilityChange = () => {
           if (document.hidden) {
             appOpened = true;
-            clearTimeout(timeout);
-            document.body.removeChild(iframe);
+            setOpeningApp(null);
           }
         };
         
-        document.addEventListener('visibilitychange', detectAppOpen);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
         
-        // Cleanup
-        setTimeout(() => {
-          document.removeEventListener('visibilitychange', detectAppOpen);
-          if (document.body.contains(iframe)) {
-            document.body.removeChild(iframe);
+        // Try native app scheme first via window.location
+        // This is more reliable than iframe for modern mobile browsers
+        window.location.href = estimate.deep_link;
+        
+        // Short fallback timer - if app doesn't open within 1.5s, fall back to web
+        const fallbackTimeout = setTimeout(() => {
+          if (!appOpened && !document.hidden) {
+            console.log(`${estimate.provider} app not detected, opening web link`);
+            // Use location.replace to avoid back button issues
+            window.location.href = estimate.web_link;
           }
+          setOpeningApp(null);
+        }, 1500);
+        
+        // Cleanup after 3 seconds
+        setTimeout(() => {
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          clearTimeout(fallbackTimeout);
+          setOpeningApp(null);
         }, 3000);
         
       } else {
         // Desktop: Open web version in new tab
+        setOpeningApp(null);
         const newWindow = window.open(estimate.web_link, '_blank', 'noopener,noreferrer');
         
         if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
@@ -587,6 +588,7 @@ function App() {
       }
     } catch (error) {
       console.error('Deep link error:', error);
+      setOpeningApp(null);
       // Fallback: Copy route to clipboard
       await copyRouteToClipboard();
     }
