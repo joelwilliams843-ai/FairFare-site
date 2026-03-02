@@ -54,6 +54,12 @@ function App() {
       setRecentLocations(JSON.parse(recent));
     }
     
+    // Load frequent riders
+    const riders = localStorage.getItem("frequentRiders");
+    if (riders) {
+      setFrequentRiders(JSON.parse(riders));
+    }
+    
     // Auto-detect location on load
     detectLocation();
   }, []);
