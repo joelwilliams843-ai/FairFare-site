@@ -275,15 +275,23 @@ async def compare_rides(request: CompareRequest):
         logging.error(f"Distance calculation error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     
-    # ROUTE VALIDATION: Reject unreasonable distances
+    # ROUTE VALIDATION: Flag (don't reject) long routes
     route_status = "valid"
+    requires_confirmation = False
     
-    if distance > 150:
-        logging.error(f"Route too long: {distance:.2f} miles. Rejecting request.")
+    # Sanity check: Reject obviously bad coordinates (> 1000 miles likely geocoding error)
+    if distance > 1000:
+        logging.error(f"Route appears invalid: {distance:.2f} miles. Likely geocoding error.")
         raise HTTPException(
             status_code=400,
-            detail=f"Route distance ({distance:.0f} miles) exceeds maximum of 150 miles. Please verify your pickup and destination locations are correct."
+            detail=f"Route distance ({distance:.0f} miles) appears incorrect. Please verify your pickup and destination locations."
         )
+    
+    # Long trip (> 150 miles) - allow but flag for confirmation
+    if distance > 150:
+        logging.info(f"Long trip detected: {distance:.2f} miles. Flagging for confirmation.")
+        route_status = "long_trip"
+        requires_confirmation = True
     
     if distance < 0.1:
         logging.warning(f"Very short distance: {distance:.2f} miles.")
@@ -295,9 +303,11 @@ async def compare_rides(request: CompareRequest):
     # Generate decision-based estimates (no fake prices)
     estimates, decision_hint = generate_decision_estimates(distance, request.pickup, request.destination)
     
-    # Adjust decision hint for very short trips
+    # Adjust decision hint for edge cases
     if route_status == "too_short":
         decision_hint = "Very short trip - consider walking or biking. " + decision_hint
+    elif route_status == "long_trip":
+        decision_hint = f"Long trip ({distance:.0f} miles). " + decision_hint
     
     return CompareResponse(
         estimates=estimates,
@@ -314,7 +324,8 @@ async def compare_rides(request: CompareRequest):
             "address": request.destination.address
         },
         route_status=route_status,
-        decision_hint=decision_hint
+        decision_hint=decision_hint,
+        requires_confirmation=requires_confirmation
     )
 
 @api_router.post("/status", response_model=StatusCheck)
