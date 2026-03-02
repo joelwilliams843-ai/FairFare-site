@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    name: Build Signed AAB
+    name: Build Signed Release AAB
     runs-on: ubuntu-latest
     
     steps:
@@ -49,11 +49,12 @@ jobs:
       working-directory: frontend
       run: npx cap sync android
     
-    - name: Decode Keystore
+    - name: Decode Keystore from Base64
       working-directory: frontend/android
       run: |
-        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > fairfare-upload.keystore
-        echo "Keystore decoded successfully"
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > fairfare-release-v2.keystore
+        ls -la fairfare-release-v2.keystore
+        echo "Keystore file created successfully"
     
     - name: Update version (if specified)
       if: github.event.inputs.version_name != '1.0' || github.event.inputs.version_code != '1'
@@ -72,30 +73,33 @@ jobs:
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       run: |
-        ./gradlew bundleRelease --no-daemon
+        ./gradlew bundleRelease --no-daemon --stacktrace
         echo "Build completed!"
     
-    - name: Verify AAB exists
+    - name: Verify AAB artifact
       run: |
         ls -la frontend/android/app/build/outputs/bundle/release/
-        file frontend/android/app/build/outputs/bundle/release/app-release.aab
+        echo "AAB file size:"
+        du -h frontend/android/app/build/outputs/bundle/release/app-release.aab
     
-    - name: Upload AAB Artifact
+    - name: Upload app-release.aab
       uses: actions/upload-artifact@v4
       with:
-        name: fairfare-${{ github.event.inputs.version_name || '1.0' }}-release
+        name: app-release
         path: frontend/android/app/build/outputs/bundle/release/app-release.aab
         retention-days: 90
+        if-no-files-found: error
     
     - name: Build Summary
       run: |
-        echo "## ✅ Build Successful!" >> $GITHUB_STEP_SUMMARY
+        echo "## ✅ Android AAB Build Successful" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
         echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-        echo "| Package | com.fairfare.app |" >> $GITHUB_STEP_SUMMARY
-        echo "| Version | ${{ github.event.inputs.version_name || '1.0' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Version Code | ${{ github.event.inputs.version_code || '1' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Build Type | Release (signed) |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Package** | com.fairfare.app |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Version** | ${{ github.event.inputs.version_name || '1.0' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Version Code** | ${{ github.event.inputs.version_code || '1' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Build Type** | Release (signed) |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Artifact** | app-release.aab |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Download the AAB from the **Artifacts** section below." >> $GITHUB_STEP_SUMMARY
+        echo "📦 Download from **Artifacts** section below." >> $GITHUB_STEP_SUMMARY
