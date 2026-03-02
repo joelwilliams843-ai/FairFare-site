@@ -694,9 +694,9 @@ function App() {
                 <button
                   data-testid={`${estimate.provider.toLowerCase()}-open-btn`}
                   onClick={() => openDeepLink(estimate)}
-                  className={`open-app-button ${estimate.provider.toLowerCase()}`}
+                  className="open-app-button"
                 >
-                  Open in {estimate.provider}
+                  Continue in {estimate.provider}
                 </button>
               </div>
             ))}
