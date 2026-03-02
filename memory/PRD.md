@@ -14,17 +14,31 @@ Build a lightweight, mobile-first PWA called "FairFare" to compare ride prices a
 
 ### Route Validation Layer (P0 - COMPLETED)
 - ✅ Both pickup AND destination must have valid lat/lng before comparison
-- ✅ Distance must be < 150 miles (reject with clear error message if exceeded)
+- ✅ Distance > 150 miles shows confirmation modal (not hard rejection)
+- ✅ Distance > 1000 miles rejected (geocoding sanity check)
 - ✅ Frontend disables "Compare" button until coordinates are validated
 - ✅ Auto-geocode when selecting from recent locations
 
 ### Decision Engine (P0 - COMPLETED)
 - ✅ No fake numerical pricing - removed all dollar amounts
-- ✅ Qualitative demand indicators: "Cheap", "Moderate", "Busy"
-- ✅ Surge likelihood: "Low", "Moderate", "High"
+- ✅ Premium demand labels: "Favorable", "Balanced", "Elevated", "Peak"
+- ✅ Surge likelihood: "Low", "Moderate", "High" (separate line)
+- ✅ "Demand estimate" labeling to indicate data is estimated
 - ✅ Contextual decision hints based on time of day
 - ✅ "Live price shown in app" messaging
-- ✅ Color-coded indicators (green=good, yellow=moderate, red=busy)
+- ✅ Color-coded indicators (green/yellow/orange/red)
+
+### Deep Link Improvements (P0 - COMPLETED)
+- ✅ App-first deep linking: Try native scheme first (lyft://...)
+- ✅ Short fallback timer (1.5s) to web if app not detected
+- ✅ "Opening [Provider]..." micro-loader on button tap
+- ✅ Visibility change detection for app open success
+
+### Long Trip Handling (P0 - COMPLETED)
+- ✅ Routes > 150 miles show confirmation modal
+- ✅ "Long Trip Detected" with distance/duration
+- ✅ "Yes, Continue" and "Go Back" buttons
+- ✅ Routes > 1000 miles still rejected (geocoding error protection)
 
 ### Core Features (COMPLETED)
 - ✅ Address autocomplete via OpenStreetMap Nominatim
@@ -66,26 +80,22 @@ Build a lightweight, mobile-first PWA called "FairFare" to compare ride prices a
 
 ## API Endpoints
 - `POST /api/compare-rides` - Returns Decision Engine data (no prices)
+  - Response includes: `requires_confirmation: true` for routes > 150 miles
 - `GET /api/` - Health check
 
 ## What's Implemented (March 2026)
 
-### Decision Engine Pivot
-- Removed all fake pricing logic from backend
-- Added time-based heuristics for demand/surge indicators
-- Backend rejects routes > 150 miles
-- Frontend validates coordinates before enabling Compare
+### P0 Complete - Premium Brand Polish
+1. **Premium Labels:** Favorable/Balanced/Elevated/Peak (removed "Cheap")
+2. **Long Trip Modal:** Confirmation for > 150 miles, still rejects > 1000 miles
+3. **Deep Link Fix:** App-first with "Opening..." loader
+4. **Demand Estimate Label:** Clearly marks data as estimated
 
-### Route Validation
-- Frontend disables Compare button until both coords valid
-- Shows validation message: "Enter pickup location", "Select pickup from suggestions", etc.
-- Recent location selection now auto-geocodes
-
-### UI Updates
-- Demand levels with color coding (Cheap=green, Moderate=yellow, Busy=red)
-- Surge likelihood indicators
-- "Live price shown in app" messaging
-- "Best Right Now" instead of "Best Value"
+### Previous Work
+- Decision Engine Pivot (no fake prices)
+- Route Validation Layer
+- Coordinate validation before comparison
+- Auto-geocode for recent locations
 
 ## Backlog
 
@@ -96,6 +106,10 @@ Build a lightweight, mobile-first PWA called "FairFare" to compare ride prices a
   - SMS sharing
 
 ### P2 - Future
+- [ ] "Best Time to Book" feature with safe framing
+  - Generalized insights (time-of-day, day-of-week)
+  - "Tends to be calmer after 9pm (estimate)"
+  - Confidence indicators: Low/Med/High
 - [ ] "FairFare Plus - Surge Guard" feature
   - Price monitoring
   - Surge detection alerts
@@ -110,5 +124,5 @@ Build a lightweight, mobile-first PWA called "FairFare" to compare ride prices a
 - Geocoding depends on OpenStreetMap Nominatim availability
 
 ## Test Reports
-- `/app/test_reports/iteration_4.json` - All Decision Engine tests passing
+- `/app/test_reports/iteration_5.json` - P0 features all passing
 - `/app/backend/tests/test_decision_engine.py` - pytest tests
