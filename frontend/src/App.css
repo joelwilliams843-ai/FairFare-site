@@ -235,39 +235,45 @@
 /* Buttons */
 .compare-button {
   width: 100%;
-  height: 3rem;
-  background: #007AFF;
+  height: 3.25rem;
+  background: #0A84FF;
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 1.0625rem;
+  border-radius: 14px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 100ms;
+  transition: all 200ms ease;
   margin-bottom: 0.75rem;
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2), 0 1px 2px rgba(10, 132, 255, 0.1);
+  letter-spacing: -0.01em;
 }
 
 .compare-button:hover {
-  background: #0062CC;
+  background: #0071E3;
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.25), 0 2px 4px rgba(10, 132, 255, 0.15);
+  transform: translateY(-1px);
 }
 
 .compare-button:active {
-  opacity: 0.8;
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(10, 132, 255, 0.2);
 }
 
 .compare-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .saved-route-btn {
   width: 100%;
   height: 3rem;
-  background: #E5E5EA;
-  color: #007AFF;
-  border: none;
-  border-radius: 12px;
-  font-size: 1.0625rem;
+  background: #F9FAFB;
+  color: #0A84FF;
+  border: 2px solid #E5E7EB;
+  border-radius: 14px;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -275,27 +281,32 @@
   justify-content: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
-  transition: background-color 100ms;
+  transition: all 200ms ease;
+}
+
+.saved-route-btn:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
 }
 
 .saved-route-btn:active {
-  background: #D1D1D6;
+  background: #E5E7EB;
 }
 
 .star-icon {
-  color: #FFD700;
+  color: #FBBF24;
 }
 
 .save-route-btn {
   width: 100%;
   height: 2.5rem;
   background: transparent;
-  color: #007AFF;
+  color: #0A84FF;
   border: none;
   font-size: 0.9375rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity 100ms;
+  transition: opacity 150ms;
 }
 
 .save-route-btn:active {
