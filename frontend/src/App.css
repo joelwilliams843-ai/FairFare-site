@@ -1107,3 +1107,134 @@
 .pick-open-button .spinner {
   margin-right: 0.5rem;
 }
+
+
+/* Legal Pages */
+.legal-page {
+  max-width: 42rem;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #FFFFFF;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.legal-header {
+  position: sticky;
+  top: 0;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 100;
+}
+
+.legal-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.legal-header .back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: #1E6BFF;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  border-radius: 8px;
+  transition: background-color 150ms ease;
+}
+
+.legal-header .back-button:hover {
+  background: #F3F4F6;
+}
+
+.legal-content {
+  padding: 1.5rem;
+  color: #374151;
+  line-height: 1.7;
+}
+
+.legal-date {
+  color: #6B7280;
+  font-size: 0.875rem;
+  margin-bottom: 2rem;
+}
+
+.legal-content section {
+  margin-bottom: 2rem;
+}
+
+.legal-content h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.75rem 0;
+}
+
+.legal-content p {
+  margin: 0 0 1rem 0;
+}
+
+.legal-content ul {
+  margin: 0.5rem 0 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.legal-content li {
+  margin-bottom: 0.5rem;
+}
+
+.legal-content a {
+  color: #1E6BFF;
+  text-decoration: none;
+}
+
+.legal-content a:hover {
+  text-decoration: underline;
+}
+
+/* App Footer with legal links */
+.app-footer {
+  padding: 1.5rem;
+  text-align: center;
+  border-top: 1px solid #E5E7EB;
+  margin-top: 2rem;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.footer-links a {
+  color: #6B7280;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: color 150ms ease;
+}
+
+.footer-links a:hover {
+  color: #1E6BFF;
+}
+
+.footer-copyright {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+/* V1: Hide unfinished features */
+.feature-hidden {
+  display: none !important;
+}
