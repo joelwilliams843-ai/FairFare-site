@@ -852,7 +852,11 @@ I'll text you when the driver is assigned.`);
               <p className="distance-text">
                 {results.distance_miles} miles • {results.duration_minutes} min
               </p>
-              <p className="estimate-disclaimer">Price Estimates</p>
+              {results.decision_hint && (
+                <p className="decision-hint" data-testid="decision-hint">
+                  {results.decision_hint}
+                </p>
+              )}
               {lastUpdated && (
                 <p className="timestamp-text">
                   <Clock size={14} />
@@ -872,11 +876,11 @@ I'll text you when the driver is assigned.`);
                 </div>
                 <div className="pick-subtitle">
                   <TrendingDown size={14} />
-                  Best Value
+                  Best Right Now
                 </div>
               </div>
               <p className="pick-recommendation">
-                Recommended based on price + arrival time
+                Recommended based on availability + arrival time
               </p>
               <div className="pick-content">
                 <div className="pick-provider-info">
@@ -884,17 +888,19 @@ I'll text you when the driver is assigned.`);
                   <span className="pick-ride-type">{getFairFarePick().ride_type}</span>
                 </div>
                 <div className="pick-details">
-                  <div className="pick-price">
-                    <span className="pick-price-label">Price</span>
-                    <span className="pick-price-value">
-                      ${getFairFarePick().price_min} - ${getFairFarePick().price_max}
-                    </span>
+                  <div className={`pick-price-level ${getPriceLevelClass(getFairFarePick().price_level)}`}>
+                    <span className="price-level-label">Demand</span>
+                    <span className="price-level-value">{getFairFarePick().price_level}</span>
                   </div>
                   <div className="pick-wait">
                     <Clock size={18} />
-                    <span>{getFairFarePick().wait_time} min</span>
+                    <span>{getFairFarePick().eta_minutes} min</span>
                   </div>
                 </div>
+                <div className={`surge-indicator ${getSurgeClass(getFairFarePick().surge_likelihood)}`}>
+                  Surge: {getFairFarePick().surge_likelihood}
+                </div>
+                <p className="live-price-note">Live price shown in app</p>
                 <button
                   data-testid="pick-open-btn"
                   onClick={() => openDeepLink(getFairFarePick())}
@@ -917,9 +923,9 @@ I'll text you when the driver is assigned.`);
                 data-testid={`${estimate.provider.toLowerCase()}-card`}
                 className={`estimate-card ${estimate.provider.toLowerCase()}`}
               >
-                {getBestPrice() === estimate.provider && (
-                  <div className="best-price-badge" data-testid="best-price-badge">
-                    Best Price
+                {getBestOption() === estimate.provider && (
+                  <div className="best-option-badge" data-testid="best-option-badge">
+                    Best Option
                   </div>
                 )}
                 <div className="estimate-header">
@@ -928,17 +934,21 @@ I'll text you when the driver is assigned.`);
                 </div>
 
                 <div className="estimate-details">
-                  <div className="detail-item">
-                    <span className="detail-label">Price</span>
-                    <span className="price-range">
-                      ${estimate.price_min} - ${estimate.price_max}
-                    </span>
+                  <div className={`detail-item price-level-indicator ${getPriceLevelClass(estimate.price_level)}`}>
+                    <span className="detail-label">Demand</span>
+                    <span className="price-level-badge">{estimate.price_level}</span>
                   </div>
                   <div className="detail-item">
                     <Clock size={16} className="clock-icon" />
-                    <span className="wait-time">{estimate.wait_time} min</span>
+                    <span className="wait-time">{estimate.eta_minutes} min</span>
                   </div>
                 </div>
+
+                <div className={`surge-status ${getSurgeClass(estimate.surge_likelihood)}`}>
+                  <span>Surge Likelihood: {estimate.surge_likelihood}</span>
+                </div>
+                
+                <p className="live-price-note">Live price shown in app</p>
 
                 <button
                   data-testid={`${estimate.provider.toLowerCase()}-open-btn`}
@@ -959,12 +969,12 @@ I'll text you when the driver is assigned.`);
           </div>
 
           <button
-            data-testid="refresh-prices-btn"
+            data-testid="refresh-btn"
             onClick={refreshPrices}
             disabled={loading}
             className="refresh-button"
           >
-            {loading ? "Refreshing..." : "↻ Refresh Prices"}
+            {loading ? "Refreshing..." : "↻ Refresh"}
           </button>
         </div>
       )}
