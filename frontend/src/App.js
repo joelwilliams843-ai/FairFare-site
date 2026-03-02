@@ -261,6 +261,17 @@ function App() {
       return;
     }
 
+    // Validate that we have coordinates
+    if (!pickupCoords?.lat || !pickupCoords?.lng) {
+      toast.error("Could not determine pickup location. Please select from suggestions.");
+      return;
+    }
+
+    if (!destCoords?.lat || !destCoords?.lng) {
+      toast.error("Could not determine destination. Please select from suggestions.");
+      return;
+    }
+
     // Save locations to recent
     saveToRecent(pickup);
     saveToRecent(destination);
@@ -270,21 +281,33 @@ function App() {
       const response = await axios.post(`${API}/compare-rides`, {
         pickup: {
           address: pickup,
-          lat: pickupCoords?.lat || null,
-          lng: pickupCoords?.lng || null,
+          lat: pickupCoords.lat,
+          lng: pickupCoords.lng,
         },
         destination: {
           address: destination,
-          lat: destCoords?.lat || null,
-          lng: destCoords?.lng || null,
+          lat: destCoords.lat,
+          lng: destCoords.lng,
         },
       });
+      
+      // Log coordinates for debugging
+      console.log('Request coordinates:', {
+        pickup: { address: pickup, ...pickupCoords },
+        destination: { address: destination, ...destCoords }
+      });
+      console.log('Response:', response.data);
+      
       setResults(response.data);
       setLastUpdated(new Date());
       setView("results");
     } catch (error) {
       console.error("Error comparing rides:", error);
-      toast.error("Failed to compare rides. Please try again.");
+      if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
+      } else {
+        toast.error("Failed to compare rides. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
