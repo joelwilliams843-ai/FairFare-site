@@ -64,6 +64,13 @@ class CompareResponse(BaseModel):
 
 def calculate_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     """Calculate distance in miles using Haversine formula"""
+    
+    # Validate coordinates
+    if not (-90 <= lat1 <= 90) or not (-90 <= lat2 <= 90):
+        raise ValueError(f"Invalid latitude: pickup={lat1}, destination={lat2}")
+    if not (-180 <= lng1 <= 180) or not (-180 <= lng2 <= 180):
+        raise ValueError(f"Invalid longitude: pickup={lng1}, destination={lng2}")
+    
     R = 3959  # Earth's radius in miles
     
     lat1_rad = math.radians(lat1)
@@ -74,7 +81,28 @@ def calculate_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> fl
     a = math.sin(delta_lat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lng / 2) ** 2
     c = 2 * math.asin(math.sqrt(a))
     
-    return R * c
+    distance = R * c
+    
+    # Log the calculation
+    logging.info(f"Distance calculation: ({lat1}, {lng1}) to ({lat2}, {lng2}) = {distance:.2f} miles")
+    
+    return distance
+
+
+def estimate_duration(distance_miles: float) -> int:
+    """Estimate trip duration in minutes based on distance"""
+    # Assume average speed of 25 mph in city, 45 mph for longer trips
+    if distance_miles < 10:
+        avg_speed = 25  # City driving
+    elif distance_miles < 50:
+        avg_speed = 35  # Mix of city and highway
+    else:
+        avg_speed = 45  # Mostly highway
+    
+    duration_hours = distance_miles / avg_speed
+    duration_minutes = int(duration_hours * 60)
+    
+    return max(duration_minutes, 5)  # Minimum 5 minutes
 
 
 def generate_ride_estimates(distance_miles: float, pickup: Location, destination: Location) -> List[RideEstimate]:
