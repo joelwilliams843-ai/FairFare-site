@@ -188,21 +188,66 @@ async def root():
 async def compare_rides(request: CompareRequest):
     """Compare ride estimates between Uber and Lyft"""
     
-    # Use provided coordinates or mock coordinates based on address
-    pickup_lat = request.pickup.lat or 37.7749
-    pickup_lng = request.pickup.lng or -122.4194
-    dest_lat = request.destination.lat or 37.8044
-    dest_lng = request.destination.lng or -122.2712
+    # Validate that we have coordinates
+    if not request.pickup.lat or not request.pickup.lng:
+        logging.warning(f"Missing pickup coordinates for: {request.pickup.address}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not determine coordinates for pickup location: {request.pickup.address}"
+        )
+    
+    if not request.destination.lat or not request.destination.lng:
+        logging.warning(f"Missing destination coordinates for: {request.destination.address}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not determine coordinates for destination: {request.destination.address}"
+        )
+    
+    pickup_lat = request.pickup.lat
+    pickup_lng = request.pickup.lng
+    dest_lat = request.destination.lat
+    dest_lng = request.destination.lng
+    
+    # Log the request
+    logging.info(f"Compare request: {request.pickup.address} ({pickup_lat}, {pickup_lng}) -> {request.destination.address} ({dest_lat}, {dest_lng})")
     
     # Calculate distance
-    distance = calculate_distance(pickup_lat, pickup_lng, dest_lat, dest_lng)
+    try:
+        distance = calculate_distance(pickup_lat, pickup_lng, dest_lat, dest_lng)
+    except ValueError as e:
+        logging.error(f"Distance calculation error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    # Sanity check: flag unreasonable distances
+    if distance > 500:
+        logging.warning(f"Unusually large distance: {distance:.2f} miles. Coordinates may be incorrect.")
+        logging.warning(f"Pickup: {request.pickup.address} = ({pickup_lat}, {pickup_lng})")
+        logging.warning(f"Destination: {request.destination.address} = ({dest_lat}, {dest_lng})")
+    
+    # Very short distances (< 0.1 miles) might indicate same location
+    if distance < 0.1:
+        logging.warning(f"Very short distance: {distance:.2f} miles. Pickup and destination may be the same.")
+    
+    # Calculate estimated duration
+    duration = estimate_duration(distance)
     
     # Generate estimates
     estimates = generate_ride_estimates(distance, request.pickup, request.destination)
     
     return CompareResponse(
         estimates=estimates,
-        distance_miles=round(distance, 2)
+        distance_miles=round(distance, 2),
+        duration_minutes=duration,
+        pickup_coords={
+            "lat": pickup_lat,
+            "lng": pickup_lng,
+            "address": request.pickup.address
+        },
+        destination_coords={
+            "lat": dest_lat,
+            "lng": dest_lng,
+            "address": request.destination.address
+        }
     )
 
 @api_router.post("/status", response_model=StatusCheck)
