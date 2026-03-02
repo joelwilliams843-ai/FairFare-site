@@ -867,6 +867,15 @@ I'll text you when the driver is assigned.`);
               </button>
             )}
           </div>
+
+          {/* App Footer */}
+          <footer className="app-footer">
+            <div className="footer-links">
+              <Link to="/privacy">Privacy</Link>
+              <Link to="/terms">Terms</Link>
+            </div>
+            <p className="footer-copyright">© 2026 FairFare. All rights reserved.</p>
+          </footer>
         </div>
       )}
 
