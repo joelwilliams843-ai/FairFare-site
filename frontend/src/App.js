@@ -357,6 +357,11 @@ function App() {
 
   const openDeepLink = async (estimate) => {
     try {
+      // Show helper card if ride is for someone else
+      if (rideForOther && passengerName && passengerPhone) {
+        setShowHelperCard(true);
+      }
+      
       const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
       const isAndroid = /Android/.test(navigator.userAgent);
       const isMobile = isIOS || isAndroid;
