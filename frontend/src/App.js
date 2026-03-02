@@ -114,12 +114,13 @@ function App() {
     return scored[0];
   };
 
-  // Get price level color class
-  const getPriceLevelClass = (level) => {
+  // Get demand level color class (Premium labels: Favorable, Balanced, Elevated, Peak)
+  const getDemandLevelClass = (level) => {
     switch(level) {
-      case "Cheap": return "price-cheap";
-      case "Moderate": return "price-moderate";
-      case "Busy": return "price-busy";
+      case "Favorable": return "demand-favorable";
+      case "Balanced": return "demand-balanced";
+      case "Elevated": return "demand-elevated";
+      case "Peak": return "demand-peak";
       default: return "";
     }
   };
