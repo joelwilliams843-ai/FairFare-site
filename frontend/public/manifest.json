@@ -1,7 +1,7 @@
 {
   "short_name": "FairFare",
-  "name": "FairFare",
-  "description": "Compare Uber and Lyft ride prices instantly",
+  "name": "FairFare - Mobility Intelligence",
+  "description": "Smart ride decisions. Know when to book, wait, or switch providers.",
   "icons": [
     {
       "src": "/icon-192.svg",
@@ -16,18 +16,18 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-512-maskable.svg",
+      "src": "/app-icon.svg",
       "type": "image/svg+xml",
-      "sizes": "512x512",
+      "sizes": "1024x1024",
       "purpose": "maskable"
     }
   ],
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#007AFF",
-  "background_color": "#F2F2F7",
+  "theme_color": "#0A1628",
+  "background_color": "#0A1628",
   "orientation": "portrait-primary",
   "scope": "/",
   "prefer_related_applications": false,
-  "categories": ["travel", "utilities"]
+  "categories": ["travel", "utilities", "lifestyle"]
 }
