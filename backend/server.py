@@ -133,51 +133,55 @@ def get_time_context():
     }
 
 
-def generate_decision_estimates(distance_miles: float, pickup: Location, destination: Location) -> tuple[List[RideEstimate], str]:
-    """Generate decision-based ride estimates without fake prices"""
+def generate_decision_estimates(distance_miles: float, pickup: Location, destination: Location) -> tuple[List[RideEstimate], str, str]:
+    """Generate decision-based ride estimates - Mobility Decision Assistant"""
     
     time_ctx = get_time_context()
     
-    # Determine demand level and surge based on time context (real signals)
-    # Premium labels: Favorable, Balanced, Elevated, Peak
+    # Traveler-friendly demand levels
+    # Good time to ride | Normal demand | Busy — expect delays | High demand — consider waiting
     if time_ctx["is_rush_hour"]:
-        uber_price_level = "Peak"
-        lyft_price_level = "Peak"
+        uber_price_level = "High demand — consider waiting"
+        lyft_price_level = "High demand — consider waiting"
         uber_surge = "High"
         lyft_surge = "High"
         uber_availability = "Limited"
         lyft_availability = "Limited"
-        decision_hint = "Peak demand period. Consider waiting 30-60 min for more favorable rates."
+        decision_hint = "Rush hour traffic ahead. Rides may take longer to arrive."
+        recommendation = "Tip: Waiting 20–30 minutes may reduce wait times and surge likelihood."
     elif time_ctx["is_late_night"]:
-        uber_price_level = "Balanced"
-        lyft_price_level = "Balanced"
+        uber_price_level = "Normal demand"
+        lyft_price_level = "Normal demand"
         uber_surge = "Moderate"
         lyft_surge = "Low"
         uber_availability = "Limited"
         lyft_availability = "Limited"
-        decision_hint = "Late night - fewer drivers available. Rides may take longer to arrive."
+        decision_hint = "Late night — fewer drivers available."
+        recommendation = "Recommended: Book now. Driver availability decreases after midnight."
     elif time_ctx["is_weekend"] and not time_ctx["is_midday"]:
-        uber_price_level = "Elevated"
-        lyft_price_level = "Balanced"
+        uber_price_level = "Busy — expect delays"
+        lyft_price_level = "Normal demand"
         uber_surge = "Moderate"
         lyft_surge = "Moderate"
         uber_availability = "Good"
         lyft_availability = "Good"
-        decision_hint = "Weekend evening - moderate demand. Generally a good time to book."
+        decision_hint = "Weekend evening — moderate activity."
+        recommendation = "Recommended: Book within 5 minutes for fastest pickup."
     else:
-        uber_price_level = "Favorable"
-        lyft_price_level = "Favorable"
+        uber_price_level = "Good time to ride"
+        lyft_price_level = "Good time to ride"
         uber_surge = "Low"
         lyft_surge = "Low"
         uber_availability = "Good"
         lyft_availability = "Good"
-        decision_hint = "Low demand period - typically a good time to book at standard rates."
+        decision_hint = "Low traffic period — drivers readily available."
+        recommendation = "Recommended: Book now for standard rates and quick pickup."
     
-    # Longer distances may have better highway rates
+    # Adjust for longer distances
     if distance_miles > 20:
-        decision_hint += " Longer trip - highway rates often apply."
+        decision_hint += " Longer trip — consider comfort options."
     
-    # Wait times based on availability (realistic estimates)
+    # Wait times based on availability
     if uber_availability == "Good":
         uber_wait = random.randint(2, 6)
     elif uber_availability == "Limited":
@@ -233,7 +237,7 @@ def generate_decision_estimates(distance_miles: float, pickup: Location, destina
         )
     ]
     
-    return estimates, decision_hint
+    return estimates, decision_hint, recommendation
 
 
 # Add your routes to the router instead of directly to app
