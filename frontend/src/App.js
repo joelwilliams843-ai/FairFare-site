@@ -50,6 +50,44 @@ function App() {
     detectLocation();
   }, []);
 
+  // Update timestamp periodically
+  useEffect(() => {
+    if (lastUpdated) {
+      updateTimer.current = setInterval(() => {
+        setLastUpdated(new Date(lastUpdated));
+      }, 10000); // Update every 10 seconds
+      
+      return () => clearInterval(updateTimer.current);
+    }
+  }, [lastUpdated]);
+
+  // Calculate time ago
+  const getTimeAgo = (date) => {
+    if (!date) return '';
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    
+    if (seconds < 60) return `${seconds} seconds ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  };
+
+  // Get FairFare Pick (cheapest with good wait time)
+  const getFairFarePick = () => {
+    if (!results || !results.estimates) return null;
+    
+    const estimates = results.estimates;
+    // Calculate value score: lower price + shorter wait = better
+    const scored = estimates.map(est => ({
+      ...est,
+      score: (est.price_min + est.price_max) / 2 + (est.wait_time * 0.5)
+    }));
+    
+    scored.sort((a, b) => a.score - b.score);
+    return scored[0];
+  };
+
   // Save to recent locations
   const saveToRecent = (location) => {
     if (!location || location.length < 3) return;
