@@ -748,6 +748,13 @@ function App() {
                 >
                   Continue in {estimate.provider}
                 </button>
+                <button
+                  onClick={copyRouteToClipboard}
+                  className="copy-route-button"
+                  data-testid="copy-route-btn"
+                >
+                  📋 Copy Route
+                </button>
               </div>
             ))}
           </div>
