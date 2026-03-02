@@ -87,19 +87,44 @@ function App() {
     return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
   };
 
-  // Get FairFare Pick (cheapest with good wait time)
+  // Get FairFare Pick (best availability with good wait time)
   const getFairFarePick = () => {
     if (!results || !results.estimates) return null;
     
     const estimates = results.estimates;
-    // Calculate value score: lower price + shorter wait = better
+    // Calculate value score based on availability and wait time
+    const availabilityScore = { "Good": 0, "Limited": 10, "Busy": 20 };
+    const surgeLikelihoodScore = { "Low": 0, "Moderate": 5, "High": 15 };
+    
     const scored = estimates.map(est => ({
       ...est,
-      score: (est.price_min + est.price_max) / 2 + (est.wait_time * 0.5)
+      score: (availabilityScore[est.availability] || 10) + 
+             (surgeLikelihoodScore[est.surge_likelihood] || 5) + 
+             (est.eta_minutes * 0.5)
     }));
     
     scored.sort((a, b) => a.score - b.score);
     return scored[0];
+  };
+
+  // Get price level color class
+  const getPriceLevelClass = (level) => {
+    switch(level) {
+      case "Cheap": return "price-cheap";
+      case "Moderate": return "price-moderate";
+      case "Busy": return "price-busy";
+      default: return "";
+    }
+  };
+
+  // Get surge indicator color
+  const getSurgeClass = (surge) => {
+    switch(surge) {
+      case "Low": return "surge-low";
+      case "Moderate": return "surge-moderate";
+      case "High": return "surge-high";
+      default: return "";
+    }
   };
 
   // Save to recent locations
