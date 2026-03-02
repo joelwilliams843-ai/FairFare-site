@@ -60,6 +60,9 @@ class RideEstimate(BaseModel):
 class CompareResponse(BaseModel):
     estimates: List[RideEstimate]
     distance_miles: float
+    duration_minutes: int
+    pickup_coords: dict
+    destination_coords: dict
 
 
 def calculate_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
