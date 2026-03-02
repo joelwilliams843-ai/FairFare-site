@@ -137,43 +137,44 @@ def generate_decision_estimates(distance_miles: float, pickup: Location, destina
     
     time_ctx = get_time_context()
     
-    # Determine price level and surge based on time context (real signals)
+    # Determine demand level and surge based on time context (real signals)
+    # Premium labels: Favorable, Balanced, Elevated, Peak
     if time_ctx["is_rush_hour"]:
-        uber_price_level = "Busy"
-        lyft_price_level = "Busy"
+        uber_price_level = "Peak"
+        lyft_price_level = "Peak"
         uber_surge = "High"
         lyft_surge = "High"
         uber_availability = "Limited"
         lyft_availability = "Limited"
-        decision_hint = "Rush hour pricing in effect. Consider waiting 30-60 min for better rates."
+        decision_hint = "Peak demand period. Consider waiting 30-60 min for more favorable rates."
     elif time_ctx["is_late_night"]:
-        uber_price_level = "Moderate"
-        lyft_price_level = "Moderate"
+        uber_price_level = "Balanced"
+        lyft_price_level = "Balanced"
         uber_surge = "Moderate"
         lyft_surge = "Low"
         uber_availability = "Limited"
         lyft_availability = "Limited"
-        decision_hint = "Late night - fewer drivers. Rides may take longer to arrive."
+        decision_hint = "Late night - fewer drivers available. Rides may take longer to arrive."
     elif time_ctx["is_weekend"] and not time_ctx["is_midday"]:
-        uber_price_level = "Moderate"
-        lyft_price_level = "Moderate"
+        uber_price_level = "Elevated"
+        lyft_price_level = "Balanced"
         uber_surge = "Moderate"
         lyft_surge = "Moderate"
         uber_availability = "Good"
         lyft_availability = "Good"
-        decision_hint = "Weekend evening - moderate demand. Good time to book."
+        decision_hint = "Weekend evening - moderate demand. Generally a good time to book."
     else:
-        uber_price_level = "Cheap"
-        lyft_price_level = "Cheap"
+        uber_price_level = "Favorable"
+        lyft_price_level = "Favorable"
         uber_surge = "Low"
         lyft_surge = "Low"
         uber_availability = "Good"
         lyft_availability = "Good"
-        decision_hint = "Low demand period - good time to book at standard rates."
+        decision_hint = "Low demand period - typically a good time to book at standard rates."
     
     # Longer distances may have better highway rates
     if distance_miles > 20:
-        decision_hint += " Longer trip - highway rates may apply."
+        decision_hint += " Longer trip - highway rates often apply."
     
     # Wait times based on availability (realistic estimates)
     if uber_availability == "Good":
