@@ -923,9 +923,9 @@ I'll text you when the driver is assigned.`);
                   <span className="pick-ride-type">{getFairFarePick().ride_type}</span>
                 </div>
                 <div className="pick-details">
-                  <div className={`pick-price-level ${getPriceLevelClass(getFairFarePick().price_level)}`}>
-                    <span className="price-level-label">Demand</span>
-                    <span className="price-level-value">{getFairFarePick().price_level}</span>
+                  <div className={`pick-demand-level ${getDemandLevelClass(getFairFarePick().price_level)}`}>
+                    <span className="demand-label">Demand estimate</span>
+                    <span className="demand-value">{getFairFarePick().price_level}</span>
                   </div>
                   <div className="pick-wait">
                     <Clock size={18} />
@@ -933,15 +933,23 @@ I'll text you when the driver is assigned.`);
                   </div>
                 </div>
                 <div className={`surge-indicator ${getSurgeClass(getFairFarePick().surge_likelihood)}`}>
-                  Surge: {getFairFarePick().surge_likelihood}
+                  Surge Likelihood: {getFairFarePick().surge_likelihood}
                 </div>
                 <p className="live-price-note">Live price shown in app</p>
                 <button
                   data-testid="pick-open-btn"
                   onClick={() => openDeepLink(getFairFarePick())}
                   className="pick-open-button"
+                  disabled={openingApp !== null}
                 >
-                  Continue in {getFairFarePick().provider}
+                  {openingApp === getFairFarePick().provider ? (
+                    <>
+                      <Loader2 size={18} className="spinner" />
+                      Opening {getFairFarePick().provider}...
+                    </>
+                  ) : (
+                    `Continue in ${getFairFarePick().provider}`
+                  )}
                 </button>
               </div>
             </div>
@@ -969,9 +977,9 @@ I'll text you when the driver is assigned.`);
                 </div>
 
                 <div className="estimate-details">
-                  <div className={`detail-item price-level-indicator ${getPriceLevelClass(estimate.price_level)}`}>
-                    <span className="detail-label">Demand</span>
-                    <span className="price-level-badge">{estimate.price_level}</span>
+                  <div className={`detail-item demand-level-indicator ${getDemandLevelClass(estimate.price_level)}`}>
+                    <span className="detail-label">Demand estimate</span>
+                    <span className="demand-level-badge">{estimate.price_level}</span>
                   </div>
                   <div className="detail-item">
                     <Clock size={16} className="clock-icon" />
@@ -989,8 +997,16 @@ I'll text you when the driver is assigned.`);
                   data-testid={`${estimate.provider.toLowerCase()}-open-btn`}
                   onClick={() => openDeepLink(estimate)}
                   className="open-app-button"
+                  disabled={openingApp !== null}
                 >
-                  Continue in {estimate.provider}
+                  {openingApp === estimate.provider ? (
+                    <>
+                      <Loader2 size={18} className="spinner" />
+                      Opening {estimate.provider}...
+                    </>
+                  ) : (
+                    `Continue in ${estimate.provider}`
+                  )}
                 </button>
                 <button
                   onClick={copyRouteToClipboard}
