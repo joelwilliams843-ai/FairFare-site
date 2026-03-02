@@ -122,7 +122,7 @@ def generate_ride_estimates(distance_miles: float, pickup: Location, destination
     lyft_deeplink = f"lyft://ridetype?id=lyft&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
     
     # Lyft web fallback with pre-filled trip
-    lyft_web = f"https://lyft.com/ride?pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
+    lyft_web = f"https://ride.lyft.com/?action=ride&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
     
     estimates = [
         RideEstimate(
