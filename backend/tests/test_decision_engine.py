@@ -1,7 +1,7 @@
 """
-Backend tests for FairFare Decision Engine - P0 Features
-Tests: Premium labels (Favorable/Balanced/Elevated/Peak), Long trip confirmation modal (>150 miles),
-       Route validation (>1000 miles rejected), Decision Engine responses
+Backend tests for FairFare Decision Engine - Traveler-Friendly Language
+Tests: Traveler-friendly demand labels (Good time to ride, Normal demand, Busy — expect delays, High demand — consider waiting),
+       Recommendation field with actionable advice, Decision hint, Long trip confirmation modal (>150 miles)
 """
 import pytest
 import requests
@@ -21,11 +21,11 @@ class TestAPIHealth:
         print("✓ API root endpoint working")
 
 
-class TestPremiumLabels:
-    """Test Premium labels: Favorable/Balanced/Elevated/Peak instead of Cheap/Moderate/Busy"""
+class TestTravelerFriendlyLabels:
+    """Test Traveler-friendly demand labels: Good time to ride, Normal demand, Busy — expect delays, High demand — consider waiting"""
     
-    def test_price_level_uses_premium_labels(self):
-        """Test that price_level uses premium labels (Favorable/Balanced/Elevated/Peak)"""
+    def test_price_level_uses_traveler_friendly_labels(self):
+        """Test that price_level uses traveler-friendly labels"""
         response = requests.post(f"{BASE_URL}/api/compare-rides", json={
             "pickup": {
                 "address": "Times Square, NYC",
@@ -41,16 +41,24 @@ class TestPremiumLabels:
         assert response.status_code == 200
         data = response.json()
         
-        premium_labels = ["Favorable", "Balanced", "Elevated", "Peak"]
-        old_labels = ["Cheap", "Moderate", "Busy"]
+        # New traveler-friendly labels
+        traveler_friendly_labels = [
+            "Good time to ride",
+            "Normal demand",
+            "Busy — expect delays",
+            "High demand — consider waiting"
+        ]
+        
+        # Old labels that should NOT be used
+        old_labels = ["Cheap", "Moderate", "Busy", "Favorable", "Balanced", "Elevated", "Peak"]
         
         for estimate in data["estimates"]:
             assert "price_level" in estimate
-            # Should use premium labels
-            assert estimate["price_level"] in premium_labels, f"Expected premium label, got: {estimate['price_level']}"
+            # Should use traveler-friendly labels
+            assert estimate["price_level"] in traveler_friendly_labels, f"Expected traveler-friendly label, got: {estimate['price_level']}"
             # Should NOT use old labels
             assert estimate["price_level"] not in old_labels, f"Old label found: {estimate['price_level']}"
-            print(f"✓ {estimate['provider']} price_level: {estimate['price_level']} (premium label)")
+            print(f"✓ {estimate['provider']} price_level: {estimate['price_level']} (traveler-friendly)")
     
     def test_surge_likelihood_values(self):
         """Test that surge_likelihood uses Low/Moderate/High"""
@@ -73,6 +81,110 @@ class TestPremiumLabels:
             assert "surge_likelihood" in estimate
             assert estimate["surge_likelihood"] in ["Low", "Moderate", "High"]
             print(f"✓ {estimate['provider']} surge_likelihood: {estimate['surge_likelihood']}")
+
+
+class TestRecommendationField:
+    """Test recommendation field with actionable advice"""
+    
+    def test_response_has_recommendation(self):
+        """Test that response includes recommendation field with actionable advice"""
+        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
+            "pickup": {
+                "address": "Times Square, NYC",
+                "lat": 40.7580,
+                "lng": -73.9855
+            },
+            "destination": {
+                "address": "Central Park, NYC",
+                "lat": 40.7829,
+                "lng": -73.9654
+            }
+        })
+        assert response.status_code == 200
+        data = response.json()
+        
+        assert "recommendation" in data, "Response should include recommendation field"
+        assert len(data["recommendation"]) > 0, "Recommendation should not be empty"
+        # Recommendation should contain actionable advice
+        assert any(word in data["recommendation"].lower() for word in ["recommended", "tip", "book", "wait"]), \
+            f"Recommendation should contain actionable advice, got: {data['recommendation']}"
+        print(f"✓ Recommendation: {data['recommendation']}")
+    
+    def test_recommendation_for_long_trip(self):
+        """Test that long trips have appropriate recommendation"""
+        # NYC to Boston is ~190 miles
+        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
+            "pickup": {
+                "address": "New York City",
+                "lat": 40.7128,
+                "lng": -74.0060
+            },
+            "destination": {
+                "address": "Boston, MA",
+                "lat": 42.3601,
+                "lng": -71.0589
+            }
+        })
+        assert response.status_code == 200
+        data = response.json()
+        
+        assert "recommendation" in data
+        # Long trip recommendation should mention booking/confirming
+        assert any(word in data["recommendation"].lower() for word in ["book", "confirm", "recommended"]), \
+            f"Long trip recommendation should mention booking, got: {data['recommendation']}"
+        print(f"✓ Long trip recommendation: {data['recommendation']}")
+
+
+class TestDecisionHint:
+    """Test decision hint provides situational context"""
+    
+    def test_response_has_decision_hint(self):
+        """Test that response includes decision_hint with contextual advice"""
+        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
+            "pickup": {
+                "address": "Times Square, NYC",
+                "lat": 40.7580,
+                "lng": -73.9855
+            },
+            "destination": {
+                "address": "Central Park, NYC",
+                "lat": 40.7829,
+                "lng": -73.9654
+            }
+        })
+        assert response.status_code == 200
+        data = response.json()
+        
+        assert "decision_hint" in data
+        assert len(data["decision_hint"]) > 0
+        # Decision hint should provide situational context
+        assert any(word in data["decision_hint"].lower() for word in ["traffic", "drivers", "rush", "late", "weekend", "trip"]), \
+            f"Decision hint should provide situational context, got: {data['decision_hint']}"
+        print(f"✓ Decision hint: {data['decision_hint']}")
+    
+    def test_decision_hint_for_long_trip(self):
+        """Test that long trips have appropriate decision hint"""
+        # NYC to Boston is ~190 miles
+        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
+            "pickup": {
+                "address": "New York City",
+                "lat": 40.7128,
+                "lng": -74.0060
+            },
+            "destination": {
+                "address": "Boston, MA",
+                "lat": 42.3601,
+                "lng": -71.0589
+            }
+        })
+        assert response.status_code == 200
+        data = response.json()
+        
+        assert "decision_hint" in data
+        # Long trip hint should mention the trip length
+        assert any(word in data["decision_hint"].lower() for word in ["long", "trip", "miles", "travel"]), \
+            f"Long trip hint should mention trip length, got: {data['decision_hint']}"
+        print(f"✓ Long trip decision hint: {data['decision_hint']}")
 
 
 class TestLongTripConfirmation:
@@ -244,27 +356,6 @@ class TestRouteValidation:
 class TestDecisionEngine:
     """Test Decision Engine responses - qualitative indicators"""
     
-    def test_response_has_decision_hint(self):
-        """Test that response includes decision_hint with contextual advice"""
-        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
-            "pickup": {
-                "address": "Times Square, NYC",
-                "lat": 40.7580,
-                "lng": -73.9855
-            },
-            "destination": {
-                "address": "Central Park, NYC",
-                "lat": 40.7829,
-                "lng": -73.9654
-            }
-        })
-        assert response.status_code == 200
-        data = response.json()
-        
-        assert "decision_hint" in data
-        assert len(data["decision_hint"]) > 0
-        print(f"✓ Decision hint: {data['decision_hint']}")
-    
     def test_response_has_availability(self):
         """Test that response includes availability (Good/Limited/Busy)"""
         response = requests.post(f"{BASE_URL}/api/compare-rides", json={
@@ -340,6 +431,29 @@ class TestDecisionEngine:
                 assert "ride.lyft.com" in estimate["web_link"]
             
             print(f"✓ {estimate['provider']} deep links present")
+    
+    def test_eta_minutes_present(self):
+        """Test that response includes eta_minutes (wait time)"""
+        response = requests.post(f"{BASE_URL}/api/compare-rides", json={
+            "pickup": {
+                "address": "Times Square, NYC",
+                "lat": 40.7580,
+                "lng": -73.9855
+            },
+            "destination": {
+                "address": "Central Park, NYC",
+                "lat": 40.7829,
+                "lng": -73.9654
+            }
+        })
+        assert response.status_code == 200
+        data = response.json()
+        
+        for estimate in data["estimates"]:
+            assert "eta_minutes" in estimate
+            assert isinstance(estimate["eta_minutes"], int)
+            assert estimate["eta_minutes"] > 0
+            print(f"✓ {estimate['provider']} eta_minutes: {estimate['eta_minutes']}")
 
 
 class TestRouteInfo:
