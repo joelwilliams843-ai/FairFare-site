@@ -946,7 +946,7 @@ I'll text you when the driver is assigned.`);
             </button>
             <div className="results-info">
               <div className="logo-container">
-                <Sparkles className="logo-icon" size={28} />
+                <FairFareLogo size={32} />
                 <h2 className="results-title">FairFare</h2>
               </div>
               <p className="distance-text">
