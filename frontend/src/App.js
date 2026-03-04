@@ -735,6 +735,16 @@ I'll text you when the driver is assigned.`);
     <div className="app-container">
       <Toaster position="top-center" richColors />
       
+      {/* Splash Screen */}
+      {showSplash && (
+        <div className={`splash-screen ${splashFading ? 'fade-out' : ''}`} data-testid="splash-screen">
+          <div className="splash-content">
+            <FairFareLogo size={120} className="splash-logo" />
+            <h1 className="splash-title">FairFare</h1>
+          </div>
+        </div>
+      )}
+      
       {view === "input" && (
         <div className="input-view">
           <div className="header">
