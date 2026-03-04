@@ -13,6 +13,8 @@ const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
 
 function App() {
   const [view, setView] = useState("input");
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashFading, setSplashFading] = useState(false);
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [pickupCoords, setPickupCoords] = useState(null);
