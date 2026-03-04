@@ -1,5 +1,5 @@
 {
-  "appId": "com.fairfare.app",
+  "appId": "com.tryfairfare.app",
   "appName": "FairFare",
   "webDir": "build",
   "bundledWebRuntime": false,
