@@ -87,7 +87,7 @@ Your FairFare app is now a fully-functional Progressive Web App (PWA) that can b
 
 ### Preview URL Testing:
 You can test PWA features on the preview URL:
-`https://fairfare-decision.preview.emergentagent.com`
+`https://fairfare-ride.preview.emergentagent.com`
 
 **Note:** Some PWA features may require HTTPS and the production domain to work fully.
 

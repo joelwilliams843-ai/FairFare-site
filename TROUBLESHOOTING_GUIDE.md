@@ -25,10 +25,10 @@
 #### 3. Try Incognito/Private Mode
 - **Chrome:** `Ctrl/Cmd + Shift + N`
 - **Safari:** `Cmd + Shift + N`
-- Open: https://fairfare-decision.preview.emergentagent.com
+- Open: https://fairfare-ride.preview.emergentagent.com
 
 #### 4. Check Network Connection
-- Open: https://fairfare-decision.preview.emergentagent.com/api/
+- Open: https://fairfare-ride.preview.emergentagent.com/api/
 - Should show: `{"message":"FairFare API"}`
 - If not, network issue exists
 
@@ -83,13 +83,13 @@
 
 ### Check if Backend is Running
 ```bash
-curl https://fairfare-decision.preview.emergentagent.com/api/
+curl https://fairfare-ride.preview.emergentagent.com/api/
 ```
 
 **Expected:** `{"message":"FairFare API"}`
 
 ### Check if Frontend is Running
-Open: https://fairfare-decision.preview.emergentagent.com
+Open: https://fairfare-ride.preview.emergentagent.com
 
 **Expected:** FairFare homepage with inputs
 
@@ -288,10 +288,10 @@ Use this to verify FairFare is working:
 If none of these solutions work:
 
 1. **Try the URL directly:**
-   https://fairfare-decision.preview.emergentagent.com
+   https://fairfare-ride.preview.emergentagent.com
 
 2. **Test the API:**
-   https://fairfare-decision.preview.emergentagent.com/api/
+   https://fairfare-ride.preview.emergentagent.com/api/
 
 3. **Use a different device:**
    - Try on phone if on desktop
