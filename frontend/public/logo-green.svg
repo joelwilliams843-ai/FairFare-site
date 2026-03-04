@@ -1,0 +1,43 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00FF88"/>
+      <stop offset="100%" style="stop-color:#00CC6A"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Stylized F as route path -->
+  <g filter="url(#glow)">
+    <!-- Main vertical stroke -->
+    <path d="M16 8 L16 40" 
+          stroke="url(#greenGradient)" 
+          stroke-width="4" 
+          stroke-linecap="round"
+          fill="none"/>
+    
+    <!-- Top horizontal with curve -->
+    <path d="M16 10 Q28 10 34 10 Q38 10 38 16" 
+          stroke="url(#greenGradient)" 
+          stroke-width="4" 
+          stroke-linecap="round"
+          fill="none"/>
+    
+    <!-- Middle horizontal -->
+    <path d="M16 24 L30 24" 
+          stroke="url(#greenGradient)" 
+          stroke-width="3.5" 
+          stroke-linecap="round"
+          fill="none"/>
+    
+    <!-- Route dots -->
+    <circle cx="33" cy="24" r="2" fill="#00FF88"/>
+    <circle cx="38" cy="24" r="1.5" fill="#00FF88" opacity="0.7"/>
+  </g>
+</svg>
