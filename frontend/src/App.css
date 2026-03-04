@@ -27,6 +27,75 @@ body {
   background: var(--bg-primary);
 }
 
+/* Splash Screen */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #0A1628 0%, #0D1F3C 50%, #0A1628 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  animation: splashPulse 1.5s ease-in-out;
+}
+
+.splash-logo {
+  filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.6)) drop-shadow(0 0 60px rgba(0, 255, 136, 0.3));
+  animation: logoGlow 1.5s ease-in-out;
+}
+
+.splash-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+@keyframes splashPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes logoGlow {
+  0% {
+    filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(0, 255, 136, 0.8)) drop-shadow(0 0 80px rgba(0, 255, 136, 0.4));
+  }
+  100% {
+    filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.6)) drop-shadow(0 0 60px rgba(0, 255, 136, 0.3));
+  }
+}
+
 .app-container {
   max-width: 28rem;
   margin: 0 auto;
