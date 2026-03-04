@@ -61,6 +61,22 @@ function App() {
   const autocompleteTimer = useRef(null);
   const updateTimer = useRef(null);
 
+  // Splash screen timer
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => {
+      setSplashFading(true);
+    }, 1200); // Start fade after 1.2 seconds
+    
+    const hideTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1500); // Hide completely after 1.5 seconds
+    
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
   useEffect(() => {
     const saved = localStorage.getItem("weekendRide");
     if (saved) {
