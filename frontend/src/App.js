@@ -70,6 +70,7 @@ function App() {
     
     // Auto-detect location on load
     detectLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update timestamp periodically
