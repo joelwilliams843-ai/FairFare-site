@@ -682,29 +682,34 @@ I'll text you when the driver is assigned.`);
     setPassengerPhone(rider.phone);
   };
 
-  // Logo component with glow effect
+  // Logo component with glow effect - matches the app icon design
   const FairFareLogo = ({ size = 40, className = "" }) => (
     <svg width={size} height={size} viewBox="0 0 48 48" className={`fairfare-logo ${className}`}>
       <defs>
         <filter id="logoGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
           <feMerge>
             <feMergeNode in="coloredBlur"/>
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
-        <linearGradient id="logoGreenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FF88"/>
-          <stop offset="100%" stopColor="#00CC6A"/>
-        </linearGradient>
       </defs>
       <g filter="url(#logoGlow)">
-        <path d="M16 8 L16 40" stroke="url(#logoGreenGradient)" strokeWidth="4" strokeLinecap="round" fill="none"/>
-        <path d="M16 10 Q28 10 34 10 Q38 10 38 16" stroke="url(#logoGreenGradient)" strokeWidth="4" strokeLinecap="round" fill="none"/>
-        <path d="M16 24 L30 24" stroke="url(#logoGreenGradient)" strokeWidth="3.5" strokeLinecap="round" fill="none"/>
+        {/* Outer F stroke */}
+        <path d="M12 6 L12 42" stroke="#00FF88" strokeWidth="3" strokeLinecap="round" fill="none"/>
+        <path d="M12 6 Q24 6 32 6 Q38 6 38 12" stroke="#00FF88" strokeWidth="3" strokeLinecap="round" fill="none"/>
+        <path d="M12 24 L28 24" stroke="#00FF88" strokeWidth="3" strokeLinecap="round" fill="none"/>
+        {/* Inner F stroke (double-line effect) */}
+        <path d="M15 10 L15 38" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
+        <path d="M15 10 Q24 10 30 10 Q34 10 34 14" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
+        <path d="M15 24 L26 24" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
       </g>
-      <circle cx="33" cy="24" r="2" fill="#00FF88"/>
-      <circle cx="38" cy="24" r="1.5" fill="#00FF88" opacity="0.7"/>
+      {/* Route dots */}
+      <circle cx="32" cy="24" r="2.5" fill="#00FF88"/>
+      <circle cx="38" cy="24" r="1.8" fill="#00FF88" opacity="0.7"/>
+      <circle cx="42" cy="24" r="1.2" fill="#00FF88" opacity="0.5"/>
+      <circle cx="12" cy="42" r="2" fill="#00FF88"/>
+      <circle cx="38" cy="12" r="2" fill="#00FF88"/>
     </svg>
   );
 
