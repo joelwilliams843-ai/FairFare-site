@@ -45,6 +45,15 @@ function App() {
   const [recentLocations, setRecentLocations] = useState([]);
   const [activeField, setActiveField] = useState(null);
   
+  // Savings tracking
+  const [savingsData, setSavingsData] = useState({
+    totalSaved: 0,
+    ridesCompared: 0,
+    avgSavedPerRide: 0,
+    bestProvider: 'Lyft',
+    bestProviderPercent: 0
+  });
+  
   const pickupRef = useRef(null);
   const destRef = useRef(null);
   const autocompleteTimer = useRef(null);
