@@ -47,12 +47,11 @@ jobs:
       working-directory: frontend
       run: npx cap sync android
     
-    - name: Decode Keystore from Base64
+    - name: Verify keystore exists
       working-directory: frontend/android
       run: |
-        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > fairfare-release-v2.keystore
         ls -la fairfare-release-v2.keystore
-        echo "Keystore file created successfully"
+        echo "Keystore file found in repository"
     
     - name: Update version (if specified)
       if: github.event.inputs.version_name != '1.0' || github.event.inputs.version_code != '1'
