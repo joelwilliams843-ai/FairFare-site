@@ -682,6 +682,32 @@ I'll text you when the driver is assigned.`);
     setPassengerPhone(rider.phone);
   };
 
+  // Logo component with glow effect
+  const FairFareLogo = ({ size = 40, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 48 48" className={`fairfare-logo ${className}`}>
+      <defs>
+        <filter id="logoGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <linearGradient id="logoGreenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#00FF88"/>
+          <stop offset="100%" stopColor="#00CC6A"/>
+        </linearGradient>
+      </defs>
+      <g filter="url(#logoGlow)">
+        <path d="M16 8 L16 40" stroke="url(#logoGreenGradient)" strokeWidth="4" strokeLinecap="round" fill="none"/>
+        <path d="M16 10 Q28 10 34 10 Q38 10 38 16" stroke="url(#logoGreenGradient)" strokeWidth="4" strokeLinecap="round" fill="none"/>
+        <path d="M16 24 L30 24" stroke="url(#logoGreenGradient)" strokeWidth="3.5" strokeLinecap="round" fill="none"/>
+      </g>
+      <circle cx="33" cy="24" r="2" fill="#00FF88"/>
+      <circle cx="38" cy="24" r="1.5" fill="#00FF88" opacity="0.7"/>
+    </svg>
+  );
+
   return (
     <div className="app-container">
       <Toaster position="top-center" richColors />
@@ -689,8 +715,21 @@ I'll text you when the driver is assigned.`);
       {view === "input" && (
         <div className="input-view">
           <div className="header">
-            <h1 className="app-title">FairFare</h1>
+            <div className="logo-header">
+              <FairFareLogo size={48} />
+              <h1 className="app-title">FairFare</h1>
+            </div>
             <p className="app-subtitle">Compare rides instantly</p>
+            {savingsData.ridesCompared > 0 && (
+              <button 
+                className="savings-badge-btn"
+                onClick={() => setView("savings")}
+                data-testid="open-savings-btn"
+              >
+                <DollarSign size={14} />
+                <span>${savingsData.totalSaved.toFixed(2)} saved</span>
+              </button>
+            )}
           </div>
 
           <div className="input-section">
