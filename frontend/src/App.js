@@ -721,7 +721,7 @@ I'll text you when the driver is assigned.`);
         <div className="input-view">
           <div className="header">
             <div className="logo-header">
-              <FairFareLogo size={48} />
+              <FairFareLogo size={56} />
               <h1 className="app-title">FairFare</h1>
             </div>
             <p className="app-subtitle">Compare rides instantly</p>
