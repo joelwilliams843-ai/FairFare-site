@@ -43,20 +43,21 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
         
-        <!-- Query for Uber and Lyft apps -->
-        <queries>
-            <package android:name="com.ubercab" />
-            <package android:name="me.lyft.android" />
-            <intent>
-                <action android:name="android.intent.action.VIEW" />
-                <data android:scheme="uber" />
-            </intent>
-            <intent>
-                <action android:name="android.intent.action.VIEW" />
-                <data android:scheme="lyft" />
-            </intent>
-        </queries>
     </application>
+
+    <!-- Query for Uber and Lyft apps -->
+    <queries>
+        <package android:name="com.ubercab" />
+        <package android:name="me.lyft.android" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="uber" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="lyft" />
+        </intent>
+    </queries>
 
     <!-- Permissions - Play Store compliant (location + internet only) -->
     <uses-permission android:name="android.permission.INTERNET" />
