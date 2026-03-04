@@ -77,6 +77,12 @@ function App() {
       setFrequentRiders(JSON.parse(riders));
     }
     
+    // Load savings data
+    const savings = localStorage.getItem("fairfareSavings");
+    if (savings) {
+      setSavingsData(JSON.parse(savings));
+    }
+    
     // Auto-detect location on load
     detectLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
