@@ -1101,6 +1101,96 @@ I'll text you when the driver is assigned.`);
         </div>
       )}
 
+      {/* Savings Dashboard View */}
+      {view === "savings" && (
+        <div className="savings-view" data-testid="savings-dashboard">
+          <div className="savings-header">
+            <button
+              data-testid="savings-back-btn"
+              onClick={() => setView("input")}
+              className="back-button"
+            >
+              ← Back
+            </button>
+            <div className="savings-title-section">
+              <FairFareLogo size={36} />
+              <h2 className="savings-title">Your Savings</h2>
+            </div>
+          </div>
+
+          <div className="savings-chart-container">
+            <div className="savings-circle">
+              <svg viewBox="0 0 120 120" className="savings-ring">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
+                  stroke="rgba(0, 255, 136, 0.1)"
+                  strokeWidth="12"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
+                  stroke="url(#savingsGradient)"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                  strokeDasharray={`${Math.min(savingsData.ridesCompared * 10, 326)} 326`}
+                  transform="rotate(-90 60 60)"
+                  className="savings-progress"
+                />
+                <defs>
+                  <linearGradient id="savingsGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#00FF88"/>
+                    <stop offset="100%" stopColor="#00CC6A"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="savings-amount">
+                <DollarSign size={24} className="savings-dollar-icon" />
+                <span className="savings-value">{savingsData.totalSaved.toFixed(2)}</span>
+              </div>
+            </div>
+            <p className="savings-label">Total Saved</p>
+          </div>
+
+          <div className="savings-stats">
+            <div className="stat-card">
+              <BarChart3 size={20} className="stat-icon" />
+              <div className="stat-content">
+                <span className="stat-value">{savingsData.ridesCompared}</span>
+                <span className="stat-label">Rides Compared</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <DollarSign size={20} className="stat-icon" />
+              <div className="stat-content">
+                <span className="stat-value">${savingsData.avgSavedPerRide.toFixed(2)}</span>
+                <span className="stat-label">Avg Saved per Ride</span>
+              </div>
+            </div>
+            <div className="stat-card highlight">
+              <TrendingDown size={20} className="stat-icon" />
+              <div className="stat-content">
+                <span className="stat-value">{savingsData.bestProvider}</span>
+                <span className="stat-label">{savingsData.bestProviderPercent}% Best Deals</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="savings-motivation">Keep saving with FairFare!</p>
+
+          <button
+            className="compare-button"
+            onClick={() => setView("input")}
+          >
+            Compare New Ride
+          </button>
+        </div>
+      )}
+
       {/* Long Trip Confirmation Modal */}
       {showLongTripModal && pendingResults && (
         <div className="modal-overlay" data-testid="long-trip-modal">
