@@ -982,13 +982,13 @@ function App() {
                           item.type === 'park' ||
                           (item.name && item.name.length > 0 && !item.name.includes('County'));
         
+        // Extract address components for clean display
+        const addr = item.address || {};
+        
         // Get the place/business name if it exists
         const placeName = item.name && !item.name.includes('County') && !item.name.includes('District') 
           ? item.name 
           : (addr.shop || addr.amenity || null);
-        
-        // Extract address components for clean display
-        const addr = item.address || {};
         
         // Build street line (street number + street name)
         let streetLine = '';
