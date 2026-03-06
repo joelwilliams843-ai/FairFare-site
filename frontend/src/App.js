@@ -750,10 +750,17 @@ function App() {
   };
 
   // Search for address suggestions with location biasing and POI support
-  const searchAddress = async (query, isPickup) => {
+  const searchAddress = async (query, isPickup, retryCount = 0) => {
     if (!query || query.length < 2) {
       if (isPickup) setPickupSuggestions([]);
       else setDestSuggestions([]);
+      setSearchLoading(false);
+      return;
+    }
+
+    // Check network status
+    if (!navigator.onLine) {
+      console.warn('[FairFare] Search skipped - offline');
       return;
     }
 
@@ -783,10 +790,13 @@ function App() {
       const combined = [...airportSuggestions, ...cached.results].slice(0, 6);
       if (isPickup) setPickupSuggestions(combined);
       else setDestSuggestions(combined);
-      console.log(`Search completed in ${Date.now() - startTime}ms (cached)`);
+      console.log(`[FairFare] Search completed in ${Date.now() - startTime}ms (cached)`);
+      setSearchLoading(false);
       return;
     }
 
+    setSearchLoading(true);
+    
     try {
       // Build search params with enhanced location biasing
       const searchParams = {
@@ -816,7 +826,7 @@ function App() {
         headers: {
           'User-Agent': 'FairFare/1.0'
         },
-        timeout: 3000 // 3 second timeout
+        timeout: 4000 // 4 second timeout
       });
 
       let suggestions = response.data.map(item => {
@@ -825,11 +835,13 @@ function App() {
         
         // Calculate distance from user
         let distance = null;
+        let isNearby = false;
         if (userLocation.current) {
           distance = calculateDistance(
             userLocation.current.lat, userLocation.current.lng,
             lat, lon
           );
+          isNearby = distance !== null && distance <= 5; // Within 5 miles
         }
 
         // Determine if this is a POI result
@@ -854,6 +866,7 @@ function App() {
           importance: item.importance || 0,
           distance,
           formattedDistance: formatDistance(distance),
+          isNearby, // New flag for nearby locations
           isPOI: itemIsPOI,
           poiCategory: itemIsPOI ? poiCategory : null,
           // Extract business name if available
@@ -936,14 +949,33 @@ function App() {
         setDestSuggestions(combined.slice(0, 6));
       }
       
-      console.log(`Search completed in ${Date.now() - startTime}ms (${isPOI ? 'POI' : 'standard'} search)`);
+      console.log(`[FairFare] Search completed in ${Date.now() - startTime}ms (${isPOI ? 'POI' : 'standard'} search, ${uniqueSuggestions.length} results)`);
+      
     } catch (error) {
-      console.error("Address search error:", error);
+      console.error("[FairFare] Address search error:", {
+        query,
+        error: error.message,
+        code: error.code,
+        retryCount
+      });
+      
+      // Retry logic - up to 2 retries with exponential backoff
+      if (retryCount < 2 && (error.code === 'ECONNABORTED' || error.message?.includes('timeout') || error.message?.includes('Network'))) {
+        const delay = Math.pow(2, retryCount) * 500; // 500ms, 1000ms
+        console.log(`[FairFare] Retrying search in ${delay}ms (attempt ${retryCount + 2})`);
+        setTimeout(() => {
+          searchAddress(query, isPickup, retryCount + 1);
+        }, delay);
+        return;
+      }
+      
       // Still show airport matches on error
       if (airportSuggestions.length > 0) {
         if (isPickup) setPickupSuggestions(airportSuggestions);
         else setDestSuggestions(airportSuggestions);
       }
+    } finally {
+      setSearchLoading(false);
     }
   };
 
