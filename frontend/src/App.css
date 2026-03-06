@@ -633,7 +633,7 @@ body {
 
 .compare-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px var(--accent-green-glow);
+  box-shadow: 0 4px 12px var(--accent-green-glow);
 }
 
 .compare-button:disabled {
@@ -662,7 +662,8 @@ body {
 }
 
 .saved-route-btn:hover {
-  background: rgba(0, 255, 136, 0.25);
+  background: var(--accent-green-dim);
+  border-color: var(--accent-green-solid);
 }
 
 .star-icon {
@@ -993,8 +994,8 @@ body {
 }
 
 .open-cheapest-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px var(--accent-green-glow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--accent-green-glow);
 }
 
 .open-cheapest-button:disabled {
@@ -1018,12 +1019,12 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  box-shadow: 0 4px 12px var(--accent-green-glow);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .estimate-card.cheapest {
   border-color: var(--accent-green);
-  box-shadow: 0 0 20px var(--accent-green-dim);
+  box-shadow: 0 2px 8px var(--accent-green-dim);
 }
 
 /* Estimated Price Display */
@@ -1045,7 +1046,7 @@ body {
   border-radius: 20px;
   padding: 1.25rem;
   margin-bottom: 1.25rem;
-  box-shadow: 0 0 30px var(--accent-green-dim);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .pick-header {
