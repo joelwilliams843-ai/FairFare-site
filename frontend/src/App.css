@@ -1028,11 +1028,20 @@ body {
 }
 
 /* Estimated Price Display */
+.estimated-price-container {
+  margin: 0.5rem 0;
+}
+
 .estimated-price {
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0.5rem 0;
+}
+
+.price-disclaimer {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.125rem;
 }
 
 .estimate-card.cheapest .estimated-price {
