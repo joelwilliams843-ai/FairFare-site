@@ -46,6 +46,8 @@ function App() {
   const [showDestSuggestions, setShowDestSuggestions] = useState(false);
   const [recentLocations, setRecentLocations] = useState([]);
   const [activeField, setActiveField] = useState(null);
+  const [showLocationBanner, setShowLocationBanner] = useState(false);
+  const [detectedCoords, setDetectedCoords] = useState(null); // Store original GPS coords
   
   // Savings tracking
   const [savingsData, setSavingsData] = useState({
