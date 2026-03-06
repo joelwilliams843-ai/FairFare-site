@@ -133,8 +133,26 @@ function App() {
       setNotificationsEnabled(Notification.permission === 'granted');
     }
     
+    // Network status listeners
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success('Back online!');
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.error('You are offline. Some features may not work.');
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
     // Auto-detect location on load
     detectLocation();
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
