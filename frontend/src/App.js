@@ -101,6 +101,12 @@ function App() {
       setRecentLocations(JSON.parse(recent));
     }
     
+    // Load favorite locations
+    const favorites = localStorage.getItem("favoriteLocations");
+    if (favorites) {
+      setFavoriteLocations(JSON.parse(favorites));
+    }
+    
     // Load frequent riders
     const riders = localStorage.getItem("frequentRiders");
     if (riders) {
