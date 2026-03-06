@@ -726,6 +726,225 @@ I'll text you when the driver is assigned.`;
     }
   };
 
+  // Generate shareable savings image
+  const generateShareImage = async () => {
+    if (!results || !results.estimates) return null;
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Social media optimized size (Instagram story friendly)
+    canvas.width = 1080;
+    canvas.height = 1920;
+    
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#0A1628');
+    gradient.addColorStop(0.5, '#0D1F3C');
+    gradient.addColorStop(1, '#0A1628');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add subtle glow effect at top
+    const glowGradient = ctx.createRadialGradient(540, 300, 0, 540, 300, 400);
+    glowGradient.addColorStop(0, 'rgba(0, 255, 136, 0.15)');
+    glowGradient.addColorStop(1, 'rgba(0, 255, 136, 0)');
+    ctx.fillStyle = glowGradient;
+    ctx.fillRect(0, 0, canvas.width, 600);
+    
+    // Draw FairFare logo (simplified F)
+    ctx.save();
+    ctx.translate(540, 280);
+    ctx.strokeStyle = '#00FF88';
+    ctx.lineWidth = 20;
+    ctx.lineCap = 'round';
+    ctx.shadowColor = '#00FF88';
+    ctx.shadowBlur = 30;
+    
+    // F shape
+    ctx.beginPath();
+    ctx.moveTo(-60, -80);
+    ctx.lineTo(-60, 80);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(-60, -80);
+    ctx.lineTo(60, -80);
+    ctx.quadraticCurveTo(80, -80, 80, -60);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(-60, 0);
+    ctx.lineTo(40, 0);
+    ctx.stroke();
+    
+    // Dots
+    ctx.fillStyle = '#00FF88';
+    ctx.beginPath();
+    ctx.arc(55, 0, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(75, 0, 7, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+    
+    // "FairFare" text
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 72px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('FairFare', 540, 450);
+    
+    // Tagline
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '32px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('Compare rides instantly', 540, 510);
+    
+    // Get prices from estimates
+    const uberEstimate = results.estimates.find(e => e.provider === 'Uber');
+    const lyftEstimate = results.estimates.find(e => e.provider === 'Lyft');
+    
+    // Mock prices for display (since we use decision engine)
+    const uberPrice = 24.50;
+    const lyftPrice = 18.75;
+    const savings = Math.abs(uberPrice - lyftPrice);
+    
+    // Price comparison card background
+    ctx.fillStyle = '#162236';
+    ctx.beginPath();
+    ctx.roundRect(90, 600, 900, 500, 30);
+    ctx.fill();
+    
+    // Card border glow
+    ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // "I just compared rides!" header
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 42px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('I just compared rides!', 540, 700);
+    
+    // Uber price
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '36px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Uber', 160, 800);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillText(`$${uberPrice.toFixed(2)}`, 920, 800);
+    
+    // Lyft price (highlighted)
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#00FF88';
+    ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('Lyft', 160, 870);
+    ctx.fillText('✓ Best', 280, 870);
+    ctx.textAlign = 'right';
+    ctx.fillText(`$${lyftPrice.toFixed(2)}`, 920, 870);
+    
+    // Divider line
+    ctx.strokeStyle = '#1E3A5F';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(160, 920);
+    ctx.lineTo(920, 920);
+    ctx.stroke();
+    
+    // Savings amount (big and green)
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#00FF88';
+    ctx.font = 'bold 64px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.shadowColor = '#00FF88';
+    ctx.shadowBlur = 20;
+    ctx.fillText(`Saved $${savings.toFixed(2)}!`, 540, 1020);
+    ctx.shadowBlur = 0;
+    
+    // Route info
+    ctx.fillStyle = '#64748B';
+    ctx.font = '28px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(`${pickup.substring(0, 30)}${pickup.length > 30 ? '...' : ''}`, 540, 1200);
+    ctx.fillText('↓', 540, 1250);
+    ctx.fillText(`${destination.substring(0, 30)}${destination.length > 30 ? '...' : ''}`, 540, 1300);
+    
+    // Call to action
+    ctx.fillStyle = '#00FF88';
+    ctx.font = 'bold 40px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('Stop overpaying for rides! 🚗', 540, 1500);
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '32px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('Download FairFare', 540, 1570);
+    
+    // App store badges placeholder text
+    ctx.fillStyle = '#64748B';
+    ctx.font = '24px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('Available on iOS & Android', 540, 1630);
+    
+    // Watermark
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+    ctx.font = '20px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('Made with FairFare', 540, 1850);
+    
+    return canvas;
+  };
+
+  // Share savings functionality
+  const shareSavings = async () => {
+    setIsGeneratingShare(true);
+    
+    try {
+      const canvas = await generateShareImage();
+      if (!canvas) {
+        toast.error('Could not generate share image');
+        setIsGeneratingShare(false);
+        return;
+      }
+      
+      // Convert canvas to blob
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      const file = new File([blob], 'fairfare-savings.png', { type: 'image/png' });
+      
+      // Check if Web Share API is available with files support
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'I saved money with FairFare!',
+          text: 'Stop switching between Uber and Lyft - compare rides instantly with FairFare!',
+          files: [file]
+        });
+        toast.success('Thanks for sharing! 🎉');
+      } else if (navigator.share) {
+        // Fallback to text-only share
+        await navigator.share({
+          title: 'I saved money with FairFare!',
+          text: 'Stop switching between Uber and Lyft - compare rides instantly with FairFare! Download now.',
+          url: 'https://tryfairfare.com'
+        });
+        toast.success('Thanks for sharing! 🎉');
+      } else {
+        // Fallback: download the image
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'fairfare-savings.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('Image downloaded! Share it on your favorite social media.');
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Share error:', error);
+        toast.error('Could not share. Try again.');
+      }
+    }
+    
+    setIsGeneratingShare(false);
+  };
+
   const sendSMSToPassenger = () => {
     const message = encodeURIComponent(`Your ride is being requested.
 Pickup: ${pickup}
