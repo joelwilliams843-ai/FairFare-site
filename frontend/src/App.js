@@ -617,9 +617,83 @@ function App() {
   // Format address nicely: "123 Main St, City, ST"
   const formatAddress = (item) => {
     if (!item.address) {
-      // Fallback: take first 3 parts of display_name
+      // Fallback: take first 2 parts of display_name (usually street and city)
       const parts = item.display_name.split(', ');
-      return parts.slice(0, 3).join(', ');
+      // Filter out county, region, country
+      const filtered = parts.filter(p => {
+        const lower = p.toLowerCase();
+        return !lower.includes('county') && 
+               !lower.includes('district') && 
+               !lower.includes('region') &&
+               !lower.includes('united states') &&
+               !lower.includes('usa');
+      });
+      return filtered.slice(0, 3).join(', ');
+    }
+    
+    const addr = item.address;
+    
+    // Street address (street_number + route)
+    let streetLine = '';
+    if (addr.house_number && addr.road) {
+      streetLine = `${addr.house_number} ${addr.road}`;
+    } else if (addr.road) {
+      streetLine = addr.road;
+    } else if (item.name && !item.name.includes('County')) {
+      streetLine = item.name;
+    }
+    
+    // City (prioritize city, then town, village, etc. - skip county/district)
+    const city = addr.city || addr.town || addr.village || addr.hamlet || 
+                 (addr.suburb && !addr.suburb.includes('County') ? addr.suburb : null) ||
+                 addr.neighbourhood;
+    
+    // State abbreviation
+    const state = addr.state ? getStateAbbreviation(addr.state) : '';
+    
+    // Postal code
+    const postalCode = addr.postcode || '';
+    
+    // Build the formatted address
+    // Format: Street, City, ST ZIP
+    let result = streetLine;
+    
+    if (city && state && postalCode) {
+      result += result ? `\n${city}, ${state} ${postalCode}` : `${city}, ${state} ${postalCode}`;
+    } else if (city && state) {
+      result += result ? `, ${city}, ${state}` : `${city}, ${state}`;
+    } else if (city) {
+      result += result ? `, ${city}` : city;
+    }
+    
+    // If we still don't have a good result, fall back to cleaned display_name
+    if (!result) {
+      const parts = item.display_name.split(', ');
+      const filtered = parts.filter(p => {
+        const lower = p.toLowerCase();
+        return !lower.includes('county') && 
+               !lower.includes('district') && 
+               !lower.includes('region') &&
+               !lower.includes('united states');
+      });
+      return filtered.slice(0, 3).join(', ');
+    }
+    
+    return result;
+  };
+
+  // Format address for single-line display (used in input fields)
+  const formatAddressSingleLine = (item) => {
+    if (!item.address) {
+      const parts = item.display_name.split(', ');
+      const filtered = parts.filter(p => {
+        const lower = p.toLowerCase();
+        return !lower.includes('county') && 
+               !lower.includes('district') && 
+               !lower.includes('region') &&
+               !lower.includes('united states');
+      });
+      return filtered.slice(0, 3).join(', ');
     }
     
     const addr = item.address;
@@ -630,19 +704,23 @@ function App() {
       parts.push(`${addr.house_number} ${addr.road}`);
     } else if (addr.road) {
       parts.push(addr.road);
-    } else if (item.name) {
+    } else if (item.name && !item.name.includes('County')) {
       parts.push(item.name);
     }
     
     // City
-    const city = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb;
+    const city = addr.city || addr.town || addr.village || addr.hamlet || 
+                 (addr.suburb && !addr.suburb.includes('County') ? addr.suburb : null);
     if (city) parts.push(city);
     
-    // State abbreviation
-    const state = addr.state;
-    if (state) {
-      const stateAbbr = getStateAbbreviation(state);
-      parts.push(stateAbbr);
+    // State + ZIP
+    const state = addr.state ? getStateAbbreviation(addr.state) : '';
+    const postalCode = addr.postcode || '';
+    
+    if (state && postalCode) {
+      parts.push(`${state} ${postalCode}`);
+    } else if (state) {
+      parts.push(state);
     }
     
     return parts.join(', ') || item.display_name.split(', ').slice(0, 3).join(', ');
