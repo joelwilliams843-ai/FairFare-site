@@ -861,6 +861,7 @@ function App() {
     const startTime = Date.now();
     const isPOI = isPOISearch(query);
     const poiCategory = getPOICategory(query);
+    const isShortQuery = query.length <= 5; // Short queries like "640" need stricter filtering
     
     // Check for airport code matches first (instant)
     const airportMatches = matchAirportCode(query);
@@ -872,11 +873,11 @@ function App() {
       else setDestSuggestions(airportSuggestions);
     }
 
-    // Build cache key with location context and POI flag
+    // Build cache key with location context
     const locationKey = userLocation.current 
       ? `${userLocation.current.lat.toFixed(2)},${userLocation.current.lng.toFixed(2)}`
       : 'default';
-    const cacheKey = `${query.toLowerCase().trim()}_${locationKey}_${isPOI ? 'poi' : 'std'}`;
+    const cacheKey = `${query.toLowerCase().trim()}_${locationKey}_v2`;
     
     // Check cache
     const cached = searchCache.current.get(cacheKey);
@@ -892,35 +893,46 @@ function App() {
     setSearchLoading(true);
     
     try {
-      // Build search params with enhanced location biasing
+      // Build search params with STRONG location biasing
       const searchParams = {
         q: query,
         format: 'json',
-        limit: isPOI ? 15 : 10, // Get more results for POI searches
+        limit: 20, // Get more results to filter locally
         addressdetails: 1,
-        countrycodes: 'us',
-        extratags: 1, // Get extra tags for better POI classification
+        countrycodes: 'us', // US only
+        extratags: 1,
       };
 
-      // Add location biasing if user location is known
+      // ALWAYS add location biasing if user location is known
       if (userLocation.current) {
-        // For POI searches, use tighter bounding box (30 miles vs 100 miles)
-        const bias = isPOI ? 0.5 : 1.5;
+        // Bounding box: ~50km (30 miles) radius
+        // 1 degree latitude ≈ 69 miles, so 0.45 degrees ≈ 30 miles
+        const radiusDegrees = 0.45;
+        
         searchParams.viewbox = [
-          userLocation.current.lng - bias,
-          userLocation.current.lat + bias,
-          userLocation.current.lng + bias,
-          userLocation.current.lat - bias
+          userLocation.current.lng - radiusDegrees,
+          userLocation.current.lat + radiusDegrees,
+          userLocation.current.lng + radiusDegrees,
+          userLocation.current.lat - radiusDegrees
         ].join(',');
-        searchParams.bounded = isPOI ? 1 : 0; // Strictly limit for POI searches
+        
+        // ALWAYS bound to viewbox - this is key for nearby results
+        searchParams.bounded = 1;
       }
+
+      console.log('[FairFare] Searching with params:', {
+        query,
+        hasLocation: !!userLocation.current,
+        bounded: searchParams.bounded,
+        viewbox: searchParams.viewbox
+      });
 
       const response = await axios.get(`${NOMINATIM_BASE}/search`, {
         params: searchParams,
         headers: {
           'User-Agent': 'FairFare/1.0'
         },
-        timeout: 4000 // 4 second timeout
+        timeout: 4000
       });
 
       let suggestions = response.data.map(item => {
@@ -935,7 +947,7 @@ function App() {
             userLocation.current.lat, userLocation.current.lng,
             lat, lon
           );
-          isNearby = distance !== null && distance <= 5; // Within 5 miles
+          isNearby = distance !== null && distance <= 30; // Within 30 miles
         }
 
         // Determine if this is a POI result
@@ -950,12 +962,20 @@ function App() {
                           item.type === 'pharmacy' ||
                           item.type === 'hotel';
         
-        // Extract address components for display
+        // Extract address components for clean display
         const addr = item.address || {};
-        const streetLine = addr.house_number && addr.road 
-          ? `${addr.house_number} ${addr.road}`
-          : addr.road || item.name || '';
         
+        // Build street line (street number + street name)
+        let streetLine = '';
+        if (addr.house_number && addr.road) {
+          streetLine = `${addr.house_number} ${addr.road}`;
+        } else if (addr.road) {
+          streetLine = addr.road;
+        } else if (item.name && !item.name.includes('County')) {
+          streetLine = item.name;
+        }
+        
+        // Get city (skip county/district/region)
         const city = addr.city || addr.town || addr.village || addr.hamlet || 
                      (addr.suburb && !addr.suburb.includes('County') ? addr.suburb : null) ||
                      addr.neighbourhood || '';
@@ -984,64 +1004,60 @@ function App() {
           importance: item.importance || 0,
           distance,
           formattedDistance: formatDistance(distance),
-          isNearby, // New flag for nearby locations
+          isNearby,
           isPOI: itemIsPOI,
           poiCategory: itemIsPOI ? poiCategory : null,
-          // Extract business name if available
           businessName: item.name || (item.address ? item.address.shop || item.address.amenity : null)
         };
       });
 
-      // Enhanced sorting for POI searches
+      // FILTER: Remove results too far away (> 100 miles) for short queries
+      if (userLocation.current && isShortQuery) {
+        suggestions = suggestions.filter(s => s.distance === null || s.distance <= 100);
+      }
+
+      // SORT by distance (nearest first)
       if (userLocation.current) {
         suggestions.sort((a, b) => {
-          // For POI searches, use distance-only sorting
-          if (isPOI) {
-            // Prioritize results that are actually POIs
-            if (a.isPOI && !b.isPOI) return -1;
-            if (!a.isPOI && b.isPOI) return 1;
-            
-            // Then sort by distance
-            if (a.distance !== null && b.distance !== null) {
-              return a.distance - b.distance;
-            }
-            return 0;
+          // Prioritize nearby results
+          if (a.isNearby && !b.isNearby) return -1;
+          if (!a.isNearby && b.isNearby) return 1;
+          
+          // Then sort by distance
+          if (a.distance !== null && b.distance !== null) {
+            return a.distance - b.distance;
           }
+          if (a.distance !== null) return -1;
+          if (b.distance !== null) return 1;
           
-          // For non-POI searches, balance importance and distance
-          const importanceWeight = 0.3;
-          const distanceWeight = 0.7;
-          
-          // Boost score for closer results with higher importance
-          const scoreA = (a.importance * importanceWeight * 10) - 
-                        (a.distance ? a.distance * distanceWeight : 0);
-          const scoreB = (b.importance * importanceWeight * 10) - 
-                        (b.distance ? b.distance * distanceWeight : 0);
-          
-          return scoreB - scoreA;
+          return 0;
         });
       }
 
       // Remove duplicates and limit results
       const uniqueSuggestions = [];
       const seen = new Set();
-      const seenNames = new Set();
+      const seenStreets = new Set();
       
       for (const sugg of suggestions) {
-        // Create multiple keys for de-duplication
         const coordKey = `${sugg.lat.toFixed(4)},${sugg.lon.toFixed(4)}`;
-        const nameKey = sugg.display_name.toLowerCase().trim();
+        const streetKey = sugg.streetLine?.toLowerCase().trim();
         
-        // Skip if we've seen these exact coordinates or very similar name
+        // Skip duplicates
         if (seen.has(coordKey)) continue;
-        if (seenNames.has(nameKey)) continue;
+        if (streetKey && seenStreets.has(streetKey)) continue;
         
         seen.add(coordKey);
-        seenNames.add(nameKey);
+        if (streetKey) seenStreets.add(streetKey);
         uniqueSuggestions.push(sugg);
         
-        // Limit to 6 results for POI, 5 for regular
-        if (uniqueSuggestions.length >= (isPOI ? 6 : 5)) break;
+        if (uniqueSuggestions.length >= 6) break;
+      }
+
+      // If no results found with bounded search, try without bounds (fallback)
+      if (uniqueSuggestions.length === 0 && userLocation.current && retryCount === 0) {
+        console.log('[FairFare] No nearby results, trying wider search...');
+        // Don't retry for now - just show no results
       }
 
       // Cache the results
@@ -1067,7 +1083,7 @@ function App() {
         setDestSuggestions(combined.slice(0, 6));
       }
       
-      console.log(`[FairFare] Search completed in ${Date.now() - startTime}ms (${isPOI ? 'POI' : 'standard'} search, ${uniqueSuggestions.length} results)`);
+      console.log(`[FairFare] Search completed in ${Date.now() - startTime}ms (${uniqueSuggestions.length} results)`);
       
     } catch (error) {
       console.error("[FairFare] Address search error:", {
@@ -1077,17 +1093,17 @@ function App() {
         retryCount
       });
       
-      // Retry logic - up to 2 retries with exponential backoff
-      if (retryCount < 2 && (error.code === 'ECONNABORTED' || error.message?.includes('timeout') || error.message?.includes('Network'))) {
-        const delay = Math.pow(2, retryCount) * 500; // 500ms, 1000ms
-        console.log(`[FairFare] Retrying search in ${delay}ms (attempt ${retryCount + 2})`);
+      // Retry logic for network errors
+      if (retryCount < 2 && (error.code === 'ECONNABORTED' || error.message?.includes('timeout'))) {
+        const delay = Math.pow(2, retryCount) * 500;
+        console.log(`[FairFare] Retrying search in ${delay}ms`);
         setTimeout(() => {
           searchAddress(query, isPickup, retryCount + 1);
         }, delay);
         return;
       }
       
-      // Still show airport matches on error
+      // Show airport matches on error
       if (airportSuggestions.length > 0) {
         if (isPickup) setPickupSuggestions(airportSuggestions);
         else setDestSuggestions(airportSuggestions);
