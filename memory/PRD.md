@@ -190,9 +190,11 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - **Terms:** /terms
 
 ## Changelog
+- **March 2025:** Simplified badges - only CHEAPEST and FASTEST, removed FairFare Pick
+- **March 2025:** Price language updated to "~$XX" with "Final price shown in Uber/Lyft app"
+- **March 2025:** Reduced neon glow on cards by 40% for consumer-friendly feel
 - **March 2025:** Search suggestion display - Uber/Lyft style layout with distance line
 - **March 2025:** POI search improvements - place names shown first, stronger location biasing
-- **March 2025:** Price clarity - "Est. $XX" with "Final price in app" disclaimer
 - **March 2025:** Address precision - preserve user-typed street numbers, clean City/State/ZIP format
 - **March 2025:** Visual polish - reduced neon/techy feel, more consumer-friendly appearance
 - **March 2025:** Crash-proof handoff system with modal, timeout safety, and fallback buttons
