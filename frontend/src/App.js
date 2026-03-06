@@ -2990,15 +2990,18 @@ I'll text you when the driver is assigned.`);
           <div className="share-savings-card" data-testid="share-savings-card">
             <h3 className="share-card-title">Your Comparison</h3>
             <div className="price-comparison-list">
-              {results.estimates.map((estimate, idx) => (
-                <div key={idx} className={`price-row ${getBestOption() === estimate.provider ? 'best' : ''}`}>
+              {results.estimates.map((estimate, idx) => {
+                const isCheapest = getSavingsInfo()?.cheaperProvider === estimate.provider;
+                return (
+                <div key={idx} className={`price-row ${isCheapest ? 'best' : ''}`}>
                   <span className="price-provider">{estimate.provider}</span>
                   <span className="price-value">
-                    {getBestOption() === estimate.provider && <span className="best-tag">Best</span>}
-                    ~${(18 + idx * 5).toFixed(2)}
+                    {isCheapest && <span className="best-tag">CHEAPEST</span>}
+                    ~${isCheapest ? getSavingsInfo().cheaperPrice : getSavingsInfo()?.expensivePrice}.00
                   </span>
                 </div>
-              ))}
+              );
+              })}
             </div>
             <div className="savings-highlight">
               <DollarSign size={20} />
