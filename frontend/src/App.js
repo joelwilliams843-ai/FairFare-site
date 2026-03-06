@@ -58,6 +58,10 @@ function App() {
     bestProviderPercent: 0
   });
   
+  // Share state
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
+  const shareCanvasRef = useRef(null);
+  
   const pickupRef = useRef(null);
   const destRef = useRef(null);
   const autocompleteTimer = useRef(null);
