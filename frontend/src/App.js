@@ -481,12 +481,32 @@ function App() {
     }
   };
 
-  // Search for address suggestions
+  // Search for address suggestions with caching and airport codes
   const searchAddress = async (query, isPickup) => {
-    if (!query || query.length < 3) {
+    if (!query || query.length < 2) {
       if (isPickup) setPickupSuggestions([]);
       else setDestSuggestions([]);
       return;
+    }
+
+    // Check for airport code matches first (instant)
+    const airportMatches = matchAirportCode(query);
+    const airportSuggestions = airportMatches.map(formatAirportSuggestion);
+
+    // Check cache
+    const cacheKey = query.toLowerCase().trim();
+    const cached = searchCache.current.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      const combined = [...airportSuggestions, ...cached.results].slice(0, 6);
+      if (isPickup) setPickupSuggestions(combined);
+      else setDestSuggestions(combined);
+      return;
+    }
+
+    // Show airport matches immediately while fetching more results
+    if (airportSuggestions.length > 0) {
+      if (isPickup) setPickupSuggestions(airportSuggestions);
+      else setDestSuggestions(airportSuggestions);
     }
 
     try {
@@ -495,26 +515,62 @@ function App() {
           q: query,
           format: 'json',
           limit: 5,
-          addressdetails: 1
+          addressdetails: 1,
+          countrycodes: 'us', // Prioritize US results
         },
         headers: {
           'User-Agent': 'FairFare/1.0'
-        }
+        },
+        timeout: 3000 // 3 second timeout for faster failure
       });
 
-      const suggestions = response.data.map(item => ({
-        display_name: item.display_name,
-        lat: parseFloat(item.lat),
-        lon: parseFloat(item.lon)
-      }));
+      const suggestions = response.data.map(item => {
+        // Format display name to be shorter and cleaner
+        const parts = item.display_name.split(', ');
+        const shortName = parts.slice(0, 3).join(', ');
+        
+        return {
+          display_name: shortName,
+          full_name: item.display_name,
+          lat: parseFloat(item.lat),
+          lon: parseFloat(item.lon),
+          type: item.type,
+          importance: item.importance || 0
+        };
+      });
+
+      // Sort by importance/relevance
+      suggestions.sort((a, b) => (b.importance || 0) - (a.importance || 0));
+
+      // Cache the results
+      searchCache.current.set(cacheKey, {
+        results: suggestions,
+        timestamp: Date.now()
+      });
+
+      // Combine airport matches with search results, remove duplicates
+      const combined = [...airportSuggestions];
+      for (const sugg of suggestions) {
+        const isDuplicate = combined.some(s => 
+          Math.abs(s.lat - sugg.lat) < 0.01 && Math.abs(s.lon - sugg.lon) < 0.01
+        );
+        if (!isDuplicate) {
+          combined.push(sugg);
+        }
+      }
 
       if (isPickup) {
-        setPickupSuggestions(suggestions);
+        setPickupSuggestions(combined.slice(0, 6));
       } else {
-        setDestSuggestions(suggestions);
+        setDestSuggestions(combined.slice(0, 6));
       }
     } catch (error) {
       console.error("Address search error:", error);
+      // Still show airport matches on error
+      if (airportSuggestions.length > 0) {
+        if (isPickup) setPickupSuggestions(airportSuggestions);
+        else setDestSuggestions(airportSuggestions);
+      }
     }
   };
 
