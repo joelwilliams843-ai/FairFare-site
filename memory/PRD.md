@@ -186,4 +186,6 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - **Terms:** /terms
 
 ## Changelog
+- **March 2025:** Visual polish - reduced neon/techy feel, more consumer-friendly appearance
+- **March 2025:** Crash-proof handoff system with modal, timeout safety, and fallback buttons
 - **March 2025:** Enhanced address search with POI recognition, location biasing, distance sorting
