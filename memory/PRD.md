@@ -162,15 +162,17 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 ## Pending Tasks
 
 ### P0 - Critical (Blocker)
-- [ ] Fix Android build pipeline (user must "Save to GitHub" to sync changes)
+- [ ] **Native Handoff Testing:** Deep linking (`lyft://`, `uber://`) requires testing on native build, NOT web preview. User must build and test on physical device.
+- [ ] **Android Build Workflow:** User must click "Save to GitHub" BEFORE running CI/CD pipeline to sync version changes
 
 ### P1 - Important
 - [ ] "Ride for someone else" feature
 - [ ] Real map integration (pending Mapbox API key)
+- [ ] Cumulative savings counter across all users
 
 ### P2 - Backlog
 - [ ] Intermittent "Failed to load" error investigation
-- [ ] Refactor App.js (2300+ lines - needs component breakdown)
+- [ ] Refactor App.js (3400+ lines - urgently needs component breakdown)
 - [ ] "FairFare Plus - Surge Guard" premium feature
 
 ## App Store Information
