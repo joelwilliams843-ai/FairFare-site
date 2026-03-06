@@ -1851,6 +1851,14 @@ I'll text you when the driver is assigned.`);
     <div className="app-container">
       <Toaster position="top-center" richColors />
       
+      {/* Offline Banner */}
+      {!isOnline && (
+        <div className="offline-banner" data-testid="offline-banner">
+          <AlertTriangle size={16} />
+          <span>You&apos;re offline. Some features may not work.</span>
+        </div>
+      )}
+      
       {/* Splash Screen */}
       {showSplash && (
         <div className={`splash-screen ${splashFading ? 'fade-out' : ''}`} data-testid="splash-screen">
