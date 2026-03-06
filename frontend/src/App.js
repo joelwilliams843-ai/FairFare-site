@@ -21,6 +21,7 @@ function App() {
   const [destCoords, setDestCoords] = useState(null);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
+  const [error, setError] = useState(null); // Error state for ride comparison
   const [savedRoute, setSavedRoute] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   
