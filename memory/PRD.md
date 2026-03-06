@@ -45,6 +45,7 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - ✅ **Airport Code Recognition:** 40+ US airports with instant matching
 - ✅ **Search Caching:** Faster repeated queries
 - ✅ **POI Categories:** Grocery, fast food, retail, hotels, pharmacies, gas stations, banks, fitness
+- ✅ **Favorites:** Save frequently visited locations for one-tap selection
 
 ### Share My Savings (COMPLETED)
 - ✅ Generate shareable "savings card" image
