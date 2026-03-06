@@ -403,11 +403,43 @@ function App() {
 
   // Common POI keywords that should prioritize local results
   const POI_KEYWORDS = [
-    'publix', 'walmart', 'target', 'costco', 'kroger', 'safeway', 'whole foods',
+    // Grocery stores
+    'publix', 'walmart', 'target', 'costco', 'kroger', 'safeway', 'whole foods', 'trader joes',
+    'aldi', 'wegmans', 'heb', 'food lion', 'piggly wiggly', 'winn dixie', 'albertsons',
+    // Fast food & restaurants
     'mcdonalds', 'starbucks', 'chick-fil-a', 'wendys', 'burger king', 'taco bell',
-    'cvs', 'walgreens', 'rite aid', 'home depot', 'lowes', 'best buy',
-    'tanger', 'outlet', 'mall', 'airport', 'hospital', 'hotel', 'hilton', 'marriott',
-    'gym', 'planet fitness', 'la fitness', 'ymca', 'church', 'school', 'university'
+    'chipotle', 'subway', 'dunkin', 'panera', 'popeyes', 'arbys', 'sonic',
+    'dominos', 'pizza hut', 'papa johns', 'little caesars', 'five guys', 'shake shack',
+    'in-n-out', 'whataburger', 'cookout', 'wingstop', 'buffalo wild wings',
+    // Pharmacies & health
+    'cvs', 'walgreens', 'rite aid', 'urgent care', 'hospital', 'medical center', 'clinic',
+    // Home improvement & retail
+    'home depot', 'lowes', 'best buy', 'ikea', 'menards', 'ace hardware',
+    'office depot', 'staples', 'michaels', 'hobby lobby', 'joann',
+    // Outlet & shopping
+    'tanger', 'outlet', 'mall', 'shopping center', 'plaza', 'galleria', 'outlets',
+    'premium outlets', 'factory stores', 'marketplace',
+    // Hotels & travel
+    'hotel', 'hilton', 'marriott', 'hyatt', 'sheraton', 'westin', 'holiday inn',
+    'hampton inn', 'courtyard', 'residence inn', 'fairfield', 'doubletree',
+    'la quinta', 'motel 6', 'super 8', 'days inn', 'airport',
+    // Fitness & recreation
+    'gym', 'planet fitness', 'la fitness', 'ymca', 'equinox', 'orangetheory',
+    'anytime fitness', 'gold gym', 'crossfit', '24 hour fitness',
+    // Gas stations
+    'shell', 'exxon', 'chevron', 'bp', 'sunoco', 'speedway', 'wawa', 'sheetz',
+    'racetrac', 'quiktrip', 'circle k', 'murphy', '7-eleven', '7 eleven',
+    // Entertainment
+    'amc', 'regal', 'cinemark', 'movie theater', 'bowling', 'dave and busters',
+    'topgolf', 'main event', 'round1', 'arcade',
+    // Education & community
+    'church', 'school', 'university', 'college', 'library', 'community center',
+    // Banks
+    'bank of america', 'chase', 'wells fargo', 'pnc', 'td bank', 'citizens bank',
+    'suntrust', 'truist', 'regions', 'fifth third', 'us bank',
+    // Auto
+    'autozone', 'advance auto', 'oreilly', 'jiffy lube', 'firestone', 'goodyear',
+    'discount tire', 'pep boys', 'carmax'
   ];
 
   // Check if query is a POI search
