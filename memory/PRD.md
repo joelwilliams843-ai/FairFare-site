@@ -38,13 +38,15 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - ✅ Web fallback for desktop/no app installed
 
 ### Address Search & Autocomplete (COMPLETED - March 2025)
-- ✅ **POI Recognition:** 100+ brand keywords (Publix, McDonalds, Target, Starbucks, CVS, Tanger, etc.)
-- ✅ **Location Biasing:** Results biased to user's current location
-- ✅ **Distance-Based Sorting:** Nearest POI results shown first
+- ✅ **POI Name Priority:** Place names (schools, businesses) shown first, address below
+- ✅ **Location Biasing:** Strong preference for results within 50 miles of user
+- ✅ **Address Format:** Clean "Street, City, State ZIP" (no county/region/country)
+- ✅ **POI Recognition:** 100+ brand keywords + schools, churches, parks, stadiums
+- ✅ **Distance-Based Sorting:** Nearest results shown first
 - ✅ **Distance Badges:** Green distance indicators (e.g., "0.7 mi", "2.5 mi")
 - ✅ **Airport Code Recognition:** 40+ US airports with instant matching
 - ✅ **Search Caching:** Faster repeated queries
-- ✅ **POI Categories:** Grocery, fast food, retail, hotels, pharmacies, gas stations, banks, fitness
+- ✅ **POI Categories:** Grocery, fast food, retail, hotels, pharmacies, gas stations, banks, fitness, education
 - ✅ **Favorites:** Save frequently visited locations for one-tap selection
 
 ### Ride Comparison & Handoff (COMPLETED - March 2025)
