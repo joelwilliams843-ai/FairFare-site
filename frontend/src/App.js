@@ -652,25 +652,43 @@ function App() {
   const selectSuggestion = (suggestion, isPickup) => {
     if (isPickup) {
       setPickup(suggestion.display_name);
+      // Lock coordinates to this exact location
       setPickupCoords({ lat: suggestion.lat, lng: suggestion.lon });
+      // Clear detected coords since user explicitly selected a location
+      setDetectedCoords(null);
       setPickupSuggestions([]);
       setShowPickupSuggestions(false);
       saveToRecent(suggestion.display_name);
+      
+      // Show confirmation for airport selections
+      if (suggestion.isAirport) {
+        toast.success(`✈️ ${suggestion.code} selected`, { duration: 2000 });
+      }
+      
       console.log('Pickup selected:', {
         address: suggestion.display_name,
         lat: suggestion.lat,
-        lng: suggestion.lon
+        lng: suggestion.lon,
+        isAirport: suggestion.isAirport || false
       });
     } else {
       setDestination(suggestion.display_name);
+      // Lock coordinates to this exact location
       setDestCoords({ lat: suggestion.lat, lng: suggestion.lon });
       setDestSuggestions([]);
       setShowDestSuggestions(false);
       saveToRecent(suggestion.display_name);
+      
+      // Show confirmation for airport selections
+      if (suggestion.isAirport) {
+        toast.success(`✈️ ${suggestion.code} selected`, { duration: 2000 });
+      }
+      
       console.log('Destination selected:', {
         address: suggestion.display_name,
         lat: suggestion.lat,
-        lng: suggestion.lon
+        lng: suggestion.lon,
+        isAirport: suggestion.isAirport || false
       });
     }
   };
