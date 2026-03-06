@@ -2274,3 +2274,158 @@ body {
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   }
 }
+
+
+/* ========================================
+   CRASH-PROOF HANDOFF MODAL
+   ======================================== */
+.handoff-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 22, 40, 0.98);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.handoff-modal {
+  background: var(--bg-card);
+  border-radius: 24px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.handoff-provider {
+  margin-bottom: 1.5rem;
+}
+
+.provider-logo {
+  display: inline-block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  background: var(--bg-primary);
+}
+
+.provider-logo.uber {
+  color: #000;
+  background: #fff;
+}
+
+.provider-logo.lyft {
+  color: #fff;
+  background: #FF00BF;
+}
+
+.handoff-status {
+  margin-bottom: 2rem;
+}
+
+.handoff-spinner {
+  color: var(--accent-green);
+  margin-bottom: 1rem;
+}
+
+.handoff-warning-icon {
+  color: #f59e0b;
+  margin-bottom: 1rem;
+}
+
+.handoff-error-icon {
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.handoff-message {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.handoff-submessage {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.handoff-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.handoff-btn {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms;
+  border: none;
+}
+
+.handoff-btn.primary {
+  background: var(--accent-green);
+  color: var(--bg-primary);
+}
+
+.handoff-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--accent-green-glow);
+}
+
+.handoff-btn.secondary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.handoff-btn.secondary:hover {
+  background: #1d4ed8;
+}
+
+.handoff-btn.tertiary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.handoff-btn.tertiary:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.handoff-route-info {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.route-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 0.25rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.route-text {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
