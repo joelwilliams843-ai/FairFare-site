@@ -112,10 +112,165 @@ function App() {
       setSavingsData(JSON.parse(savings));
     }
     
+    // Load watched routes
+    const watched = localStorage.getItem("watchedRoutes");
+    if (watched) {
+      setWatchedRoutes(JSON.parse(watched));
+    }
+    
+    // Check notification permission
+    if ('Notification' in window) {
+      setNotificationsEnabled(Notification.permission === 'granted');
+    }
+    
     // Auto-detect location on load
     detectLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Price check simulation for watched routes
+  useEffect(() => {
+    if (watchedRoutes.length > 0) {
+      // Check prices every 5 minutes (simulated)
+      priceCheckInterval.current = setInterval(() => {
+        checkWatchedRoutePrices();
+      }, 300000); // 5 minutes
+      
+      return () => {
+        if (priceCheckInterval.current) {
+          clearInterval(priceCheckInterval.current);
+        }
+      };
+    }
+  }, [watchedRoutes]);
+
+  // Simulated price check function
+  const checkWatchedRoutePrices = useCallback(() => {
+    setWatchedRoutes(prevRoutes => {
+      const updatedRoutes = prevRoutes.map(route => {
+        // Simulate price fluctuation (±20%)
+        const priceChange = (Math.random() - 0.5) * 0.4;
+        const newPrice = route.currentPrice * (1 + priceChange);
+        const percentChange = ((newPrice - route.originalPrice) / route.originalPrice) * 100;
+        
+        // Check if price dropped more than 15%
+        if (percentChange < -15 && notificationsEnabled) {
+          sendPriceDropNotification(route, newPrice, percentChange);
+        }
+        
+        return {
+          ...route,
+          currentPrice: Math.round(newPrice * 100) / 100,
+          lastChecked: new Date().toISOString(),
+          percentChange: Math.round(percentChange)
+        };
+      });
+      
+      localStorage.setItem('watchedRoutes', JSON.stringify(updatedRoutes));
+      return updatedRoutes;
+    });
+  }, [notificationsEnabled]);
+
+  // Send push notification for price drop
+  const sendPriceDropNotification = (route, newPrice, percentChange) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const notification = new Notification('🎉 Ride price dropped!', {
+        body: `${route.pickup.substring(0, 20)}... to ${route.destination.substring(0, 20)}...\nNow $${newPrice.toFixed(2)} (${Math.abs(Math.round(percentChange))}% off)!\nCheck FairFare before it goes back up.`,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: `price-drop-${route.id}`,
+        requireInteraction: true
+      });
+      
+      notification.onclick = () => {
+        window.focus();
+        setView('alerts');
+        notification.close();
+      };
+    }
+  };
+
+  // Request notification permission
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationsEnabled(permission === 'granted');
+      if (permission === 'granted') {
+        toast.success('Notifications enabled! We\'ll alert you when prices drop.');
+      } else {
+        toast.error('Please enable notifications to get price drop alerts.');
+      }
+    } else {
+      toast.error('Notifications not supported in this browser.');
+    }
+  };
+
+  // Watch this route
+  const watchRoute = () => {
+    if (!pickup || !destination || !pickupCoords || !destCoords) {
+      toast.error('Please complete a ride comparison first.');
+      return;
+    }
+    
+    // Check if already watching this route
+    const existingRoute = watchedRoutes.find(r => 
+      r.pickupCoords.lat === (pickupCoords?.lat || detectedCoords?.lat) &&
+      r.pickupCoords.lng === (pickupCoords?.lng || detectedCoords?.lng) &&
+      r.destCoords.lat === destCoords.lat &&
+      r.destCoords.lng === destCoords.lng
+    );
+    
+    if (existingRoute) {
+      toast.info('You\'re already watching this route!');
+      return;
+    }
+    
+    // Simulated current price
+    const basePrice = 15 + Math.random() * 15;
+    
+    const newRoute = {
+      id: Date.now(),
+      pickup,
+      destination,
+      pickupCoords: pickupCoords || detectedCoords,
+      destCoords,
+      originalPrice: Math.round(basePrice * 100) / 100,
+      currentPrice: Math.round(basePrice * 100) / 100,
+      bestProvider: 'Lyft',
+      createdAt: new Date().toISOString(),
+      lastChecked: new Date().toISOString(),
+      percentChange: 0
+    };
+    
+    const updatedRoutes = [...watchedRoutes, newRoute];
+    setWatchedRoutes(updatedRoutes);
+    localStorage.setItem('watchedRoutes', JSON.stringify(updatedRoutes));
+    
+    // Request notification permission if not already granted
+    if (!notificationsEnabled && 'Notification' in window) {
+      requestNotificationPermission();
+    }
+    
+    toast.success('Route added to Price Alerts! We\'ll notify you when prices drop.');
+  };
+
+  // Remove watched route
+  const removeWatchedRoute = (routeId) => {
+    const updatedRoutes = watchedRoutes.filter(r => r.id !== routeId);
+    setWatchedRoutes(updatedRoutes);
+    localStorage.setItem('watchedRoutes', JSON.stringify(updatedRoutes));
+    toast.success('Route removed from Price Alerts');
+  };
+
+  // Use watched route for comparison
+  const useWatchedRoute = (route) => {
+    setPickup(route.pickup);
+    setDestination(route.destination);
+    setPickupCoords(route.pickupCoords);
+    setDestCoords(route.destCoords);
+    setView('input');
+    toast.info('Route loaded! Tap "Find My Fare" to compare.');
+  };
 
   // Update timestamp periodically
   useEffect(() => {
