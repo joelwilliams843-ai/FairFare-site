@@ -2714,17 +2714,32 @@ I'll text you when the driver is assigned.`);
               <div
                 key={idx}
                 data-testid={`${estimate.provider.toLowerCase()}-card`}
-                className={`estimate-card ${estimate.provider.toLowerCase()}`}
+                className={`estimate-card ${estimate.provider.toLowerCase()} ${getSavingsInfo()?.cheaperProvider === estimate.provider ? 'cheapest' : ''}`}
               >
-                {getBestOption() === estimate.provider && (
+                {getSavingsInfo()?.cheaperProvider === estimate.provider && (
+                  <div className="cheapest-badge" data-testid="cheapest-badge">
+                    <DollarSign size={14} />
+                    Cheapest
+                  </div>
+                )}
+                {getBestOption() === estimate.provider && getSavingsInfo()?.cheaperProvider !== estimate.provider && (
                   <div className="best-option-badge" data-testid="best-option-badge">
-                    Best Option
+                    Best Availability
                   </div>
                 )}
                 <div className="estimate-header">
                   <h3 className="provider-name">{estimate.provider}</h3>
                   <span className="ride-type">{estimate.ride_type}</span>
                 </div>
+
+                {/* Show estimated price */}
+                {getSavingsInfo() && (
+                  <div className="estimated-price">
+                    ~${getSavingsInfo().cheaperProvider === estimate.provider 
+                      ? getSavingsInfo().cheaperPrice 
+                      : getSavingsInfo().expensivePrice}
+                  </div>
+                )}
 
                 <div className="estimate-details">
                   <div className={`detail-item demand-level-indicator ${getDemandLevelClass(estimate.price_level)}`}>
@@ -2739,8 +2754,6 @@ I'll text you when the driver is assigned.`);
                 <div className={`surge-status ${getSurgeClass(estimate.surge_likelihood)}`}>
                   <span>Surge Likelihood: {estimate.surge_likelihood}</span>
                 </div>
-                
-                <p className="live-price-note">Live price shown in app</p>
 
                 <button
                   data-testid={`${estimate.provider.toLowerCase()}-open-btn`}
@@ -2753,16 +2766,11 @@ I'll text you when the driver is assigned.`);
                       <Loader2 size={18} className="spinner" />
                       Opening {estimate.provider}...
                     </>
+                  ) : getSavingsInfo()?.cheaperProvider === estimate.provider ? (
+                    `Open ${estimate.provider} — $${getSavingsInfo().cheaperPrice}`
                   ) : (
-                    `Continue in ${estimate.provider}`
+                    `Open ${estimate.provider} — $${getSavingsInfo()?.expensivePrice || ''}`
                   )}
-                </button>
-                <button
-                  onClick={copyRouteToClipboard}
-                  className="copy-route-button"
-                  data-testid="copy-route-btn"
-                >
-                  📋 Copy Route
                 </button>
               </div>
             ))}
