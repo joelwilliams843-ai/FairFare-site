@@ -2828,7 +2828,7 @@ I'll text you when the driver is assigned.`);
                       )}
                     </p>
                     <p className="savings-comparison">
-                      {getSavingsInfo().cheaperProvider}: ~${getSavingsInfo().cheaperPrice} vs ${getSavingsInfo().expensivePrice}
+                      {getSavingsInfo().cheaperProvider}: Est. ${getSavingsInfo().cheaperPrice} vs ${getSavingsInfo().expensivePrice}
                     </p>
                   </div>
                   <button
