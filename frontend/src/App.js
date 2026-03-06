@@ -2497,12 +2497,12 @@ I'll text you when the driver is assigned.`);
                                     </span>
                                   </div>
                                 </>
-                              ) : suggestion.isPOI ? (
+                              ) : suggestion.isPOI || suggestion.placeName ? (
                                 <>
                                   <Store size={16} className="suggestion-icon poi-icon" />
                                   <div className="suggestion-details">
-                                    <span className="suggestion-main">{suggestion.streetLine}</span>
-                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
+                                    <span className="suggestion-main">{suggestion.placeName || suggestion.businessName || suggestion.streetLine}</span>
+                                    <span className="suggestion-sub">{suggestion.locationLine || suggestion.streetLine}</span>
                                   </div>
                                   <div className="suggestion-badges">
                                     {suggestion.isNearby && (
@@ -2675,12 +2675,12 @@ I'll text you when the driver is assigned.`);
                                     </span>
                                   </div>
                                 </>
-                              ) : suggestion.isPOI ? (
+                              ) : suggestion.isPOI || suggestion.placeName ? (
                                 <>
                                   <Store size={16} className="suggestion-icon poi-icon" />
                                   <div className="suggestion-details">
-                                    <span className="suggestion-main">{suggestion.streetLine}</span>
-                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
+                                    <span className="suggestion-main">{suggestion.placeName || suggestion.businessName || suggestion.streetLine}</span>
+                                    <span className="suggestion-sub">{suggestion.locationLine || suggestion.streetLine}</span>
                                   </div>
                                   <div className="suggestion-badges">
                                     {suggestion.isNearby && (
