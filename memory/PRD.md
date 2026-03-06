@@ -47,6 +47,14 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - ✅ **POI Categories:** Grocery, fast food, retail, hotels, pharmacies, gas stations, banks, fitness
 - ✅ **Favorites:** Save frequently visited locations for one-tap selection
 
+### Error Handling & Loading States (COMPLETED - March 2025)
+- ✅ **Loading State**: Animated spinner with "Finding the best fares..." message
+- ✅ **Error State**: User-friendly error display with retry/back options
+- ✅ **Validation Messages**: Clear prompts when coordinates are missing
+- ✅ **Error Logging**: Comprehensive console logs for debugging (geocoding, API, routing errors)
+- ✅ **Button State**: Dynamic button text shows required action ("Select pickup from suggestions")
+- ✅ **Prevents blank screens**: Validates coordinates before rendering results view
+
 ### Share My Savings (COMPLETED)
 - ✅ Generate shareable "savings card" image
 - ✅ Native Web Share API integration
