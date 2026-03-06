@@ -1847,21 +1847,42 @@ I'll text you when the driver is assigned.`);
                         {destSuggestions.map((suggestion, idx) => (
                           <div
                             key={idx}
-                            className={`suggestion-item ${suggestion.isAirport ? 'airport' : ''}`}
+                            className={`suggestion-item ${suggestion.isAirport ? 'airport' : ''} ${suggestion.isPOI ? 'poi' : ''}`}
                             onClick={() => selectSuggestion(suggestion, false)}
+                            data-testid={`dest-suggestion-${idx}`}
                           >
                             {suggestion.isAirport ? (
                               <>
                                 <span className="airport-badge">✈ {suggestion.code}</span>
                                 <div className="suggestion-details">
                                   <span className="suggestion-main">{suggestion.display_name.split(',')[0]}</span>
-                                  <span className="suggestion-sub">{suggestion.display_name.split(',').slice(1).join(',').trim()}</span>
+                                  <span className="suggestion-sub">
+                                    {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                                    {suggestion.formattedDistance && (
+                                      <span className="suggestion-distance"> • {suggestion.formattedDistance}</span>
+                                    )}
+                                  </span>
+                                </div>
+                              </>
+                            ) : suggestion.isPOI ? (
+                              <>
+                                <Store size={16} className="suggestion-icon poi-icon" />
+                                <div className="suggestion-details">
+                                  <span className="suggestion-main">{suggestion.display_name}</span>
+                                  {suggestion.formattedDistance && (
+                                    <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
+                                  )}
                                 </div>
                               </>
                             ) : (
                               <>
                                 <MapPin size={16} className="suggestion-icon" />
-                                <span className="suggestion-text">{suggestion.display_name}</span>
+                                <div className="suggestion-details">
+                                  <span className="suggestion-main">{suggestion.display_name}</span>
+                                  {suggestion.formattedDistance && (
+                                    <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
+                                  )}
+                                </div>
                               </>
                             )}
                           </div>
