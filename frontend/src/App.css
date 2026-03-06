@@ -1,21 +1,22 @@
-/* FairFare - Dark Theme with Neon Green Accents */
+/* FairFare - Modern Rideshare Savings App */
 
 :root {
-  --bg-primary: #0A1628;
-  --bg-secondary: #0F1D32;
-  --bg-card: #162236;
-  --accent-green: #00FF88;
-  --accent-green-dim: rgba(0, 255, 136, 0.15);
-  --accent-green-glow: rgba(0, 255, 136, 0.3);
-  --text-primary: #FFFFFF;
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --bg-card: #1E293B;
+  --accent-green: #10B981;
+  --accent-green-dim: rgba(16, 185, 129, 0.12);
+  --accent-green-glow: rgba(16, 185, 129, 0.15);
+  --accent-green-solid: #059669;
+  --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
-  --border-color: #1E3A5F;
+  --border-color: #334155;
   --uber-color: #000000;
   --lyft-color: #FF00BF;
-  --success: #00FF88;
-  --warning: #FFB800;
-  --danger: #FF4757;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
 }
 
 * {
