@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 
 class FairFareAPITester:
-    def __init__(self, base_url="https://rideprice-compare-6.preview.emergentagent.com"):
+    def __init__(self, base_url="https://rideshare-saver.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
