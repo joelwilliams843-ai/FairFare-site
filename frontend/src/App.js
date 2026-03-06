@@ -1545,6 +1545,54 @@ function App() {
     return uber.eta_minutes <= lyft.eta_minutes ? "Uber" : "Lyft";
   };
 
+  // Get the cheapest ride option
+  const getCheapestOption = () => {
+    if (!results || !results.estimates || results.estimates.length < 2) return null;
+    
+    const estimates = results.estimates;
+    // Sort by minimum estimated price
+    const sorted = [...estimates].sort((a, b) => 
+      (a.estimated_price_min || 0) - (b.estimated_price_min || 0)
+    );
+    
+    return sorted[0];
+  };
+
+  // Calculate savings between options
+  const getSavingsInfo = () => {
+    if (!results || !results.estimates || results.estimates.length < 2) {
+      return null;
+    }
+    
+    const estimates = results.estimates;
+    const uber = estimates.find(e => e.provider === 'Uber');
+    const lyft = estimates.find(e => e.provider === 'Lyft');
+    
+    if (!uber || !lyft) return null;
+    
+    // Use estimated_price_min for comparison (or calculate from price_level)
+    const uberPrice = uber.estimated_price_min || (uber.price_level === "Good time to ride" ? 20 : 
+                      uber.price_level === "Normal demand" ? 25 : 
+                      uber.price_level === "Busy — expect delays" ? 32 : 40);
+    const lyftPrice = lyft.estimated_price_min || (lyft.price_level === "Good time to ride" ? 19 : 
+                      lyft.price_level === "Normal demand" ? 24 : 
+                      lyft.price_level === "Busy — expect delays" ? 30 : 38);
+    
+    const diff = Math.abs(uberPrice - lyftPrice);
+    const cheaperProvider = uberPrice < lyftPrice ? 'Uber' : 'Lyft';
+    const cheaperPrice = Math.min(uberPrice, lyftPrice);
+    const expensivePrice = Math.max(uberPrice, lyftPrice);
+    
+    return {
+      savings: diff,
+      cheaperProvider,
+      cheaperPrice: Math.round(cheaperPrice),
+      expensivePrice: Math.round(expensivePrice),
+      cheaperEstimate: cheaperProvider === 'Uber' ? uber : lyft,
+      hasSavings: diff >= 1 // Show savings if $1 or more difference
+    };
+  };
+
   const saveWeekendRide = () => {
     if (!pickup || !destination) {
       toast.error("Enter a route to save");
