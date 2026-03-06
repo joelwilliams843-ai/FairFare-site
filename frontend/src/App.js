@@ -1275,25 +1275,49 @@ function App() {
 
   // Check if we have valid coordinates for comparison
   const canCompare = () => {
-    // Use detectedCoords as fallback for pickup if pickupCoords not set
-    const hasPickupCoords = (pickupCoords?.lat && pickupCoords?.lng) || (detectedCoords?.lat && detectedCoords?.lng);
-    return (
-      pickup &&
-      destination &&
-      hasPickupCoords &&
-      destCoords?.lat &&
-      destCoords?.lng
-    );
+    // Allow comparison if both fields have text (will auto-geocode if needed)
+    return pickup && pickup.length >= 3 && destination && destination.length >= 3;
   };
 
   // Get validation message for the compare button
   const getValidationMessage = () => {
     if (!pickup) return "Enter pickup location";
     if (!destination) return "Enter destination";
-    const hasPickupCoords = (pickupCoords?.lat && pickupCoords?.lng) || (detectedCoords?.lat && detectedCoords?.lng);
-    if (!hasPickupCoords) return "Select pickup from suggestions";
-    if (!destCoords?.lat || !destCoords?.lng) return "Select destination from suggestions";
+    if (pickup.length < 3) return "Enter more details for pickup";
+    if (destination.length < 3) return "Enter more details for destination";
     return null;
+  };
+
+  // Auto-geocode an address string
+  const autoGeocode = async (address) => {
+    try {
+      const response = await axios.get(`${NOMINATIM_BASE}/search`, {
+        params: {
+          q: address,
+          format: 'json',
+          limit: 1,
+          addressdetails: 1,
+          countrycodes: 'us',
+        },
+        headers: {
+          'User-Agent': 'FairFare/1.0'
+        },
+        timeout: 5000
+      });
+      
+      if (response.data && response.data.length > 0) {
+        const result = response.data[0];
+        return {
+          lat: parseFloat(result.lat),
+          lng: parseFloat(result.lon),
+          display_name: formatAddressSingleLine(result)
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('[FairFare] Auto-geocode error:', error);
+      return null;
+    }
   };
 
   const compareRides = async () => {
@@ -1308,35 +1332,44 @@ function App() {
       return;
     }
 
+    setLoading(true);
+
     // Use detectedCoords as fallback for pickup coordinates
-    const finalPickupCoords = (pickupCoords?.lat && pickupCoords?.lng) 
+    let finalPickupCoords = (pickupCoords?.lat && pickupCoords?.lng) 
       ? pickupCoords 
       : detectedCoords;
 
-    // Validate that we have coordinates
+    // Auto-geocode pickup if coordinates missing
     if (!finalPickupCoords?.lat || !finalPickupCoords?.lng) {
-      const errorMsg = "Please select a pickup location from the suggestions list.";
-      setError({ type: 'geocoding', message: errorMsg, field: 'pickup' });
-      toast.error(errorMsg);
-      console.error('[FairFare] Geocoding Error - Pickup:', { 
-        pickup, 
-        pickupCoords, 
-        detectedCoords,
-        error: 'Missing pickup coordinates' 
-      });
-      return;
+      console.log('[FairFare] Auto-geocoding pickup address:', pickup);
+      const geocoded = await autoGeocode(pickup);
+      if (geocoded) {
+        finalPickupCoords = { lat: geocoded.lat, lng: geocoded.lng };
+        setPickupCoords(finalPickupCoords);
+      } else {
+        setLoading(false);
+        const errorMsg = "Couldn't find that pickup location. Please select from suggestions.";
+        setError({ type: 'geocoding', message: errorMsg, field: 'pickup' });
+        toast.error(errorMsg);
+        return;
+      }
     }
 
-    if (!destCoords?.lat || !destCoords?.lng) {
-      const errorMsg = "Please select a destination from the suggestions list.";
-      setError({ type: 'geocoding', message: errorMsg, field: 'destination' });
-      toast.error(errorMsg);
-      console.error('[FairFare] Geocoding Error - Destination:', { 
-        destination, 
-        destCoords,
-        error: 'Missing destination coordinates' 
-      });
-      return;
+    // Auto-geocode destination if coordinates missing
+    let finalDestCoords = destCoords;
+    if (!finalDestCoords?.lat || !finalDestCoords?.lng) {
+      console.log('[FairFare] Auto-geocoding destination:', destination);
+      const geocoded = await autoGeocode(destination);
+      if (geocoded) {
+        finalDestCoords = { lat: geocoded.lat, lng: geocoded.lng };
+        setDestCoords(finalDestCoords);
+      } else {
+        setLoading(false);
+        const errorMsg = "Couldn't find that destination. Please select from suggestions.";
+        setError({ type: 'geocoding', message: errorMsg, field: 'destination' });
+        toast.error(errorMsg);
+        return;
+      }
     }
 
     // Save locations to recent
