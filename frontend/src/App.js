@@ -283,11 +283,17 @@ function App() {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           setPickupCoords({ lat, lng });
+          setDetectedCoords({ lat, lng }); // Store original GPS coords
           
           // Reverse geocode to get address
           const address = await reverseGeocode(lat, lng);
           setPickup(address);
-          toast.success("Location detected!");
+          
+          // Show banner and auto-hide after 3 seconds
+          setShowLocationBanner(true);
+          setTimeout(() => {
+            setShowLocationBanner(false);
+          }, 3000);
         },
         (error) => {
           // Silently fail on initial load
