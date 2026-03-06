@@ -469,6 +469,92 @@ body {
   min-width: 0;
 }
 
+/* Favorites styling */
+.suggestion-item.favorite {
+  background: rgba(255, 100, 132, 0.08);
+  position: relative;
+}
+
+.suggestion-item.favorite:hover {
+  background: rgba(255, 100, 132, 0.15);
+}
+
+.favorite-icon {
+  color: #ff6484;
+  fill: rgba(255, 100, 132, 0.3);
+}
+
+.header-icon.favorite {
+  color: #ff6484;
+  margin-right: 0.25rem;
+}
+
+.suggestions-header {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 1rem;
+}
+
+/* Add/Remove favorite buttons */
+.add-favorite-btn,
+.remove-favorite-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 150ms;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.add-favorite-btn {
+  background: rgba(255, 100, 132, 0.1);
+  color: #ff6484;
+}
+
+.add-favorite-btn:hover {
+  background: rgba(255, 100, 132, 0.25);
+  transform: scale(1.1);
+}
+
+.remove-favorite-btn {
+  background: rgba(255, 100, 132, 0.1);
+  color: #ff6484;
+  opacity: 0;
+}
+
+.suggestion-item.favorite:hover .remove-favorite-btn {
+  opacity: 1;
+}
+
+.remove-favorite-btn:hover {
+  background: rgba(255, 100, 132, 0.3);
+}
+
+/* Suggestion content wrapper for favorites button alignment */
+.suggestion-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+/* Adjust suggestion item for favorites button */
+.suggestion-item:has(.add-favorite-btn) {
+  padding-right: 0.5rem;
+}
+
 /* Compare Button */
 .compare-button {
   width: 100%;
