@@ -1527,15 +1527,17 @@ function App() {
     let finalDestCoords = destCoords;
     if (!finalDestCoords?.lat || !finalDestCoords?.lng) {
       console.log('[FairFare] Auto-geocoding destination:', destination);
+      toast.info("Finding your destination...", { duration: 2000 });
       const geocoded = await autoGeocode(destination);
       if (geocoded) {
         finalDestCoords = { lat: geocoded.lat, lng: geocoded.lng };
         setDestCoords(finalDestCoords);
+        console.log('[FairFare] Destination geocoded:', geocoded);
       } else {
         setLoading(false);
-        const errorMsg = "Couldn't find that destination. Please select from suggestions.";
+        const errorMsg = "Couldn't find that destination. Try selecting from the suggestion list, or add city/state to your address.";
         setError({ type: 'geocoding', message: errorMsg, field: 'destination' });
-        toast.error(errorMsg);
+        toast.error(errorMsg, { duration: 5000 });
         return;
       }
     }
