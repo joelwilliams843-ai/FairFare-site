@@ -2521,31 +2521,21 @@ I'll text you when the driver is assigned.`);
                                   <Store size={16} className="suggestion-icon poi-icon" />
                                   <div className="suggestion-details">
                                     <span className="suggestion-main">{suggestion.placeName || suggestion.businessName || suggestion.streetLine}</span>
-                                    <span className="suggestion-sub">{suggestion.locationLine || suggestion.streetLine}</span>
-                                  </div>
-                                  <div className="suggestion-badges">
-                                    {suggestion.isNearby && (
-                                      <span className="nearby-badge">Nearby</span>
-                                    )}
                                     {suggestion.formattedDistance && (
-                                      <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
+                                      <span className="suggestion-distance-line">{suggestion.formattedDistance} away</span>
                                     )}
+                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
                                   </div>
                                 </>
                               ) : (
                                 <>
                                   <MapPin size={16} className="suggestion-icon" />
                                   <div className="suggestion-details">
-                                    <span className="suggestion-main">{suggestion.streetLine}</span>
-                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
-                                  </div>
-                                  <div className="suggestion-badges">
-                                    {suggestion.isNearby && (
-                                      <span className="nearby-badge">Nearby</span>
-                                    )}
+                                    <span className="suggestion-main">{suggestion.placeName || suggestion.streetLine}</span>
                                     {suggestion.formattedDistance && (
-                                      <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
+                                      <span className="suggestion-distance-line">{suggestion.formattedDistance} away</span>
                                     )}
+                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
                                   </div>
                                 </>
                               )}
@@ -2699,31 +2689,21 @@ I'll text you when the driver is assigned.`);
                                   <Store size={16} className="suggestion-icon poi-icon" />
                                   <div className="suggestion-details">
                                     <span className="suggestion-main">{suggestion.placeName || suggestion.businessName || suggestion.streetLine}</span>
-                                    <span className="suggestion-sub">{suggestion.locationLine || suggestion.streetLine}</span>
-                                  </div>
-                                  <div className="suggestion-badges">
-                                    {suggestion.isNearby && (
-                                      <span className="nearby-badge">Nearby</span>
-                                    )}
                                     {suggestion.formattedDistance && (
-                                      <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
+                                      <span className="suggestion-distance-line">{suggestion.formattedDistance} away</span>
                                     )}
+                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
                                   </div>
                                 </>
                               ) : (
                                 <>
                                   <MapPin size={16} className="suggestion-icon" />
                                   <div className="suggestion-details">
-                                    <span className="suggestion-main">{suggestion.streetLine}</span>
-                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
-                                  </div>
-                                  <div className="suggestion-badges">
-                                    {suggestion.isNearby && (
-                                      <span className="nearby-badge">Nearby</span>
-                                    )}
+                                    <span className="suggestion-main">{suggestion.placeName || suggestion.streetLine}</span>
                                     {suggestion.formattedDistance && (
-                                      <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
+                                      <span className="suggestion-distance-line">{suggestion.formattedDistance} away</span>
                                     )}
+                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
                                   </div>
                                 </>
                               )}
