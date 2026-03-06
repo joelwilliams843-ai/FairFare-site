@@ -2329,7 +2329,7 @@ I'll text you when the driver is assigned.`);
                                   <div className="suggestion-details">
                                     <span className="suggestion-main">{suggestion.display_name.split(',')[0]}</span>
                                     <span className="suggestion-sub">
-                                      {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                                      {suggestion.locationLine || suggestion.display_name.split(',').slice(1).join(',').trim()}
                                       {suggestion.formattedDistance && (
                                         <span className="suggestion-distance"> • {suggestion.formattedDistance}</span>
                                       )}
@@ -2340,30 +2340,32 @@ I'll text you when the driver is assigned.`);
                                 <>
                                   <Store size={16} className="suggestion-icon poi-icon" />
                                   <div className="suggestion-details">
-                                    <span className="suggestion-main">{suggestion.display_name}</span>
-                                    <div className="suggestion-badges">
-                                      {suggestion.isNearby && (
-                                        <span className="nearby-badge">Nearby</span>
-                                      )}
-                                      {suggestion.formattedDistance && (
-                                        <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
-                                      )}
-                                    </div>
+                                    <span className="suggestion-main">{suggestion.streetLine}</span>
+                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
+                                  </div>
+                                  <div className="suggestion-badges">
+                                    {suggestion.isNearby && (
+                                      <span className="nearby-badge">Nearby</span>
+                                    )}
+                                    {suggestion.formattedDistance && (
+                                      <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
+                                    )}
                                   </div>
                                 </>
                               ) : (
                                 <>
                                   <MapPin size={16} className="suggestion-icon" />
                                   <div className="suggestion-details">
-                                    <span className="suggestion-main">{suggestion.display_name}</span>
-                                    <div className="suggestion-badges">
-                                      {suggestion.isNearby && (
-                                        <span className="nearby-badge">Nearby</span>
-                                      )}
-                                      {suggestion.formattedDistance && (
-                                        <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
-                                      )}
-                                    </div>
+                                    <span className="suggestion-main">{suggestion.streetLine}</span>
+                                    <span className="suggestion-sub">{suggestion.locationLine}</span>
+                                  </div>
+                                  <div className="suggestion-badges">
+                                    {suggestion.isNearby && (
+                                      <span className="nearby-badge">Nearby</span>
+                                    )}
+                                    {suggestion.formattedDistance && (
+                                      <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
+                                    )}
                                   </div>
                                 </>
                               )}
