@@ -31,8 +31,16 @@ function App() {
   const [showLongTripModal, setShowLongTripModal] = useState(false);
   const [pendingResults, setPendingResults] = useState(null);
   
-  // Deep link loading state
-  const [openingApp, setOpeningApp] = useState(null); // "Uber" | "Lyft" | null
+  // Handoff Modal State - crash-proof provider handoff
+  const [handoffState, setHandoffState] = useState({
+    isOpen: false,
+    provider: null,        // "Uber" | "Lyft"
+    status: 'idle',        // 'idle' | 'opening' | 'timeout' | 'error'
+    deepLink: null,
+    webLink: null,
+    errorMessage: null,
+    startTime: null
+  });
   
   // Ride for someone else
   const [rideForOther, setRideForOther] = useState(false);
