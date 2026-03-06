@@ -458,15 +458,30 @@ body {
 .suggestion-item.poi .suggestion-details,
 .suggestion-item:not(.airport) .suggestion-details {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .suggestion-item.poi .suggestion-main,
 .suggestion-item:not(.airport):not(.recent) .suggestion-main {
-  flex: 1;
-  min-width: 0;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.suggestion-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* Favorites styling */
