@@ -928,7 +928,7 @@ body {
 
 /* Savings Moment Card */
 .savings-moment {
-  background: linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 255, 136, 0.02) 100%);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.03) 100%);
   border: 2px solid var(--accent-green);
   border-radius: 16px;
   padding: 1.25rem;
@@ -1288,7 +1288,7 @@ body {
 }
 
 .demand-good {
-  background: rgba(0, 255, 136, 0.15);
+  background: var(--accent-green-dim);
   color: var(--accent-green);
 }
 
@@ -1317,7 +1317,7 @@ body {
 }
 
 .surge-low {
-  background: rgba(0, 255, 136, 0.1);
+  background: rgba(16, 185, 129, 0.12);
   color: var(--accent-green);
 }
 
@@ -1792,7 +1792,7 @@ body {
 }
 
 .price-change.down {
-  background: rgba(0, 255, 136, 0.15);
+  background: var(--accent-green-dim);
   color: var(--accent-green);
 }
 
