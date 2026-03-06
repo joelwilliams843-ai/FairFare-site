@@ -47,6 +47,16 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - ✅ **POI Categories:** Grocery, fast food, retail, hotels, pharmacies, gas stations, banks, fitness
 - ✅ **Favorites:** Save frequently visited locations for one-tap selection
 
+### Ride Comparison & Handoff (COMPLETED - March 2025)
+- ✅ **Savings Moment**: Shows "Save $X by choosing [Provider]" with prominent CTA
+- ✅ **Cheapest Badge**: Green "CHEAPEST" badge on lowest-priced option
+- ✅ **Price Display**: Shows estimated prices on cards (~$19, ~$20)
+- ✅ **Open Cheapest Button**: Primary "Open [Provider] — Best Fare" CTA
+- ✅ **Deep Link Error Handling**: Shows "Opening..." overlay, fallback to web if app not installed
+- ✅ **Savings Tracking**: Tracks cumulative savings in localStorage
+- ✅ **Auto-Geocoding**: Typed addresses auto-geocode if coordinates missing
+- ✅ **Less Strict Validation**: Users can type addresses without selecting from dropdown
+
 ### Error Handling & Loading States (COMPLETED - March 2025)
 - ✅ **Loading State**: Animated spinner with "Finding the best fares..." message
 - ✅ **Error State**: User-friendly error display with retry/back options
