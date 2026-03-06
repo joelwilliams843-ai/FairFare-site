@@ -2522,6 +2522,8 @@ I'll text you when the driver is assigned.`);
           >
             {loading ? "Refreshing..." : "↻ Refresh"}
           </button>
+            </>
+          )}
         </div>
       )}
 
