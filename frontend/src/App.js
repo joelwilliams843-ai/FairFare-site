@@ -621,6 +621,42 @@ function App() {
     }
   };
 
+  // Detect POI category for icon display
+  const getPOICategory = (query) => {
+    const lowerQuery = query.toLowerCase();
+    
+    // Category mappings for UI display
+    const categories = {
+      grocery: ['publix', 'walmart', 'target', 'costco', 'kroger', 'safeway', 'whole foods', 'trader joes', 'aldi', 'wegmans', 'heb', 'food lion', 'piggly wiggly', 'winn dixie', 'albertsons'],
+      food: ['mcdonalds', 'starbucks', 'chick-fil-a', 'wendys', 'burger king', 'taco bell', 'chipotle', 'subway', 'dunkin', 'panera', 'popeyes', 'arbys', 'sonic', 'dominos', 'pizza hut', 'papa johns', 'little caesars', 'five guys', 'shake shack', 'in-n-out', 'whataburger', 'cookout', 'wingstop', 'buffalo wild wings'],
+      pharmacy: ['cvs', 'walgreens', 'rite aid'],
+      medical: ['urgent care', 'hospital', 'medical center', 'clinic'],
+      retail: ['home depot', 'lowes', 'best buy', 'ikea', 'menards', 'ace hardware', 'office depot', 'staples', 'michaels', 'hobby lobby', 'joann'],
+      shopping: ['tanger', 'outlet', 'mall', 'shopping center', 'plaza', 'galleria', 'outlets', 'premium outlets', 'factory stores', 'marketplace'],
+      hotel: ['hotel', 'hilton', 'marriott', 'hyatt', 'sheraton', 'westin', 'holiday inn', 'hampton inn', 'courtyard', 'residence inn', 'fairfield', 'doubletree', 'la quinta', 'motel 6', 'super 8', 'days inn'],
+      fitness: ['gym', 'planet fitness', 'la fitness', 'ymca', 'equinox', 'orangetheory', 'anytime fitness', 'gold gym', 'crossfit', '24 hour fitness'],
+      gas: ['shell', 'exxon', 'chevron', 'bp', 'sunoco', 'speedway', 'wawa', 'sheetz', 'racetrac', 'quiktrip', 'circle k', 'murphy', '7-eleven', '7 eleven'],
+      entertainment: ['amc', 'regal', 'cinemark', 'movie theater', 'bowling', 'dave and busters', 'topgolf', 'main event', 'round1', 'arcade'],
+      bank: ['bank of america', 'chase', 'wells fargo', 'pnc', 'td bank', 'citizens bank', 'suntrust', 'truist', 'regions', 'fifth third', 'us bank'],
+      auto: ['autozone', 'advance auto', 'oreilly', 'jiffy lube', 'firestone', 'goodyear', 'discount tire', 'pep boys', 'carmax']
+    };
+
+    for (const [category, keywords] of Object.entries(categories)) {
+      if (keywords.some(kw => lowerQuery.includes(kw))) {
+        return category;
+      }
+    }
+    return null;
+  };
+
+  // Format distance for display
+  const formatDistance = (miles) => {
+    if (miles === null || miles === undefined) return null;
+    if (miles < 0.1) return '< 0.1 mi';
+    if (miles < 10) return `${miles.toFixed(1)} mi`;
+    return `${Math.round(miles)} mi`;
+  };
+
   // Search for address suggestions with location biasing and POI support
   const searchAddress = async (query, isPickup) => {
     if (!query || query.length < 2) {
@@ -630,6 +666,8 @@ function App() {
     }
 
     const startTime = Date.now();
+    const isPOI = isPOISearch(query);
+    const poiCategory = getPOICategory(query);
     
     // Check for airport code matches first (instant)
     const airportMatches = matchAirportCode(query);
@@ -641,11 +679,11 @@ function App() {
       else setDestSuggestions(airportSuggestions);
     }
 
-    // Build cache key with location context
+    // Build cache key with location context and POI flag
     const locationKey = userLocation.current 
       ? `${userLocation.current.lat.toFixed(2)},${userLocation.current.lng.toFixed(2)}`
       : 'default';
-    const cacheKey = `${query.toLowerCase().trim()}_${locationKey}`;
+    const cacheKey = `${query.toLowerCase().trim()}_${locationKey}_${isPOI ? 'poi' : 'std'}`;
     
     // Check cache
     const cached = searchCache.current.get(cacheKey);
@@ -658,26 +696,27 @@ function App() {
     }
 
     try {
-      // Build search params with location biasing
+      // Build search params with enhanced location biasing
       const searchParams = {
         q: query,
         format: 'json',
-        limit: 10, // Get more results for better filtering
+        limit: isPOI ? 15 : 10, // Get more results for POI searches
         addressdetails: 1,
         countrycodes: 'us',
+        extratags: 1, // Get extra tags for better POI classification
       };
 
       // Add location biasing if user location is known
       if (userLocation.current) {
-        // Viewbox creates a bounding box around the user (roughly 100 miles)
-        const bias = 1.5; // ~100 miles in degrees
+        // For POI searches, use tighter bounding box (30 miles vs 100 miles)
+        const bias = isPOI ? 0.5 : 1.5;
         searchParams.viewbox = [
           userLocation.current.lng - bias,
           userLocation.current.lat + bias,
           userLocation.current.lng + bias,
           userLocation.current.lat - bias
         ].join(',');
-        searchParams.bounded = 0; // Don't strictly limit, just prefer
+        searchParams.bounded = isPOI ? 1 : 0; // Strictly limit for POI searches
       }
 
       const response = await axios.get(`${NOMINATIM_BASE}/search`, {
@@ -685,7 +724,7 @@ function App() {
         headers: {
           'User-Agent': 'FairFare/1.0'
         },
-        timeout: 2500 // 2.5 second timeout
+        timeout: 3000 // 3 second timeout
       });
 
       let suggestions = response.data.map(item => {
@@ -700,6 +739,18 @@ function App() {
             lat, lon
           );
         }
+
+        // Determine if this is a POI result
+        const itemIsPOI = item.class === 'shop' || 
+                          item.class === 'amenity' || 
+                          item.class === 'tourism' ||
+                          item.class === 'leisure' ||
+                          item.type === 'supermarket' ||
+                          item.type === 'fast_food' ||
+                          item.type === 'restaurant' ||
+                          item.type === 'cafe' ||
+                          item.type === 'pharmacy' ||
+                          item.type === 'hotel';
         
         return {
           display_name: formatAddress(item),
@@ -710,30 +761,39 @@ function App() {
           class: item.class,
           importance: item.importance || 0,
           distance,
-          isPOI: item.class === 'shop' || item.class === 'amenity' || item.class === 'tourism'
+          formattedDistance: formatDistance(distance),
+          isPOI: itemIsPOI,
+          poiCategory: itemIsPOI ? poiCategory : null,
+          // Extract business name if available
+          businessName: item.name || (item.address ? item.address.shop || item.address.amenity : null)
         };
       });
 
-      // Sort by distance if this is a POI search or user location is known
+      // Enhanced sorting for POI searches
       if (userLocation.current) {
-        const isPOI = isPOISearch(query);
-        
         suggestions.sort((a, b) => {
-          // For POI searches, heavily prioritize distance
+          // For POI searches, use distance-only sorting
           if (isPOI) {
+            // Prioritize results that are actually POIs
+            if (a.isPOI && !b.isPOI) return -1;
+            if (!a.isPOI && b.isPOI) return 1;
+            
+            // Then sort by distance
             if (a.distance !== null && b.distance !== null) {
               return a.distance - b.distance;
             }
+            return 0;
           }
           
-          // Otherwise, balance importance and distance
+          // For non-POI searches, balance importance and distance
           const importanceWeight = 0.3;
           const distanceWeight = 0.7;
           
-          const scoreA = (a.importance * importanceWeight) - 
-                        (a.distance ? a.distance * distanceWeight / 100 : 0);
-          const scoreB = (b.importance * importanceWeight) - 
-                        (b.distance ? b.distance * distanceWeight / 100 : 0);
+          // Boost score for closer results with higher importance
+          const scoreA = (a.importance * importanceWeight * 10) - 
+                        (a.distance ? a.distance * distanceWeight : 0);
+          const scoreB = (b.importance * importanceWeight * 10) - 
+                        (b.distance ? b.distance * distanceWeight : 0);
           
           return scoreB - scoreA;
         });
@@ -742,14 +802,23 @@ function App() {
       // Remove duplicates and limit results
       const uniqueSuggestions = [];
       const seen = new Set();
+      const seenNames = new Set();
       
       for (const sugg of suggestions) {
-        const key = `${sugg.lat.toFixed(4)},${sugg.lon.toFixed(4)}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          uniqueSuggestions.push(sugg);
-        }
-        if (uniqueSuggestions.length >= 5) break;
+        // Create multiple keys for de-duplication
+        const coordKey = `${sugg.lat.toFixed(4)},${sugg.lon.toFixed(4)}`;
+        const nameKey = sugg.display_name.toLowerCase().trim();
+        
+        // Skip if we've seen these exact coordinates or very similar name
+        if (seen.has(coordKey)) continue;
+        if (seenNames.has(nameKey)) continue;
+        
+        seen.add(coordKey);
+        seenNames.add(nameKey);
+        uniqueSuggestions.push(sugg);
+        
+        // Limit to 6 results for POI, 5 for regular
+        if (uniqueSuggestions.length >= (isPOI ? 6 : 5)) break;
       }
 
       // Cache the results
@@ -775,7 +844,7 @@ function App() {
         setDestSuggestions(combined.slice(0, 6));
       }
       
-      console.log(`Search completed in ${Date.now() - startTime}ms`);
+      console.log(`Search completed in ${Date.now() - startTime}ms (${isPOI ? 'POI' : 'standard'} search)`);
     } catch (error) {
       console.error("Address search error:", error);
       // Still show airport matches on error
