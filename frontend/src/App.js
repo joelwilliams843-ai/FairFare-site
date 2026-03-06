@@ -262,8 +262,8 @@ function App() {
     toast.success('Route removed from Price Alerts');
   };
 
-  // Use watched route for comparison
-  const useWatchedRoute = (route) => {
+  // Load watched route for comparison
+  const loadWatchedRoute = (route) => {
     setPickup(route.pickup);
     setDestination(route.destination);
     setPickupCoords(route.pickupCoords);
