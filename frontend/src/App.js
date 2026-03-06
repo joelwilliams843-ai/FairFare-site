@@ -948,8 +948,32 @@ function App() {
                           item.type === 'pharmacy' ||
                           item.type === 'hotel';
         
+        // Extract address components for display
+        const addr = item.address || {};
+        const streetLine = addr.house_number && addr.road 
+          ? `${addr.house_number} ${addr.road}`
+          : addr.road || item.name || '';
+        
+        const city = addr.city || addr.town || addr.village || addr.hamlet || 
+                     (addr.suburb && !addr.suburb.includes('County') ? addr.suburb : null) ||
+                     addr.neighbourhood || '';
+        const state = addr.state ? getStateAbbreviation(addr.state) : '';
+        const postalCode = addr.postcode || '';
+        
+        // Build location line (City, ST ZIP)
+        let locationLine = '';
+        if (city && state && postalCode) {
+          locationLine = `${city}, ${state} ${postalCode}`;
+        } else if (city && state) {
+          locationLine = `${city}, ${state}`;
+        } else if (city) {
+          locationLine = city;
+        }
+        
         return {
-          display_name: formatAddress(item),
+          display_name: formatAddressSingleLine(item),
+          streetLine: streetLine || formatAddressSingleLine(item).split(',')[0],
+          locationLine: locationLine,
           full_name: item.display_name,
           lat,
           lon,
