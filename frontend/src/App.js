@@ -2239,12 +2239,15 @@ I'll text you when the driver is assigned.`);
         </div>
       )}
 
-      {view === "results" && results && (
+      {view === "results" && (
         <div className="results-view">
           <div className="results-header">
             <button
               data-testid="back-btn"
-              onClick={() => setView("input")}
+              onClick={() => {
+                setView("input");
+                setError(null);
+              }}
               className="back-button"
             >
               ← Back
@@ -2254,15 +2257,19 @@ I'll text you when the driver is assigned.`);
                 <FairFareLogo size={32} />
                 <h2 className="results-title">FairFare</h2>
               </div>
-              <p className="distance-text">
-                {results.distance_miles} miles • {results.duration_minutes} min
-              </p>
-              {results.decision_hint && (
-                <p className="decision-hint" data-testid="decision-hint">
-                  {results.decision_hint}
-                </p>
+              {results && (
+                <>
+                  <p className="distance-text">
+                    {results.distance_miles} miles • {results.duration_minutes} min
+                  </p>
+                  {results.decision_hint && (
+                    <p className="decision-hint" data-testid="decision-hint">
+                      {results.decision_hint}
+                    </p>
+                  )}
+                </>
               )}
-              {lastUpdated && (
+              {lastUpdated && !loading && !error && (
                 <p className="timestamp-text">
                   <Clock size={14} />
                   Updated {getTimeAgo(lastUpdated)}
@@ -2271,13 +2278,61 @@ I'll text you when the driver is assigned.`);
             </div>
           </div>
 
-          {/* Recommendation Banner */}
-          {results.recommendation && (
-            <div className="recommendation-banner" data-testid="recommendation-banner">
-              <Sparkles size={16} className="recommendation-icon" />
-              <span>{results.recommendation}</span>
+          {/* Loading State */}
+          {loading && (
+            <div className="loading-state" data-testid="loading-state">
+              <Loader2 size={48} className="spinner loading-spinner" />
+              <p className="loading-text">Finding the best fares...</p>
+              <p className="loading-subtext">Checking Uber and Lyft availability</p>
             </div>
           )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="error-state" data-testid="error-state">
+              <AlertTriangle size={48} className="error-icon" />
+              <h3 className="error-title">Something went wrong</h3>
+              <p className="error-message">{error.message}</p>
+              {error.type === 'geocoding' && (
+                <p className="error-hint">
+                  Tip: Make sure to select a location from the dropdown suggestions.
+                </p>
+              )}
+              <div className="error-actions">
+                <button 
+                  className="retry-button"
+                  onClick={() => {
+                    setError(null);
+                    compareRides();
+                  }}
+                  data-testid="retry-btn"
+                >
+                  Try Again
+                </button>
+                <button 
+                  className="back-to-input-button"
+                  onClick={() => {
+                    setView("input");
+                    setError(null);
+                  }}
+                  data-testid="back-to-input-btn"
+                >
+                  Change Locations
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Results Content - Only show when we have valid results and no error */}
+          {results && !loading && !error && (
+            <>
+              {/* Recommendation Banner */}
+              {results.recommendation && (
+                <div className="recommendation-banner" data-testid="recommendation-banner">
+                  <Sparkles size={16} className="recommendation-icon" />
+                  <span>{results.recommendation}</span>
+                </div>
+              )}
 
           {/* FairFare Pick Card */}
           {getFairFarePick() && (
