@@ -435,6 +435,12 @@ body {
   font-weight: 500;
 }
 
+.suggestion-distance-line {
+  color: var(--accent-green);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
 .suggestion-distance-badge {
   display: inline-flex;
   align-items: center;
