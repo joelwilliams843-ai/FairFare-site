@@ -1830,131 +1830,50 @@ function App() {
     });
 
     try {
-      const isNative = Capacitor.isNativePlatform();
-      
-      if (isNative && !useWebFallback) {
-        // For Capacitor native apps, try to open the native app first using deep link
-        // The deep link (lyft:// or uber://) should open the installed app directly
-        try {
-          logHandoffEvent('HANDOFF_TRYING_NATIVE_APP', { provider, deepLink });
-          
-          // Try opening the native app via deep link scheme
-          // We use window.location.href because Capacitor's Browser plugin opens in Safari
-          // which won't redirect to the native app
-          window.location.href = deepLink;
-          
-          // If we get here without error, the app might be opening
-          // Set a timeout to check if we're still in the app
-          setTimeout(() => {
-            // If we're still here after 1.5s, the app probably isn't installed
-            // Show options to user
-            if (handoffState.status === 'opening') {
-              setHandoffState(prev => ({
-                ...prev,
-                status: 'timeout',
-                errorMessage: `If ${provider} didn't open, tap "Open in Browser" below.`
-              }));
-            }
-          }, 1500);
-          
-          logHandoffEvent('HANDOFF_DEEPLINK_SENT', { provider, deepLink });
-          
-        } catch (deepLinkError) {
-          logHandoffEvent('HANDOFF_DEEPLINK_ERROR', { 
-            provider, 
-            error: deepLinkError.message 
-          });
-          
-          // Deep link failed, try web fallback
-          try {
-            await Browser.open({ 
-              url: webLink,
-              presentationStyle: 'popover'
-            });
-            logHandoffEvent('HANDOFF_WEB_FALLBACK_SUCCESS', { provider, url: webLink });
-          } catch (browserError) {
-            setHandoffState(prev => ({
-              ...prev,
-              status: 'error',
-              errorMessage: `Couldn't open ${provider}. Please try the browser option.`
-            }));
-          }
-        }
-      } else if (isNative && useWebFallback) {
-        // User explicitly wants web fallback - use Browser plugin
-        try {
-          await Browser.open({ 
-            url: webLink,
-            presentationStyle: 'popover'
-          });
-          
-          logHandoffEvent('HANDOFF_SUCCESS_BROWSER', { provider, url: webLink });
-          
+      if (!useWebFallback && deepLink) {
+        // Try to open native app first via deep link
+        const result = await openExternalUrl(deepLink, true);
+        
+        if (result.success) {
+          // Deep link worked - app should be opening
+          logHandoffEvent('HANDOFF_SUCCESS_DEEPLINK', { provider });
           setTimeout(() => {
             setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
           }, 1000);
-          
-        } catch (browserError) {
-          logHandoffEvent('HANDOFF_BROWSER_ERROR', { 
-            provider, 
-            error: browserError.message 
-          });
-          
+          return;
+        } else {
+          // Deep link failed - show timeout/error state with options
+          logHandoffEvent('HANDOFF_DEEPLINK_FAILED', { provider, error: result.error });
           setHandoffState(prev => ({
             ...prev,
-            status: 'error',
-            errorMessage: `Couldn't open ${provider}. Please try again.`
+            status: 'timeout',
+            errorMessage: `${provider} app may not be installed. Tap below to open in browser.`
           }));
+          return;
         }
+      }
+      
+      // Use web fallback
+      const webResult = await openExternalUrl(webLink, false);
+      
+      if (webResult.success) {
+        logHandoffEvent('HANDOFF_SUCCESS_WEB', { provider, url: webLink });
+        setTimeout(() => {
+          setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+        }, 1000);
       } else {
-        // For web browsers - try deep link first, then fallback to new tab
-        if (!useWebFallback) {
-          // Try native app via deep link
-          window.location.href = deepLink;
-          
-          // Set timeout for fallback
-          setTimeout(() => {
-            if (handoffState.status === 'opening') {
-              // Open web version in new tab
-              const newWindow = window.open(webLink, '_blank', 'noopener,noreferrer');
-              if (newWindow && !newWindow.closed) {
-                logHandoffEvent('HANDOFF_SUCCESS_WEB_FALLBACK', { provider, url: webLink });
-                setTimeout(() => {
-                  setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
-                }, 500);
-              } else {
-                setHandoffState(prev => ({
-                  ...prev,
-                  status: 'error',
-                  errorMessage: 'Pop-up blocked. Use the button below.'
-                }));
-              }
-            }
-          }, 1500);
-        } else {
-          // Direct web link
-          const newWindow = window.open(webLink, '_blank', 'noopener,noreferrer');
-          
-          if (newWindow && !newWindow.closed) {
-            logHandoffEvent('HANDOFF_SUCCESS_WEB', { provider, url: webLink });
-            
-            setTimeout(() => {
-              setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
-            }, 1000);
-          } else {
-            setHandoffState(prev => ({
-              ...prev,
-              status: 'error',
-              errorMessage: 'Pop-up blocked. Use the buttons below to open manually.'
-            }));
-          }
-        }
+        setHandoffState(prev => ({
+          ...prev,
+          status: 'error',
+          errorMessage: webResult.error === 'Popup blocked' 
+            ? 'Pop-up blocked. Tap the button below to try again.'
+            : `Couldn't open ${provider}. Please try again.`
+        }));
       }
     } catch (error) {
       logHandoffEvent('HANDOFF_EXCEPTION', { 
         provider, 
-        error: error.message,
-        stack: error.stack?.substring(0, 200)
+        error: error.message
       });
       
       setHandoffState(prev => ({
