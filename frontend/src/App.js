@@ -2975,9 +2975,9 @@ I'll text you when the driver is assigned.`);
                       Opening {estimate.provider}...
                     </>
                   ) : getSavingsInfo()?.cheaperProvider === estimate.provider ? (
-                    `Open ${estimate.provider} — $${getSavingsInfo().cheaperPrice}`
+                    `Open ${estimate.provider} — Est. $${getSavingsInfo().cheaperPrice}`
                   ) : (
-                    `Open ${estimate.provider} — $${getSavingsInfo()?.expensivePrice || ''}`
+                    `Open ${estimate.provider} — Est. $${getSavingsInfo()?.expensivePrice || ''}`
                   )}
                 </button>
               </div>
