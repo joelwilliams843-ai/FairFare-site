@@ -2931,9 +2931,9 @@ I'll text you when the driver is assigned.`);
                   data-testid={`${estimate.provider.toLowerCase()}-open-btn`}
                   onClick={() => openDeepLink(estimate)}
                   className="open-app-button"
-                  disabled={openingApp !== null}
+                  disabled={handoffState.isOpen}
                 >
-                  {openingApp === estimate.provider ? (
+                  {handoffState.isOpen && handoffState.provider === estimate.provider ? (
                     <>
                       <Loader2 size={18} className="spinner" />
                       Opening {estimate.provider}...
