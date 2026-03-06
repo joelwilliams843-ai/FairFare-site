@@ -1702,6 +1702,49 @@ function App() {
     }
   };
 
+  // Safe URL opener that works on all platforms
+  const openExternalUrl = async (url, isDeepLink = false) => {
+    const isNative = Capacitor.isNativePlatform();
+    
+    logHandoffEvent('OPEN_URL_ATTEMPT', { url, isDeepLink, isNative });
+    
+    try {
+      if (isNative) {
+        if (isDeepLink) {
+          // For deep links (lyft://, uber://), use Capacitor App plugin
+          // This properly handles custom URL schemes on iOS/Android
+          try {
+            await CapacitorApp.openUrl({ url });
+            logHandoffEvent('OPEN_URL_SUCCESS_NATIVE_DEEPLINK', { url });
+            return { success: true };
+          } catch (appError) {
+            logHandoffEvent('OPEN_URL_DEEPLINK_FAILED', { url, error: appError.message });
+            // Deep link failed - app might not be installed
+            return { success: false, error: 'App not installed' };
+          }
+        } else {
+          // For web URLs, use Browser plugin
+          await Browser.open({ url, presentationStyle: 'popover' });
+          logHandoffEvent('OPEN_URL_SUCCESS_BROWSER', { url });
+          return { success: true };
+        }
+      } else {
+        // Web browser - use window.open for all URLs
+        const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+        if (newWindow) {
+          logHandoffEvent('OPEN_URL_SUCCESS_WEB', { url });
+          return { success: true };
+        } else {
+          logHandoffEvent('OPEN_URL_POPUP_BLOCKED', { url });
+          return { success: false, error: 'Popup blocked' };
+        }
+      }
+    } catch (error) {
+      logHandoffEvent('OPEN_URL_ERROR', { url, error: error.message });
+      return { success: false, error: error.message };
+    }
+  };
+
   // CRASH-PROOF: Open ride provider with guaranteed visible UI
   const openDeepLink = async (estimate) => {
     // SAFETY: Never proceed without estimate data
