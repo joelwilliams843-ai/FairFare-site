@@ -537,7 +537,9 @@ function App() {
     'amc', 'regal', 'cinemark', 'movie theater', 'bowling', 'dave and busters',
     'topgolf', 'main event', 'round1', 'arcade',
     // Education & community
-    'church', 'school', 'university', 'college', 'library', 'community center',
+    'church', 'school', 'high school', 'middle school', 'elementary school', 'elementary',
+    'university', 'college', 'library', 'community center', 'recreation center',
+    'academy', 'campus', 'institute', 'preschool', 'daycare', 'stadium', 'arena', 'park',
     // Banks
     'bank of america', 'chase', 'wells fargo', 'pnc', 'td bank', 'citizens bank',
     'suntrust', 'truist', 'regions', 'fifth third', 'us bank',
