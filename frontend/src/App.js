@@ -1042,10 +1042,17 @@ function App() {
         suggestions = suggestions.filter(s => s.distance === null || s.distance <= 100);
       }
 
-      // SORT by distance (nearest first)
+      // SORT by distance (nearest first) with strong local preference
       if (userLocation.current) {
         suggestions.sort((a, b) => {
-          // Prioritize nearby results
+          // Strong preference for results within 50 miles
+          const aIsLocal = a.distance !== null && a.distance <= 50;
+          const bIsLocal = b.distance !== null && b.distance <= 50;
+          
+          if (aIsLocal && !bIsLocal) return -1;
+          if (!aIsLocal && bIsLocal) return 1;
+          
+          // Then prioritize nearby results (within 30 miles)
           if (a.isNearby && !b.isNearby) return -1;
           if (!a.isNearby && b.isNearby) return 1;
           
