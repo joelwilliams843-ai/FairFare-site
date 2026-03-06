@@ -2905,79 +2905,32 @@ I'll text you when the driver is assigned.`);
                 </div>
               )}
 
-          {/* FairFare Pick Card */}
-          {getFairFarePick() && (
-            <div className="fairfare-pick-card" data-testid="fairfare-pick">
-              <div className="pick-header">
-                <div className="pick-badge">
-                  <Sparkles size={16} />
-                  <span>FairFare Pick</span>
-                </div>
-                <div className="pick-subtitle">
-                  <TrendingDown size={14} />
-                  Best Right Now
-                </div>
-              </div>
-              <p className="pick-recommendation">
-                Recommended based on availability + arrival time
-              </p>
-              <div className="pick-content">
-                <div className="pick-provider-info">
-                  <h3 className="pick-provider">{getFairFarePick().provider}</h3>
-                  <span className="pick-ride-type">{getFairFarePick().ride_type}</span>
-                </div>
-                <div className="pick-details">
-                  <div className={`pick-demand-level ${getDemandLevelClass(getFairFarePick().price_level)}`}>
-                    <span className="demand-value">{getFairFarePick().price_level}</span>
-                  </div>
-                  <div className="pick-wait">
-                    <Clock size={18} />
-                    <span>{getFairFarePick().eta_minutes} min</span>
-                  </div>
-                </div>
-                <div className={`surge-indicator ${getSurgeClass(getFairFarePick().surge_likelihood)}`}>
-                  Surge Likelihood: {getFairFarePick().surge_likelihood}
-                </div>
-                <p className="live-price-note">Live price shown in app</p>
-                <button
-                  data-testid="pick-open-btn"
-                  onClick={() => openDeepLink(getFairFarePick())}
-                  className="pick-open-button"
-                  disabled={handoffState.isOpen}
-                >
-                  {handoffState.isOpen && handoffState.provider === getFairFarePick()?.provider ? (
-                    <>
-                      <Loader2 size={18} className="spinner" />
-                      Opening {getFairFarePick()?.provider}...
-                    </>
-                  ) : (
-                    `Continue in ${getFairFarePick()?.provider}`
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
           <div className="section-divider">
             <span>All Options</span>
           </div>
 
           <div className="estimates-list">
-            {results.estimates.map((estimate, idx) => (
+            {results.estimates.map((estimate, idx) => {
+              // Determine if this is the fastest option (lowest ETA)
+              const isFastest = results.estimates.every(e => estimate.eta_minutes <= e.eta_minutes);
+              const isCheapest = getSavingsInfo()?.cheaperProvider === estimate.provider;
+              
+              return (
               <div
                 key={idx}
                 data-testid={`${estimate.provider.toLowerCase()}-card`}
-                className={`estimate-card ${estimate.provider.toLowerCase()} ${getSavingsInfo()?.cheaperProvider === estimate.provider ? 'cheapest' : ''}`}
+                className={`estimate-card ${estimate.provider.toLowerCase()} ${isCheapest ? 'cheapest' : ''}`}
               >
-                {getSavingsInfo()?.cheaperProvider === estimate.provider && (
+                {isCheapest && (
                   <div className="cheapest-badge" data-testid="cheapest-badge">
                     <DollarSign size={14} />
-                    Cheapest
+                    CHEAPEST
                   </div>
                 )}
-                {getBestOption() === estimate.provider && getSavingsInfo()?.cheaperProvider !== estimate.provider && (
-                  <div className="best-option-badge" data-testid="best-option-badge">
-                    Best Availability
+                {isFastest && !isCheapest && (
+                  <div className="fastest-badge" data-testid="fastest-badge">
+                    <Clock size={14} />
+                    FASTEST
                   </div>
                 )}
                 <div className="estimate-header">
