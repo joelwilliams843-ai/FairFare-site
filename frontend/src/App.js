@@ -399,6 +399,44 @@ function App() {
   // Search cache for faster repeated queries
   const searchCache = useRef(new Map());
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  const userLocation = useRef(null); // Store user's current location for biasing
+
+  // Common POI keywords that should prioritize local results
+  const POI_KEYWORDS = [
+    'publix', 'walmart', 'target', 'costco', 'kroger', 'safeway', 'whole foods',
+    'mcdonalds', 'starbucks', 'chick-fil-a', 'wendys', 'burger king', 'taco bell',
+    'cvs', 'walgreens', 'rite aid', 'home depot', 'lowes', 'best buy',
+    'tanger', 'outlet', 'mall', 'airport', 'hospital', 'hotel', 'hilton', 'marriott',
+    'gym', 'planet fitness', 'la fitness', 'ymca', 'church', 'school', 'university'
+  ];
+
+  // Check if query is a POI search
+  const isPOISearch = (query) => {
+    const lowerQuery = query.toLowerCase();
+    return POI_KEYWORDS.some(poi => lowerQuery.includes(poi));
+  };
+
+  // Calculate distance between two coordinates (Haversine formula)
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 3959; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Update user location for biasing
+  useEffect(() => {
+    if (pickupCoords) {
+      userLocation.current = pickupCoords;
+    } else if (detectedCoords) {
+      userLocation.current = detectedCoords;
+    }
+  }, [pickupCoords, detectedCoords]);
 
   // Check if query matches airport code
   const matchAirportCode = (query) => {
@@ -406,7 +444,8 @@ function App() {
     
     // Direct code match
     if (AIRPORT_CODES[upperQuery]) {
-      return [AIRPORT_CODES[upperQuery]];
+      const airport = AIRPORT_CODES[upperQuery];
+      return [{ ...airport, code: upperQuery }];
     }
     
     // Partial matches and name matches
@@ -418,17 +457,90 @@ function App() {
       }
     }
     
-    return matches.slice(0, 3); // Return top 3 matches
+    // Sort airport matches by distance if user location is known
+    if (userLocation.current && matches.length > 1) {
+      matches.sort((a, b) => {
+        const distA = calculateDistance(userLocation.current.lat, userLocation.current.lng, a.lat, a.lon);
+        const distB = calculateDistance(userLocation.current.lat, userLocation.current.lng, b.lat, b.lon);
+        return distA - distB;
+      });
+    }
+    
+    return matches.slice(0, 3);
   };
 
-  // Format airport suggestion
-  const formatAirportSuggestion = (airport) => ({
-    display_name: `${airport.name}, ${airport.city}`,
-    lat: airport.lat,
-    lon: airport.lon,
-    isAirport: true,
-    code: airport.code
-  });
+  // Format airport suggestion with distance
+  const formatAirportSuggestion = (airport) => {
+    let distance = null;
+    if (userLocation.current) {
+      distance = calculateDistance(
+        userLocation.current.lat, userLocation.current.lng,
+        airport.lat, airport.lon
+      );
+    }
+    
+    return {
+      display_name: `${airport.name}, ${airport.city}`,
+      lat: airport.lat,
+      lon: airport.lon,
+      isAirport: true,
+      code: airport.code,
+      distance
+    };
+  };
+
+  // Format address nicely: "123 Main St, City, ST"
+  const formatAddress = (item) => {
+    if (!item.address) {
+      // Fallback: take first 3 parts of display_name
+      const parts = item.display_name.split(', ');
+      return parts.slice(0, 3).join(', ');
+    }
+    
+    const addr = item.address;
+    const parts = [];
+    
+    // Street address
+    if (addr.house_number && addr.road) {
+      parts.push(`${addr.house_number} ${addr.road}`);
+    } else if (addr.road) {
+      parts.push(addr.road);
+    } else if (item.name) {
+      parts.push(item.name);
+    }
+    
+    // City
+    const city = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb;
+    if (city) parts.push(city);
+    
+    // State abbreviation
+    const state = addr.state;
+    if (state) {
+      const stateAbbr = getStateAbbreviation(state);
+      parts.push(stateAbbr);
+    }
+    
+    return parts.join(', ') || item.display_name.split(', ').slice(0, 3).join(', ');
+  };
+
+  // State name to abbreviation mapping
+  const getStateAbbreviation = (stateName) => {
+    const states = {
+      'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+      'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+      'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
+      'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+      'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
+      'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+      'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
+      'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+      'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+      'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY',
+      'district of columbia': 'DC'
+    };
+    const lower = stateName.toLowerCase();
+    return states[lower] || stateName;
+  };
 
   // Reverse geocode coordinates to address with better formatting
   const reverseGeocode = async (lat, lng) => {
@@ -447,10 +559,11 @@ function App() {
       
       if (response.data && response.data.address) {
         const addr = response.data.address;
-        // Format: Street Number + Street Name + City
+        // Format: Street Number + Street Name, City, ST
         const houseNumber = addr.house_number || '';
         const street = addr.road || addr.street || '';
         const city = addr.city || addr.town || addr.village || addr.suburb || '';
+        const state = addr.state ? getStateAbbreviation(addr.state) : '';
         
         let formattedAddress = '';
         if (houseNumber && street) {
@@ -459,17 +572,12 @@ function App() {
           formattedAddress = street;
         }
         
-        if (city && formattedAddress) {
-          formattedAddress += `, ${city}`;
-        } else if (city) {
-          formattedAddress = city;
+        if (city) {
+          formattedAddress += formattedAddress ? `, ${city}` : city;
         }
         
-        // Fallback to display_name if we couldn't format nicely
-        if (!formattedAddress && response.data.display_name) {
-          // Take first two parts of the address
-          const parts = response.data.display_name.split(', ');
-          formattedAddress = parts.slice(0, 2).join(', ');
+        if (state) {
+          formattedAddress += formattedAddress ? `, ${state}` : state;
         }
         
         return formattedAddress || `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
@@ -481,7 +589,7 @@ function App() {
     }
   };
 
-  // Search for address suggestions with caching and airport codes
+  // Search for address suggestions with location biasing and POI support
   const searchAddress = async (query, isPickup) => {
     if (!query || query.length < 2) {
       if (isPickup) setPickupSuggestions([]);
@@ -489,68 +597,138 @@ function App() {
       return;
     }
 
+    const startTime = Date.now();
+    
     // Check for airport code matches first (instant)
     const airportMatches = matchAirportCode(query);
     const airportSuggestions = airportMatches.map(formatAirportSuggestion);
 
-    // Check cache
-    const cacheKey = query.toLowerCase().trim();
-    const cached = searchCache.current.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      const combined = [...airportSuggestions, ...cached.results].slice(0, 6);
-      if (isPickup) setPickupSuggestions(combined);
-      else setDestSuggestions(combined);
-      return;
-    }
-
-    // Show airport matches immediately while fetching more results
+    // Show airport matches immediately
     if (airportSuggestions.length > 0) {
       if (isPickup) setPickupSuggestions(airportSuggestions);
       else setDestSuggestions(airportSuggestions);
     }
 
+    // Build cache key with location context
+    const locationKey = userLocation.current 
+      ? `${userLocation.current.lat.toFixed(2)},${userLocation.current.lng.toFixed(2)}`
+      : 'default';
+    const cacheKey = `${query.toLowerCase().trim()}_${locationKey}`;
+    
+    // Check cache
+    const cached = searchCache.current.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      const combined = [...airportSuggestions, ...cached.results].slice(0, 6);
+      if (isPickup) setPickupSuggestions(combined);
+      else setDestSuggestions(combined);
+      console.log(`Search completed in ${Date.now() - startTime}ms (cached)`);
+      return;
+    }
+
     try {
+      // Build search params with location biasing
+      const searchParams = {
+        q: query,
+        format: 'json',
+        limit: 10, // Get more results for better filtering
+        addressdetails: 1,
+        countrycodes: 'us',
+      };
+
+      // Add location biasing if user location is known
+      if (userLocation.current) {
+        // Viewbox creates a bounding box around the user (roughly 100 miles)
+        const bias = 1.5; // ~100 miles in degrees
+        searchParams.viewbox = [
+          userLocation.current.lng - bias,
+          userLocation.current.lat + bias,
+          userLocation.current.lng + bias,
+          userLocation.current.lat - bias
+        ].join(',');
+        searchParams.bounded = 0; // Don't strictly limit, just prefer
+      }
+
       const response = await axios.get(`${NOMINATIM_BASE}/search`, {
-        params: {
-          q: query,
-          format: 'json',
-          limit: 5,
-          addressdetails: 1,
-          countrycodes: 'us', // Prioritize US results
-        },
+        params: searchParams,
         headers: {
           'User-Agent': 'FairFare/1.0'
         },
-        timeout: 3000 // 3 second timeout for faster failure
+        timeout: 2500 // 2.5 second timeout
       });
 
-      const suggestions = response.data.map(item => {
-        // Format display name to be shorter and cleaner
-        const parts = item.display_name.split(', ');
-        const shortName = parts.slice(0, 3).join(', ');
+      let suggestions = response.data.map(item => {
+        const lat = parseFloat(item.lat);
+        const lon = parseFloat(item.lon);
+        
+        // Calculate distance from user
+        let distance = null;
+        if (userLocation.current) {
+          distance = calculateDistance(
+            userLocation.current.lat, userLocation.current.lng,
+            lat, lon
+          );
+        }
         
         return {
-          display_name: shortName,
+          display_name: formatAddress(item),
           full_name: item.display_name,
-          lat: parseFloat(item.lat),
-          lon: parseFloat(item.lon),
+          lat,
+          lon,
           type: item.type,
-          importance: item.importance || 0
+          class: item.class,
+          importance: item.importance || 0,
+          distance,
+          isPOI: item.class === 'shop' || item.class === 'amenity' || item.class === 'tourism'
         };
       });
 
-      // Sort by importance/relevance
-      suggestions.sort((a, b) => (b.importance || 0) - (a.importance || 0));
+      // Sort by distance if this is a POI search or user location is known
+      if (userLocation.current) {
+        const isPOI = isPOISearch(query);
+        
+        suggestions.sort((a, b) => {
+          // For POI searches, heavily prioritize distance
+          if (isPOI) {
+            if (a.distance !== null && b.distance !== null) {
+              return a.distance - b.distance;
+            }
+          }
+          
+          // Otherwise, balance importance and distance
+          const importanceWeight = 0.3;
+          const distanceWeight = 0.7;
+          
+          const scoreA = (a.importance * importanceWeight) - 
+                        (a.distance ? a.distance * distanceWeight / 100 : 0);
+          const scoreB = (b.importance * importanceWeight) - 
+                        (b.distance ? b.distance * distanceWeight / 100 : 0);
+          
+          return scoreB - scoreA;
+        });
+      }
+
+      // Remove duplicates and limit results
+      const uniqueSuggestions = [];
+      const seen = new Set();
+      
+      for (const sugg of suggestions) {
+        const key = `${sugg.lat.toFixed(4)},${sugg.lon.toFixed(4)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueSuggestions.push(sugg);
+        }
+        if (uniqueSuggestions.length >= 5) break;
+      }
 
       // Cache the results
       searchCache.current.set(cacheKey, {
-        results: suggestions,
+        results: uniqueSuggestions,
         timestamp: Date.now()
       });
 
-      // Combine airport matches with search results, remove duplicates
+      // Combine airport matches with search results
       const combined = [...airportSuggestions];
-      for (const sugg of suggestions) {
+      for (const sugg of uniqueSuggestions) {
         const isDuplicate = combined.some(s => 
           Math.abs(s.lat - sugg.lat) < 0.01 && Math.abs(s.lon - sugg.lon) < 0.01
         );
@@ -564,6 +742,8 @@ function App() {
       } else {
         setDestSuggestions(combined.slice(0, 6));
       }
+      
+      console.log(`Search completed in ${Date.now() - startTime}ms`);
     } catch (error) {
       console.error("Address search error:", error);
       // Still show airport matches on error
