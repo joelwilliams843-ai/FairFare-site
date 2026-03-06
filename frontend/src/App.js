@@ -50,6 +50,8 @@ function App() {
   const [activeField, setActiveField] = useState(null);
   const [showLocationBanner, setShowLocationBanner] = useState(false);
   const [detectedCoords, setDetectedCoords] = useState(null); // Store original GPS coords
+  const [searchLoading, setSearchLoading] = useState(false); // Loading state for address search
+  const [isOnline, setIsOnline] = useState(navigator.onLine); // Network status
   
   // Savings tracking
   const [savingsData, setSavingsData] = useState({
