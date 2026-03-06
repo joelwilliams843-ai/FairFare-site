@@ -1129,8 +1129,14 @@ function App() {
   };
 
   const compareRides = async () => {
+    // Clear previous error state
+    setError(null);
+    
     if (!pickup || !destination) {
-      toast.error("Please enter both pickup and destination");
+      const errorMsg = "Please enter both pickup and destination";
+      setError({ type: 'validation', message: errorMsg });
+      toast.error(errorMsg);
+      console.error('[FairFare] Validation Error:', { pickup, destination, error: errorMsg });
       return;
     }
 
@@ -1141,12 +1147,27 @@ function App() {
 
     // Validate that we have coordinates
     if (!finalPickupCoords?.lat || !finalPickupCoords?.lng) {
-      toast.error("Could not determine pickup location. Please select from suggestions.");
+      const errorMsg = "Please select a pickup location from the suggestions list.";
+      setError({ type: 'geocoding', message: errorMsg, field: 'pickup' });
+      toast.error(errorMsg);
+      console.error('[FairFare] Geocoding Error - Pickup:', { 
+        pickup, 
+        pickupCoords, 
+        detectedCoords,
+        error: 'Missing pickup coordinates' 
+      });
       return;
     }
 
     if (!destCoords?.lat || !destCoords?.lng) {
-      toast.error("Could not determine destination. Please select from suggestions.");
+      const errorMsg = "Please select a destination from the suggestions list.";
+      setError({ type: 'geocoding', message: errorMsg, field: 'destination' });
+      toast.error(errorMsg);
+      console.error('[FairFare] Geocoding Error - Destination:', { 
+        destination, 
+        destCoords,
+        error: 'Missing destination coordinates' 
+      });
       return;
     }
 
@@ -1155,6 +1176,14 @@ function App() {
     saveToRecent(destination);
 
     setLoading(true);
+    
+    // Log the request for debugging
+    console.log('[FairFare] Starting ride comparison:', {
+      pickup: { address: pickup, lat: finalPickupCoords.lat, lng: finalPickupCoords.lng },
+      destination: { address: destination, lat: destCoords.lat, lng: destCoords.lng },
+      timestamp: new Date().toISOString()
+    });
+    
     try {
       const response = await axios.post(`${API}/compare-rides`, {
         pickup: {
@@ -1167,14 +1196,31 @@ function App() {
           lat: destCoords.lat,
           lng: destCoords.lng,
         },
+      }, {
+        timeout: 15000 // 15 second timeout
       });
       
-      // Log coordinates for debugging
-      console.log('Request coordinates:', {
-        pickup: { address: pickup, ...pickupCoords },
-        destination: { address: destination, ...destCoords }
+      // Log successful response
+      console.log('[FairFare] API Response:', {
+        status: response.status,
+        hasData: !!response.data,
+        estimates: response.data?.estimates?.length || 0,
+        distance: response.data?.distance_miles,
+        duration: response.data?.duration_minutes
       });
-      console.log('Response:', response.data);
+      
+      // Validate response data
+      if (!response.data) {
+        throw new Error('Empty response from server');
+      }
+      
+      if (!response.data.estimates || !Array.isArray(response.data.estimates)) {
+        throw new Error('Invalid response format: missing estimates');
+      }
+      
+      if (response.data.estimates.length === 0) {
+        throw new Error('No ride options available for this route');
+      }
       
       // Check if long trip requires confirmation
       if (response.data.requires_confirmation) {
@@ -1187,13 +1233,48 @@ function App() {
       setResults(response.data);
       setLastUpdated(new Date());
       setView("results");
+      
     } catch (error) {
-      console.error("Error comparing rides:", error);
-      if (error.response?.data?.detail) {
-        toast.error(error.response.data.detail);
-      } else {
-        toast.error("Failed to compare rides. Please try again.");
+      // Comprehensive error logging
+      console.error('[FairFare] Ride Comparison Error:', {
+        type: error.name,
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        serverError: error.response?.data?.detail,
+        pickup: { address: pickup, coords: finalPickupCoords },
+        destination: { address: destination, coords: destCoords },
+        timestamp: new Date().toISOString()
+      });
+      
+      // Determine error type and set appropriate message
+      let errorMessage = "Unable to fetch ride prices right now. Please try again.";
+      let errorType = 'api';
+      
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        errorMessage = "Request timed out. Please check your connection and try again.";
+        errorType = 'timeout';
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response?.data?.detail || "Invalid route. Please check your locations.";
+        errorType = 'validation';
+      } else if (error.response?.status === 404) {
+        errorMessage = "Route not found. Please try different locations.";
+        errorType = 'routing';
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again in a moment.";
+        errorType = 'server';
+      } else if (!navigator.onLine) {
+        errorMessage = "No internet connection. Please check your network.";
+        errorType = 'network';
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
+      
+      setError({ type: errorType, message: errorMessage });
+      toast.error(errorMessage);
+      
     } finally {
       setLoading(false);
     }
