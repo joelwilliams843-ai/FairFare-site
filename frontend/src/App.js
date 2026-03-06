@@ -2862,15 +2862,15 @@ I'll text you when the driver is assigned.`);
                   data-testid="pick-open-btn"
                   onClick={() => openDeepLink(getFairFarePick())}
                   className="pick-open-button"
-                  disabled={openingApp !== null}
+                  disabled={handoffState.isOpen}
                 >
-                  {openingApp === getFairFarePick().provider ? (
+                  {handoffState.isOpen && handoffState.provider === getFairFarePick()?.provider ? (
                     <>
                       <Loader2 size={18} className="spinner" />
-                      Opening {getFairFarePick().provider}...
+                      Opening {getFairFarePick()?.provider}...
                     </>
                   ) : (
-                    `Continue in ${getFairFarePick().provider}`
+                    `Continue in ${getFairFarePick()?.provider}`
                   )}
                 </button>
               </div>
