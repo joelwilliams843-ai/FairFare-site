@@ -188,22 +188,49 @@ function App() {
     localStorage.setItem("recentLocations", JSON.stringify(updated));
   };
 
-  // Reverse geocode coordinates to address
+  // Reverse geocode coordinates to address with better formatting
   const reverseGeocode = async (lat, lng) => {
     try {
       const response = await axios.get(`${NOMINATIM_BASE}/reverse`, {
         params: {
           lat,
           lon: lng,
-          format: 'json'
+          format: 'json',
+          addressdetails: 1
         },
         headers: {
           'User-Agent': 'FairFare/1.0'
         }
       });
       
-      if (response.data && response.data.display_name) {
-        return response.data.display_name;
+      if (response.data && response.data.address) {
+        const addr = response.data.address;
+        // Format: Street Number + Street Name + City
+        const houseNumber = addr.house_number || '';
+        const street = addr.road || addr.street || '';
+        const city = addr.city || addr.town || addr.village || addr.suburb || '';
+        
+        let formattedAddress = '';
+        if (houseNumber && street) {
+          formattedAddress = `${houseNumber} ${street}`;
+        } else if (street) {
+          formattedAddress = street;
+        }
+        
+        if (city && formattedAddress) {
+          formattedAddress += `, ${city}`;
+        } else if (city) {
+          formattedAddress = city;
+        }
+        
+        // Fallback to display_name if we couldn't format nicely
+        if (!formattedAddress && response.data.display_name) {
+          // Take first two parts of the address
+          const parts = response.data.display_name.split(', ');
+          formattedAddress = parts.slice(0, 2).join(', ');
+        }
+        
+        return formattedAddress || `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
       }
       return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
     } catch (error) {
