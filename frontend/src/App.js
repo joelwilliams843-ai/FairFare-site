@@ -1609,6 +1609,31 @@ I'll text you when the driver is assigned.`);
             <p className="share-hint">Brag to your friends! 🎉</p>
           </div>
 
+          {/* Watch This Route Card */}
+          <div className="watch-route-card" data-testid="watch-route-card">
+            <div className="watch-card-header">
+              <Bell size={20} className="watch-icon" />
+              <h3 className="watch-card-title">Price Alerts</h3>
+            </div>
+            <p className="watch-card-desc">Get notified when prices drop more than 15%</p>
+            <button
+              data-testid="watch-route-btn"
+              onClick={watchRoute}
+              className="watch-route-button"
+            >
+              <BellRing size={18} />
+              Watch This Route
+            </button>
+            {watchedRoutes.length > 0 && (
+              <button
+                onClick={() => setView('alerts')}
+                className="view-alerts-link"
+              >
+                View {watchedRoutes.length} watched route{watchedRoutes.length !== 1 ? 's' : ''} →
+              </button>
+            )}
+          </div>
+
           <button
             data-testid="refresh-btn"
             onClick={refreshPrices}
