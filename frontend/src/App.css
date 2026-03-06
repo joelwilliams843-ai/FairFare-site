@@ -232,7 +232,7 @@ body {
 
 .input-wrapper:focus-within {
   border-color: var(--accent-green);
-  box-shadow: 0 0 20px var(--accent-green-dim);
+  box-shadow: 0 0 0 3px var(--accent-green-dim);
 }
 
 .input-label {
