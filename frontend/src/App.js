@@ -1375,13 +1375,11 @@ function App() {
     // Save locations to recent
     saveToRecent(pickup);
     saveToRecent(destination);
-
-    setLoading(true);
     
     // Log the request for debugging
     console.log('[FairFare] Starting ride comparison:', {
       pickup: { address: pickup, lat: finalPickupCoords.lat, lng: finalPickupCoords.lng },
-      destination: { address: destination, lat: destCoords.lat, lng: destCoords.lng },
+      destination: { address: destination, lat: finalDestCoords.lat, lng: finalDestCoords.lng },
       timestamp: new Date().toISOString()
     });
     
@@ -1394,8 +1392,8 @@ function App() {
         },
         destination: {
           address: destination,
-          lat: destCoords.lat,
-          lng: destCoords.lng,
+          lat: finalDestCoords.lat,
+          lng: finalDestCoords.lng,
         },
       }, {
         timeout: 15000 // 15 second timeout
