@@ -2802,9 +2802,9 @@ I'll text you when the driver is assigned.`);
                     data-testid="open-cheapest-btn"
                     className="open-cheapest-button"
                     onClick={() => openDeepLink(getSavingsInfo().cheaperEstimate)}
-                    disabled={openingApp !== null}
+                    disabled={handoffState.isOpen}
                   >
-                    {openingApp === getSavingsInfo().cheaperProvider ? (
+                    {handoffState.isOpen && handoffState.provider === getSavingsInfo().cheaperProvider ? (
                       <>
                         <Loader2 size={18} className="spinner" />
                         Opening...
