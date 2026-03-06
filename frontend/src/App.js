@@ -1410,6 +1410,45 @@ I'll text you when the driver is assigned.`);
             ))}
           </div>
 
+          {/* Savings Summary & Share Card */}
+          <div className="share-savings-card" data-testid="share-savings-card">
+            <h3 className="share-card-title">Your Comparison</h3>
+            <div className="price-comparison-list">
+              {results.estimates.map((estimate, idx) => (
+                <div key={idx} className={`price-row ${getBestOption() === estimate.provider ? 'best' : ''}`}>
+                  <span className="price-provider">{estimate.provider}</span>
+                  <span className="price-value">
+                    {getBestOption() === estimate.provider && <span className="best-tag">Best</span>}
+                    ~${(18 + idx * 5).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="savings-highlight">
+              <DollarSign size={20} />
+              <span>You could save <strong>$5.75</strong> with FairFare!</span>
+            </div>
+            <button
+              data-testid="share-savings-btn"
+              onClick={shareSavings}
+              disabled={isGeneratingShare}
+              className="share-button"
+            >
+              {isGeneratingShare ? (
+                <>
+                  <Loader2 size={18} className="spinner" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Share2 size={18} />
+                  Share My Savings
+                </>
+              )}
+            </button>
+            <p className="share-hint">Brag to your friends! 🎉</p>
+          </div>
+
           <button
             data-testid="refresh-btn"
             onClick={refreshPrices}
