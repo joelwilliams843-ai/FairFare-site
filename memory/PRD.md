@@ -50,12 +50,14 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 ### Ride Comparison & Handoff (COMPLETED - March 2025)
 - ✅ **Savings Moment**: Shows "Save $X by choosing [Provider]" with prominent CTA
 - ✅ **Cheapest Badge**: Green "CHEAPEST" badge on lowest-priced option
-- ✅ **Price Display**: Shows estimated prices on cards (~$19, ~$20)
+- ✅ **Price Display**: Shows "Est. $XX" with "Final price in app" disclaimer
 - ✅ **Open Cheapest Button**: Primary "Open [Provider] — Best Fare" CTA
 - ✅ **Deep Link Error Handling**: Shows "Opening..." overlay, fallback to web if app not installed
 - ✅ **Savings Tracking**: Tracks cumulative savings in localStorage
 - ✅ **Auto-Geocoding**: Typed addresses auto-geocode if coordinates missing
 - ✅ **Less Strict Validation**: Users can type addresses without selecting from dropdown
+- ✅ **Address Preservation**: User-typed street numbers preserved when selecting suggestions
+- ✅ **Coordinates for Handoff**: Deep links use lat/lng coordinates, not text addresses
 
 ### Error Handling & Loading States (COMPLETED - March 2025)
 - ✅ **Loading State**: Animated spinner with "Finding the best fares..." message
