@@ -1747,6 +1747,103 @@ I'll text you when the driver is assigned.`);
         </div>
       )}
 
+      {/* Price Alerts View */}
+      {view === "alerts" && (
+        <div className="alerts-view" data-testid="alerts-view">
+          <div className="alerts-header">
+            <button
+              data-testid="alerts-back-btn"
+              onClick={() => setView("input")}
+              className="back-button"
+            >
+              ← Back
+            </button>
+            <div className="alerts-title-section">
+              <Bell size={28} className="alerts-icon" />
+              <h2 className="alerts-title">Price Alerts</h2>
+            </div>
+          </div>
+
+          {!notificationsEnabled && (
+            <div className="notification-prompt" data-testid="notification-prompt">
+              <BellRing size={24} />
+              <div className="notification-prompt-text">
+                <p><strong>Enable notifications</strong></p>
+                <p>Get alerted when prices drop!</p>
+              </div>
+              <button onClick={requestNotificationPermission} className="enable-notifications-btn">
+                Enable
+              </button>
+            </div>
+          )}
+
+          {watchedRoutes.length === 0 ? (
+            <div className="empty-alerts">
+              <Bell size={48} className="empty-icon" />
+              <h3>No watched routes yet</h3>
+              <p>Compare a ride and tap "Watch This Route" to get price drop alerts.</p>
+              <button
+                className="compare-button"
+                onClick={() => setView("input")}
+              >
+                Find My Fare
+              </button>
+            </div>
+          ) : (
+            <div className="watched-routes-list">
+              {watchedRoutes.map((route) => (
+                <div key={route.id} className="watched-route-card" data-testid={`watched-route-${route.id}`}>
+                  <div className="route-info">
+                    <div className="route-locations">
+                      <p className="route-pickup">
+                        <MapPin size={14} className="route-icon pickup" />
+                        {route.pickup.substring(0, 35)}{route.pickup.length > 35 ? '...' : ''}
+                      </p>
+                      <p className="route-destination">
+                        <Navigation size={14} className="route-icon dest" />
+                        {route.destination.substring(0, 35)}{route.destination.length > 35 ? '...' : ''}
+                      </p>
+                    </div>
+                    <div className="route-price-info">
+                      <span className="current-price">${route.currentPrice.toFixed(2)}</span>
+                      <span className={`price-change ${route.percentChange < 0 ? 'down' : route.percentChange > 0 ? 'up' : ''}`}>
+                        {route.percentChange > 0 ? '+' : ''}{route.percentChange}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="route-meta">
+                    <span className="last-checked">
+                      <Clock size={12} />
+                      Checked {getTimeAgo(route.lastChecked)}
+                    </span>
+                    <span className="best-provider">Best: {route.bestProvider}</span>
+                  </div>
+                  <div className="route-actions">
+                    <button 
+                      onClick={() => useWatchedRoute(route)}
+                      className="use-route-btn"
+                    >
+                      Compare Now
+                    </button>
+                    <button 
+                      onClick={() => removeWatchedRoute(route.id)}
+                      className="remove-route-btn"
+                      aria-label="Remove"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="alerts-info">
+            <p>We check prices every 5 minutes and notify you when they drop more than 15%.</p>
+          </div>
+        </div>
+      )}
+
       {/* Long Trip Confirmation Modal */}
       {showLongTripModal && pendingResults && (
         <div className="modal-overlay" data-testid="long-trip-modal">
