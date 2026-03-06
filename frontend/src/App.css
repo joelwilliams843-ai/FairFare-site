@@ -124,7 +124,6 @@ body {
 }
 
 .fairfare-logo {
-  filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.6));
   flex-shrink: 0;
 }
 
