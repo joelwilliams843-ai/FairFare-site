@@ -1778,27 +1778,74 @@ function App() {
       return;
     }
 
-    const urlToOpen = useWebFallback ? webLink : webLink; // Always use web for reliability
-    
-    logHandoffEvent(useWebFallback ? 'HANDOFF_WEB_FALLBACK' : 'HANDOFF_EXECUTE', {
+    logHandoffEvent('HANDOFF_EXECUTE', {
       provider,
-      url: urlToOpen
+      deepLink,
+      webLink,
+      useWebFallback
     });
 
     try {
       const isNative = Capacitor.isNativePlatform();
       
-      if (isNative) {
-        // For Capacitor native apps, use Browser plugin
+      if (isNative && !useWebFallback) {
+        // For Capacitor native apps, try to open the native app first using deep link
+        // The deep link (lyft:// or uber://) should open the installed app directly
+        try {
+          logHandoffEvent('HANDOFF_TRYING_NATIVE_APP', { provider, deepLink });
+          
+          // Try opening the native app via deep link scheme
+          // We use window.location.href because Capacitor's Browser plugin opens in Safari
+          // which won't redirect to the native app
+          window.location.href = deepLink;
+          
+          // If we get here without error, the app might be opening
+          // Set a timeout to check if we're still in the app
+          setTimeout(() => {
+            // If we're still here after 1.5s, the app probably isn't installed
+            // Show options to user
+            if (handoffState.status === 'opening') {
+              setHandoffState(prev => ({
+                ...prev,
+                status: 'timeout',
+                errorMessage: `If ${provider} didn't open, tap "Open in Browser" below.`
+              }));
+            }
+          }, 1500);
+          
+          logHandoffEvent('HANDOFF_DEEPLINK_SENT', { provider, deepLink });
+          
+        } catch (deepLinkError) {
+          logHandoffEvent('HANDOFF_DEEPLINK_ERROR', { 
+            provider, 
+            error: deepLinkError.message 
+          });
+          
+          // Deep link failed, try web fallback
+          try {
+            await Browser.open({ 
+              url: webLink,
+              presentationStyle: 'popover'
+            });
+            logHandoffEvent('HANDOFF_WEB_FALLBACK_SUCCESS', { provider, url: webLink });
+          } catch (browserError) {
+            setHandoffState(prev => ({
+              ...prev,
+              status: 'error',
+              errorMessage: `Couldn't open ${provider}. Please try the browser option.`
+            }));
+          }
+        }
+      } else if (isNative && useWebFallback) {
+        // User explicitly wants web fallback - use Browser plugin
         try {
           await Browser.open({ 
-            url: urlToOpen,
+            url: webLink,
             presentationStyle: 'popover'
           });
           
-          logHandoffEvent('HANDOFF_SUCCESS_NATIVE', { provider, url: urlToOpen });
+          logHandoffEvent('HANDOFF_SUCCESS_BROWSER', { provider, url: webLink });
           
-          // Close modal after a short delay
           setTimeout(() => {
             setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
           }, 1000);
@@ -1812,28 +1859,51 @@ function App() {
           setHandoffState(prev => ({
             ...prev,
             status: 'error',
-            errorMessage: `Couldn't open ${provider}. Please try the browser option.`
+            errorMessage: `Couldn't open ${provider}. Please try again.`
           }));
         }
       } else {
-        // For web browsers - open in new tab
-        const newWindow = window.open(urlToOpen, '_blank', 'noopener,noreferrer');
-        
-        if (newWindow && !newWindow.closed) {
-          logHandoffEvent('HANDOFF_SUCCESS_WEB', { provider, url: urlToOpen });
+        // For web browsers - try deep link first, then fallback to new tab
+        if (!useWebFallback) {
+          // Try native app via deep link
+          window.location.href = deepLink;
           
+          // Set timeout for fallback
           setTimeout(() => {
-            setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
-          }, 1000);
+            if (handoffState.status === 'opening') {
+              // Open web version in new tab
+              const newWindow = window.open(webLink, '_blank', 'noopener,noreferrer');
+              if (newWindow && !newWindow.closed) {
+                logHandoffEvent('HANDOFF_SUCCESS_WEB_FALLBACK', { provider, url: webLink });
+                setTimeout(() => {
+                  setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+                }, 500);
+              } else {
+                setHandoffState(prev => ({
+                  ...prev,
+                  status: 'error',
+                  errorMessage: 'Pop-up blocked. Use the button below.'
+                }));
+              }
+            }
+          }, 1500);
         } else {
-          // Pop-up blocked or failed - show error with alternatives
-          logHandoffEvent('HANDOFF_POPUP_BLOCKED', { provider });
+          // Direct web link
+          const newWindow = window.open(webLink, '_blank', 'noopener,noreferrer');
           
-          setHandoffState(prev => ({
-            ...prev,
-            status: 'error',
-            errorMessage: 'Pop-up blocked. Use the buttons below to open manually.'
-          }));
+          if (newWindow && !newWindow.closed) {
+            logHandoffEvent('HANDOFF_SUCCESS_WEB', { provider, url: webLink });
+            
+            setTimeout(() => {
+              setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+            }, 1000);
+          } else {
+            setHandoffState(prev => ({
+              ...prev,
+              status: 'error',
+              errorMessage: 'Pop-up blocked. Use the buttons below to open manually.'
+            }));
+          }
         }
       }
     } catch (error) {
