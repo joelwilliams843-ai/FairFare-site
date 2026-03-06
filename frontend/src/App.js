@@ -762,32 +762,45 @@ function App() {
       
       if (response.data && response.data.address) {
         const addr = response.data.address;
-        // Format: Street Number + Street Name, City, ST
+        
+        // Extract components (excluding county, district, region)
         const houseNumber = addr.house_number || '';
         const street = addr.road || addr.street || '';
-        const city = addr.city || addr.town || addr.village || addr.suburb || '';
+        const city = addr.city || addr.town || addr.village || 
+                     (addr.suburb && !addr.suburb.includes('County') ? addr.suburb : '') || 
+                     addr.neighbourhood || '';
         const state = addr.state ? getStateAbbreviation(addr.state) : '';
+        const postalCode = addr.postcode || '';
         
-        let formattedAddress = '';
+        // Build street line
+        let streetLine = '';
         if (houseNumber && street) {
-          formattedAddress = `${houseNumber} ${street}`;
+          streetLine = `${houseNumber} ${street}`;
         } else if (street) {
-          formattedAddress = street;
+          streetLine = street;
         }
         
-        if (city) {
-          formattedAddress += formattedAddress ? `, ${city}` : city;
+        // Build location line (City, ST ZIP)
+        let locationLine = '';
+        if (city && state && postalCode) {
+          locationLine = `${city}, ${state} ${postalCode}`;
+        } else if (city && state) {
+          locationLine = `${city}, ${state}`;
+        } else if (city) {
+          locationLine = city;
         }
         
-        if (state) {
-          formattedAddress += formattedAddress ? `, ${state}` : state;
+        // Combine for single-line format: Street, City, ST ZIP
+        let formattedAddress = streetLine;
+        if (locationLine) {
+          formattedAddress += formattedAddress ? `, ${locationLine}` : locationLine;
         }
         
         return formattedAddress || `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
       }
       return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
     } catch (error) {
-      console.error("Reverse geocoding error:", error);
+      console.error("[FairFare] Reverse geocoding error:", error);
       return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
     }
   };
