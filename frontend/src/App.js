@@ -3321,11 +3321,14 @@ I'll text you when the driver is assigned.`);
                 <>
                   <button
                     className="handoff-btn primary"
-                    onClick={() => {
+                    onClick={async () => {
                       // Try deep link again to open native app
                       if (handoffState.deepLink) {
                         logHandoffEvent('HANDOFF_RETRY_NATIVE', { provider: handoffState.provider });
-                        window.location.href = handoffState.deepLink;
+                        const result = await openExternalUrl(handoffState.deepLink, true);
+                        if (result.success) {
+                          setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+                        }
                       }
                     }}
                     data-testid="handoff-open-app-btn"
@@ -3337,11 +3340,16 @@ I'll text you when the driver is assigned.`);
 
               <button
                 className="handoff-btn secondary"
-                onClick={() => {
+                onClick={async () => {
                   // Open web version with ride pre-populated
                   logHandoffEvent('HANDOFF_OPEN_WEB', { provider: handoffState.provider, url: handoffState.webLink });
                   if (handoffState.webLink) {
-                    window.open(handoffState.webLink, '_blank', 'noopener,noreferrer');
+                    const result = await openExternalUrl(handoffState.webLink, false);
+                    if (result.success) {
+                      setTimeout(() => {
+                        setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+                      }, 500);
+                    }
                   }
                 }}
                 data-testid="handoff-browser-btn"
