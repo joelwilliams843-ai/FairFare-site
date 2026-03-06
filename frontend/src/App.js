@@ -427,11 +427,12 @@ function App() {
 
   // Check if we have valid coordinates for comparison
   const canCompare = () => {
+    // Use detectedCoords as fallback for pickup if pickupCoords not set
+    const hasPickupCoords = (pickupCoords?.lat && pickupCoords?.lng) || (detectedCoords?.lat && detectedCoords?.lng);
     return (
       pickup &&
       destination &&
-      pickupCoords?.lat &&
-      pickupCoords?.lng &&
+      hasPickupCoords &&
       destCoords?.lat &&
       destCoords?.lng
     );
@@ -441,7 +442,8 @@ function App() {
   const getValidationMessage = () => {
     if (!pickup) return "Enter pickup location";
     if (!destination) return "Enter destination";
-    if (!pickupCoords?.lat || !pickupCoords?.lng) return "Select pickup from suggestions";
+    const hasPickupCoords = (pickupCoords?.lat && pickupCoords?.lng) || (detectedCoords?.lat && detectedCoords?.lng);
+    if (!hasPickupCoords) return "Select pickup from suggestions";
     if (!destCoords?.lat || !destCoords?.lng) return "Select destination from suggestions";
     return null;
   };
