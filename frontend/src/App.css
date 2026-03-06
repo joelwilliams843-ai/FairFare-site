@@ -144,7 +144,7 @@ body {
 }
 
 .savings-badge-btn:hover {
-  background: rgba(0, 255, 136, 0.25);
+  background: var(--accent-green-dim);
   transform: translateY(-1px);
 }
 
@@ -1164,7 +1164,7 @@ body {
 
 .pick-open-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px var(--accent-green-glow);
+  box-shadow: 0 4px 12px var(--accent-green-glow);
 }
 
 .pick-open-button:disabled {
@@ -1479,12 +1479,12 @@ body {
   justify-content: center;
   gap: 0.5rem;
   transition: all 200ms;
-  box-shadow: 0 4px 20px var(--accent-green-glow);
+  box-shadow: 0 2px 8px var(--accent-green-glow);
 }
 
 .share-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px var(--accent-green-glow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--accent-green-glow);
 }
 
 .share-button:disabled {
