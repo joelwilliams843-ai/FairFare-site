@@ -54,6 +54,9 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - ✅ **Error Logging**: Comprehensive console logs for debugging (geocoding, API, routing errors)
 - ✅ **Button State**: Dynamic button text shows required action ("Select pickup from suggestions")
 - ✅ **Prevents blank screens**: Validates coordinates before rendering results view
+- ✅ **Network Status**: Online/offline detection with user notification
+- ✅ **Retry Logic**: Automatic retry for failed searches (up to 2 retries with exponential backoff)
+- ✅ **Nearby Labels**: Blue "NEARBY" badge for locations within 5 miles
 
 ### Share My Savings (COMPLETED)
 - ✅ Generate shareable "savings card" image
