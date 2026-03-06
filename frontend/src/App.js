@@ -1186,16 +1186,28 @@ I'll text you when the driver is assigned.`);
               <h1 className="app-title">FairFare</h1>
             </div>
             <p className="app-subtitle">Compare rides instantly</p>
-            {savingsData.ridesCompared > 0 && (
-              <button 
-                className="savings-badge-btn"
-                onClick={() => setView("savings")}
-                data-testid="open-savings-btn"
-              >
-                <DollarSign size={14} />
-                <span>${savingsData.totalSaved.toFixed(2)} saved</span>
-              </button>
-            )}
+            <div className="header-badges">
+              {savingsData.ridesCompared > 0 && (
+                <button 
+                  className="savings-badge-btn"
+                  onClick={() => setView("savings")}
+                  data-testid="open-savings-btn"
+                >
+                  <DollarSign size={14} />
+                  <span>${savingsData.totalSaved.toFixed(2)} saved</span>
+                </button>
+              )}
+              {watchedRoutes.length > 0 && (
+                <button 
+                  className="alerts-badge-btn"
+                  onClick={() => setView("alerts")}
+                  data-testid="open-alerts-btn"
+                >
+                  <Bell size={14} />
+                  <span>{watchedRoutes.length} alert{watchedRoutes.length !== 1 ? 's' : ''}</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="input-section">
