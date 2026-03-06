@@ -1299,25 +1299,59 @@ function App() {
 
   const refreshPrices = async () => {
     setLoading(true);
+    setError(null);
+    
+    // Validate coordinates before refresh
+    const finalPickupCoords = (pickupCoords?.lat && pickupCoords?.lng) 
+      ? pickupCoords 
+      : detectedCoords;
+      
+    if (!finalPickupCoords?.lat || !finalPickupCoords?.lng || !destCoords?.lat || !destCoords?.lng) {
+      const errorMsg = "Missing location data. Please go back and select locations again.";
+      setError({ type: 'validation', message: errorMsg });
+      toast.error(errorMsg);
+      setLoading(false);
+      return;
+    }
+    
+    console.log('[FairFare] Refreshing prices:', {
+      pickup: { address: pickup, coords: finalPickupCoords },
+      destination: { address: destination, coords: destCoords }
+    });
+    
     try {
       const response = await axios.post(`${API}/compare-rides`, {
         pickup: {
           address: pickup,
-          lat: pickupCoords?.lat || null,
-          lng: pickupCoords?.lng || null,
+          lat: finalPickupCoords.lat,
+          lng: finalPickupCoords.lng,
         },
         destination: {
           address: destination,
-          lat: destCoords?.lat || null,
-          lng: destCoords?.lng || null,
+          lat: destCoords.lat,
+          lng: destCoords.lng,
         },
+      }, {
+        timeout: 15000
       });
+      
+      if (!response.data || !response.data.estimates) {
+        throw new Error('Invalid response from server');
+      }
+      
       setResults(response.data);
       setLastUpdated(new Date());
       toast.success("Prices refreshed!");
+      
     } catch (error) {
-      console.error("Error refreshing prices:", error);
-      toast.error("Failed to refresh prices.");
+      console.error("[FairFare] Error refreshing prices:", {
+        error: error.message,
+        status: error.response?.status
+      });
+      
+      const errorMsg = error.response?.data?.detail || "Failed to refresh prices. Please try again.";
+      setError({ type: 'api', message: errorMsg });
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
