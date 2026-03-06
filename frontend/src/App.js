@@ -2869,18 +2869,14 @@ I'll text you when the driver is assigned.`);
                 <div className="savings-moment" data-testid="savings-moment">
                   <div className="savings-badge">
                     <DollarSign size={18} />
-                    <span>Best Fare</span>
+                    <span>CHEAPEST</span>
                   </div>
                   <div className="savings-content">
                     <p className="savings-message">
-                      {getSavingsInfo().savings >= 1 ? (
-                        <>Save <span className="savings-amount">${Math.round(getSavingsInfo().savings)}</span> by choosing {getSavingsInfo().cheaperProvider}</>
-                      ) : (
-                        <>Best price with {getSavingsInfo().cheaperProvider}</>
-                      )}
+                      Estimated cheapest option
                     </p>
                     <p className="savings-comparison">
-                      {getSavingsInfo().cheaperProvider}: Est. ${getSavingsInfo().cheaperPrice} vs ${getSavingsInfo().expensivePrice}
+                      {getSavingsInfo().cheaperProvider}: ~${getSavingsInfo().cheaperPrice} vs ~${getSavingsInfo().expensivePrice}
                     </p>
                   </div>
                   <button
@@ -2895,7 +2891,7 @@ I'll text you when the driver is assigned.`);
                         Opening...
                       </>
                     ) : (
-                      <>Open {getSavingsInfo().cheaperProvider} — Best Fare</>
+                      <>Open {getSavingsInfo().cheaperProvider}</>
                     )}
                   </button>
                 </div>
