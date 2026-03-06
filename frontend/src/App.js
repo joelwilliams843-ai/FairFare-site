@@ -359,6 +359,70 @@ function App() {
     localStorage.setItem("recentLocations", JSON.stringify(updated));
   };
 
+  // Add location to favorites
+  const addToFavorites = (location, coords, label = null) => {
+    if (!location || !coords) return;
+    
+    // Check if already in favorites
+    const exists = favoriteLocations.some(fav => 
+      fav.display_name === location || 
+      (Math.abs(fav.lat - coords.lat) < 0.001 && Math.abs(fav.lng - (coords.lng || coords.lon)) < 0.001)
+    );
+    
+    if (exists) {
+      toast.info('This location is already in your favorites!');
+      return;
+    }
+    
+    const newFavorite = {
+      id: Date.now(),
+      display_name: location,
+      label: label || location.split(',')[0], // Use first part as default label
+      lat: coords.lat,
+      lng: coords.lng || coords.lon,
+      addedAt: new Date().toISOString()
+    };
+    
+    const updated = [...favoriteLocations, newFavorite];
+    setFavoriteLocations(updated);
+    localStorage.setItem("favoriteLocations", JSON.stringify(updated));
+    toast.success('Added to favorites!');
+  };
+
+  // Remove location from favorites
+  const removeFromFavorites = (favoriteId) => {
+    const updated = favoriteLocations.filter(fav => fav.id !== favoriteId);
+    setFavoriteLocations(updated);
+    localStorage.setItem("favoriteLocations", JSON.stringify(updated));
+    toast.success('Removed from favorites');
+  };
+
+  // Check if a location is in favorites
+  const isInFavorites = (location, coords) => {
+    if (!location && !coords) return false;
+    return favoriteLocations.some(fav => 
+      fav.display_name === location || 
+      (coords && Math.abs(fav.lat - coords.lat) < 0.001 && Math.abs(fav.lng - (coords.lng || coords.lon)) < 0.001)
+    );
+  };
+
+  // Select a favorite location
+  const selectFavorite = (favorite, isPickup) => {
+    const coords = { lat: favorite.lat, lng: favorite.lng };
+    
+    if (isPickup) {
+      setPickup(favorite.display_name);
+      setPickupCoords(coords);
+      setShowPickupSuggestions(false);
+    } else {
+      setDestination(favorite.display_name);
+      setDestCoords(coords);
+      setShowDestSuggestions(false);
+    }
+    
+    toast.success(`Selected: ${favorite.label}`);
+  };
+
   // Airport codes database for instant recognition
   const AIRPORT_CODES = {
     // Major US Airports
