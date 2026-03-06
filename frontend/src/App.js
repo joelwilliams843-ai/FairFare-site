@@ -2939,10 +2939,13 @@ I'll text you when the driver is assigned.`);
 
                 {/* Show estimated price */}
                 {getSavingsInfo() && (
-                  <div className="estimated-price">
-                    ~${getSavingsInfo().cheaperProvider === estimate.provider 
-                      ? getSavingsInfo().cheaperPrice 
-                      : getSavingsInfo().expensivePrice}
+                  <div className="estimated-price-container">
+                    <div className="estimated-price">
+                      Est. ${getSavingsInfo().cheaperProvider === estimate.provider 
+                        ? getSavingsInfo().cheaperPrice 
+                        : getSavingsInfo().expensivePrice}
+                    </div>
+                    <div className="price-disclaimer">Final price in app</div>
                   </div>
                 )}
 
