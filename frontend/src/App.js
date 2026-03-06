@@ -1006,7 +1006,7 @@ I'll text you when the driver is assigned.`);
               disabled={loading || !canCompare()}
               className="compare-button"
             >
-              {loading ? "Comparing..." : canCompare() ? "Compare Rides" : getValidationMessage()}
+              {loading ? "Finding fares..." : canCompare() ? "Find My Fare" : getValidationMessage()}
             </button>
 
             {pickup && destination && !savedRoute && (
