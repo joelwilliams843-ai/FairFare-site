@@ -57,8 +57,8 @@ body {
 }
 
 .splash-logo {
-  filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.6)) drop-shadow(0 0 60px rgba(0, 255, 136, 0.3));
-  animation: logoGlow 1.5s ease-in-out;
+  filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.3));
+  animation: splashFadeIn 0.8s ease-out;
 }
 
 .splash-title {
@@ -67,17 +67,12 @@ body {
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.02em;
-  text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
 }
 
 @keyframes splashPulse {
   0% {
-    transform: scale(0.9);
+    transform: scale(0.95);
     opacity: 0;
-  }
-  50% {
-    transform: scale(1.02);
-    opacity: 1;
   }
   100% {
     transform: scale(1);
@@ -85,15 +80,14 @@ body {
   }
 }
 
-@keyframes logoGlow {
+@keyframes splashFadeIn {
   0% {
-    filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.3));
-  }
-  50% {
-    filter: drop-shadow(0 0 40px rgba(0, 255, 136, 0.8)) drop-shadow(0 0 80px rgba(0, 255, 136, 0.4));
+    opacity: 0;
+    transform: scale(0.9);
   }
   100% {
-    filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.6)) drop-shadow(0 0 60px rgba(0, 255, 136, 0.3));
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
