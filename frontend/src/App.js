@@ -352,6 +352,84 @@ function App() {
     localStorage.setItem("recentLocations", JSON.stringify(updated));
   };
 
+  // Airport codes database for instant recognition
+  const AIRPORT_CODES = {
+    // Major US Airports
+    'ATL': { name: 'Hartsfield-Jackson Atlanta International Airport', lat: 33.6407, lon: -84.4277, city: 'Atlanta, GA' },
+    'LAX': { name: 'Los Angeles International Airport', lat: 33.9416, lon: -118.4085, city: 'Los Angeles, CA' },
+    'ORD': { name: "O'Hare International Airport", lat: 41.9742, lon: -87.9073, city: 'Chicago, IL' },
+    'DFW': { name: 'Dallas/Fort Worth International Airport', lat: 32.8998, lon: -97.0403, city: 'Dallas, TX' },
+    'DEN': { name: 'Denver International Airport', lat: 39.8561, lon: -104.6737, city: 'Denver, CO' },
+    'JFK': { name: 'John F. Kennedy International Airport', lat: 40.6413, lon: -73.7781, city: 'New York, NY' },
+    'SFO': { name: 'San Francisco International Airport', lat: 37.6213, lon: -122.3790, city: 'San Francisco, CA' },
+    'SEA': { name: 'Seattle-Tacoma International Airport', lat: 47.4502, lon: -122.3088, city: 'Seattle, WA' },
+    'LAS': { name: 'Harry Reid International Airport', lat: 36.0840, lon: -115.1537, city: 'Las Vegas, NV' },
+    'MCO': { name: 'Orlando International Airport', lat: 28.4312, lon: -81.3081, city: 'Orlando, FL' },
+    'MIA': { name: 'Miami International Airport', lat: 25.7959, lon: -80.2870, city: 'Miami, FL' },
+    'PHX': { name: 'Phoenix Sky Harbor International Airport', lat: 33.4373, lon: -112.0078, city: 'Phoenix, AZ' },
+    'IAH': { name: 'George Bush Intercontinental Airport', lat: 29.9902, lon: -95.3368, city: 'Houston, TX' },
+    'BOS': { name: 'Boston Logan International Airport', lat: 42.3656, lon: -71.0096, city: 'Boston, MA' },
+    'MSP': { name: 'Minneapolis-Saint Paul International Airport', lat: 44.8848, lon: -93.2223, city: 'Minneapolis, MN' },
+    'DTW': { name: 'Detroit Metropolitan Airport', lat: 42.2162, lon: -83.3554, city: 'Detroit, MI' },
+    'EWR': { name: 'Newark Liberty International Airport', lat: 40.6895, lon: -74.1745, city: 'Newark, NJ' },
+    'LGA': { name: 'LaGuardia Airport', lat: 40.7769, lon: -73.8740, city: 'New York, NY' },
+    'PHL': { name: 'Philadelphia International Airport', lat: 39.8729, lon: -75.2437, city: 'Philadelphia, PA' },
+    'CLT': { name: 'Charlotte Douglas International Airport', lat: 35.2140, lon: -80.9431, city: 'Charlotte, NC' },
+    'SAN': { name: 'San Diego International Airport', lat: 32.7338, lon: -117.1933, city: 'San Diego, CA' },
+    'TPA': { name: 'Tampa International Airport', lat: 27.9755, lon: -82.5332, city: 'Tampa, FL' },
+    'PDX': { name: 'Portland International Airport', lat: 45.5898, lon: -122.5951, city: 'Portland, OR' },
+    'STL': { name: 'St. Louis Lambert International Airport', lat: 38.7487, lon: -90.3700, city: 'St. Louis, MO' },
+    'BWI': { name: 'Baltimore/Washington International Airport', lat: 39.1774, lon: -76.6684, city: 'Baltimore, MD' },
+    'DCA': { name: 'Ronald Reagan Washington National Airport', lat: 38.8512, lon: -77.0402, city: 'Washington, DC' },
+    'IAD': { name: 'Washington Dulles International Airport', lat: 38.9531, lon: -77.4565, city: 'Dulles, VA' },
+    'SLC': { name: 'Salt Lake City International Airport', lat: 40.7899, lon: -111.9791, city: 'Salt Lake City, UT' },
+    'AUS': { name: 'Austin-Bergstrom International Airport', lat: 30.1975, lon: -97.6664, city: 'Austin, TX' },
+    'BNA': { name: 'Nashville International Airport', lat: 36.1263, lon: -86.6774, city: 'Nashville, TN' },
+    'RDU': { name: 'Raleigh-Durham International Airport', lat: 35.8801, lon: -78.7880, city: 'Raleigh, NC' },
+    'CHS': { name: 'Charleston International Airport', lat: 32.8986, lon: -80.0405, city: 'Charleston, SC' },
+    'SAV': { name: 'Savannah/Hilton Head International Airport', lat: 32.1276, lon: -81.2021, city: 'Savannah, GA' },
+    'JAX': { name: 'Jacksonville International Airport', lat: 30.4941, lon: -81.6879, city: 'Jacksonville, FL' },
+    'MSY': { name: 'Louis Armstrong New Orleans International Airport', lat: 29.9934, lon: -90.2580, city: 'New Orleans, LA' },
+    'OAK': { name: 'Oakland International Airport', lat: 37.7126, lon: -122.2197, city: 'Oakland, CA' },
+    'SJC': { name: 'San Jose International Airport', lat: 37.3639, lon: -121.9289, city: 'San Jose, CA' },
+    'SMF': { name: 'Sacramento International Airport', lat: 38.6954, lon: -121.5908, city: 'Sacramento, CA' },
+    'HNL': { name: 'Daniel K. Inouye International Airport', lat: 21.3187, lon: -157.9225, city: 'Honolulu, HI' },
+  };
+
+  // Search cache for faster repeated queries
+  const searchCache = useRef(new Map());
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+  // Check if query matches airport code
+  const matchAirportCode = (query) => {
+    const upperQuery = query.toUpperCase().trim();
+    
+    // Direct code match
+    if (AIRPORT_CODES[upperQuery]) {
+      return [AIRPORT_CODES[upperQuery]];
+    }
+    
+    // Partial matches and name matches
+    const matches = [];
+    for (const [code, airport] of Object.entries(AIRPORT_CODES)) {
+      const searchStr = `${code} ${airport.name} ${airport.city}`.toLowerCase();
+      if (searchStr.includes(query.toLowerCase())) {
+        matches.push({ ...airport, code });
+      }
+    }
+    
+    return matches.slice(0, 3); // Return top 3 matches
+  };
+
+  // Format airport suggestion
+  const formatAirportSuggestion = (airport) => ({
+    display_name: `${airport.name}, ${airport.city}`,
+    lat: airport.lat,
+    lon: airport.lon,
+    isAirport: true,
+    code: airport.code
+  });
+
   // Reverse geocode coordinates to address with better formatting
   const reverseGeocode = async (lat, lng) => {
     try {
