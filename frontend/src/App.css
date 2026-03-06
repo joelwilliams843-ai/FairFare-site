@@ -555,6 +555,58 @@ body {
   padding-right: 0.5rem;
 }
 
+/* Suggestion badges container */
+.suggestion-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+/* Nearby badge */
+.nearby-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-radius: 4px;
+}
+
+/* Search loading indicator */
+.search-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.search-loading .spinner {
+  animation: spin 1s linear infinite;
+  margin-right: 0.5rem;
+  color: var(--accent-green);
+}
+
+/* Offline banner */
+.offline-banner {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 /* Compare Button */
 .compare-button {
   width: 100%;
