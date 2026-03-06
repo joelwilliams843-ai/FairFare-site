@@ -966,12 +966,26 @@ function App() {
                           item.class === 'amenity' || 
                           item.class === 'tourism' ||
                           item.class === 'leisure' ||
+                          item.class === 'building' ||
                           item.type === 'supermarket' ||
                           item.type === 'fast_food' ||
                           item.type === 'restaurant' ||
                           item.type === 'cafe' ||
                           item.type === 'pharmacy' ||
-                          item.type === 'hotel';
+                          item.type === 'hotel' ||
+                          item.type === 'school' ||
+                          item.type === 'university' ||
+                          item.type === 'college' ||
+                          item.type === 'hospital' ||
+                          item.type === 'church' ||
+                          item.type === 'stadium' ||
+                          item.type === 'park' ||
+                          (item.name && item.name.length > 0 && !item.name.includes('County'));
+        
+        // Get the place/business name if it exists
+        const placeName = item.name && !item.name.includes('County') && !item.name.includes('District') 
+          ? item.name 
+          : (addr.shop || addr.amenity || null);
         
         // Extract address components for clean display
         const addr = item.address || {};
