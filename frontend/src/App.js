@@ -1198,15 +1198,51 @@ function App() {
   };
 
   const selectSuggestion = (suggestion, isPickup) => {
+    // Format address as: Street Address\nCity, State ZIP
+    // Preserve user-typed street number when possible
+    const currentInput = isPickup ? pickup : destination;
+    
+    // Extract user-typed street number (if they typed something like "698 O'Brians")
+    const userTypedNumber = currentInput.match(/^(\d+)\s/)?.[1];
+    const suggestionNumber = suggestion.streetLine?.match(/^(\d+)\s/)?.[1];
+    
+    // Build the display address
+    let displayAddress = '';
+    let streetLine = suggestion.streetLine || '';
+    
+    // If user typed a different house number than what was suggested, preserve theirs
+    // but only if they typed a number and the suggestion has a similar street name
+    if (userTypedNumber && suggestionNumber && userTypedNumber !== suggestionNumber) {
+      // Check if the street names are similar (user typed number + part of street matches)
+      const userStreetPart = currentInput.replace(/^\d+\s*/, '').toLowerCase().trim();
+      const suggestionStreetPart = streetLine.replace(/^\d+\s*/, '').toLowerCase().trim();
+      
+      if (suggestionStreetPart.includes(userStreetPart) || userStreetPart.includes(suggestionStreetPart.split(' ')[0])) {
+        // Replace suggestion's number with user's typed number
+        streetLine = streetLine.replace(/^\d+/, userTypedNumber);
+      }
+    }
+    
+    // Format: Street Address on line 1, City, State ZIP on line 2
+    if (streetLine && suggestion.locationLine) {
+      displayAddress = `${streetLine}, ${suggestion.locationLine}`;
+    } else if (streetLine) {
+      displayAddress = streetLine;
+    } else if (suggestion.locationLine) {
+      displayAddress = suggestion.locationLine;
+    } else {
+      displayAddress = suggestion.display_name;
+    }
+    
     if (isPickup) {
-      setPickup(suggestion.display_name);
+      setPickup(displayAddress);
       // Lock coordinates to this exact location
       setPickupCoords({ lat: suggestion.lat, lng: suggestion.lon });
       // Clear detected coords since user explicitly selected a location
       setDetectedCoords(null);
       setPickupSuggestions([]);
       setShowPickupSuggestions(false);
-      saveToRecent(suggestion.display_name);
+      saveToRecent(displayAddress);
       
       // Show confirmation for airport selections
       if (suggestion.isAirport) {
@@ -1214,18 +1250,18 @@ function App() {
       }
       
       console.log('Pickup selected:', {
-        address: suggestion.display_name,
+        address: displayAddress,
         lat: suggestion.lat,
         lng: suggestion.lon,
         isAirport: suggestion.isAirport || false
       });
     } else {
-      setDestination(suggestion.display_name);
+      setDestination(displayAddress);
       // Lock coordinates to this exact location
       setDestCoords({ lat: suggestion.lat, lng: suggestion.lon });
       setDestSuggestions([]);
       setShowDestSuggestions(false);
-      saveToRecent(suggestion.display_name);
+      saveToRecent(displayAddress);
       
       // Show confirmation for airport selections
       if (suggestion.isAirport) {
@@ -1233,7 +1269,7 @@ function App() {
       }
       
       console.log('Destination selected:', {
-        address: suggestion.display_name,
+        address: displayAddress,
         lat: suggestion.lat,
         lng: suggestion.lon,
         isAirport: suggestion.isAirport || false
