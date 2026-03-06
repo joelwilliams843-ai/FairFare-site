@@ -62,6 +62,11 @@ function App() {
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const shareCanvasRef = useRef(null);
   
+  // Price Watch / Alerts state
+  const [watchedRoutes, setWatchedRoutes] = useState([]);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const priceCheckInterval = useRef(null);
+  
   const pickupRef = useRef(null);
   const destRef = useRef(null);
   const autocompleteTimer = useRef(null);
