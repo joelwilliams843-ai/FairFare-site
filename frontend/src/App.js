@@ -1666,6 +1666,7 @@ function App() {
         setShowHelperCard(true);
       }
       
+      const isNative = Capacitor.isNativePlatform();
       const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
       const isAndroid = /Android/.test(navigator.userAgent);
       const isMobile = isIOS || isAndroid;
@@ -1674,7 +1675,8 @@ function App() {
         provider: estimate.provider,
         deepLink: estimate.deep_link,
         webLink: estimate.web_link,
-        platform: isMobile ? (isIOS ? 'iOS' : 'Android') : 'Desktop'
+        platform: isNative ? 'Native App' : (isMobile ? (isIOS ? 'iOS Web' : 'Android Web') : 'Desktop'),
+        isNative
       });
       
       // Show "Opening..." loader
@@ -1691,7 +1693,6 @@ function App() {
         if (estimate.provider === cheapest.provider && cheapest.estimated_price_min && expensive.estimated_price_min) {
           const savedAmount = expensive.estimated_price_min - cheapest.estimated_price_min;
           if (savedAmount > 0) {
-            // Update savings data
             const newSavings = {
               ...savingsData,
               totalSaved: savingsData.totalSaved + savedAmount,
@@ -1704,11 +1705,39 @@ function App() {
         }
       }
       
-      if (isMobile) {
-        // Mobile: App-first deep linking with fallback
+      // For Capacitor native apps, use Browser plugin
+      if (isNative) {
+        try {
+          // First try to open the native app via deep link
+          // Lyft: lyft://ridetype?id=lyft&pickup[latitude]=X&pickup[longitude]=Y&destination[latitude]=X&destination[longitude]=Y
+          // Uber: uber://?action=setPickup&pickup[latitude]=X&pickup[longitude]=Y&dropoff[latitude]=X&dropoff[longitude]=Y
+          
+          console.log('[FairFare] Attempting native app deep link:', estimate.deep_link);
+          
+          // Use Capacitor Browser to open external URL
+          // This will handle both deep links (app schemes) and web URLs properly
+          await Browser.open({ 
+            url: estimate.web_link,
+            presentationStyle: 'popover'
+          });
+          
+          toast.success(`Opening ${estimate.provider}...`, { duration: 2000 });
+          
+        } catch (browserError) {
+          console.error('[FairFare] Browser plugin error:', browserError);
+          // Fallback to copying route
+          toast.error(`Couldn't open ${estimate.provider}. Route copied to clipboard.`);
+          await copyRouteToClipboard();
+        }
+        
+        setOpeningApp(null);
+        return;
+      }
+      
+      // For mobile web browsers (not native app)
+      if (isMobile && !isNative) {
         let appOpened = false;
         
-        // Track visibility change to detect if app opened
         const handleVisibilityChange = () => {
           if (document.hidden) {
             appOpened = true;
@@ -1718,16 +1747,14 @@ function App() {
         
         document.addEventListener('visibilitychange', handleVisibilityChange);
         
-        // Try native app scheme first via window.location
-        // This is more reliable than iframe for modern mobile browsers
+        // Try native app scheme first
         window.location.href = estimate.deep_link;
         
-        // Short fallback timer - if app doesn't open within 2s, fall back to web
+        // Fallback timer - if app doesn't open within 2s, fall back to web
         const fallbackTimeout = setTimeout(() => {
           if (!appOpened && !document.hidden) {
             console.log(`[FairFare] ${estimate.provider} app not detected, opening web link`);
             toast.info(`Opening ${estimate.provider} website...`, { duration: 2000 });
-            // Use location.replace to avoid back button issues
             window.location.href = estimate.web_link;
           }
           setOpeningApp(null);
@@ -1745,7 +1772,6 @@ function App() {
         const newWindow = window.open(estimate.web_link, '_blank', 'noopener,noreferrer');
         
         if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-          // Pop-up blocked - try clipboard fallback
           toast.warning(`Pop-up blocked. Opening ${estimate.provider}...`);
           window.location.href = estimate.web_link;
         }
@@ -1755,7 +1781,6 @@ function App() {
       console.error('[FairFare] Deep link error:', error);
       setOpeningApp(null);
       toast.error(`Unable to open ${estimate?.provider || 'ride app'}. Please try again.`);
-      // Fallback: Copy route to clipboard
       await copyRouteToClipboard();
     }
   };
