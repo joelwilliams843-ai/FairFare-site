@@ -1571,7 +1571,14 @@ function App() {
     }
   };
 
+  // Open the ride app via deep linking with improved error handling
   const openDeepLink = async (estimate) => {
+    if (!estimate) {
+      toast.error('Unable to open ride app. Please try again.');
+      console.error('[FairFare] openDeepLink called with null estimate');
+      return;
+    }
+    
     try {
       // Show helper card if ride is for someone else
       if (rideForOther && passengerName && passengerPhone) {
@@ -1582,12 +1589,39 @@ function App() {
       const isAndroid = /Android/.test(navigator.userAgent);
       const isMobile = isIOS || isAndroid;
       
-      console.log('Opening:', estimate.provider);
-      console.log('Deep link:', estimate.deep_link);
-      console.log('Web link:', estimate.web_link);
+      console.log('[FairFare] Opening ride app:', {
+        provider: estimate.provider,
+        deepLink: estimate.deep_link,
+        webLink: estimate.web_link,
+        platform: isMobile ? (isIOS ? 'iOS' : 'Android') : 'Desktop'
+      });
       
       // Show "Opening..." loader
       setOpeningApp(estimate.provider);
+      
+      // Track savings when user opens a ride
+      if (results?.estimates?.length >= 2) {
+        const sortedByPrice = [...results.estimates].sort((a, b) => 
+          (a.estimated_price_min || 0) - (b.estimated_price_min || 0)
+        );
+        const cheapest = sortedByPrice[0];
+        const expensive = sortedByPrice[sortedByPrice.length - 1];
+        
+        if (estimate.provider === cheapest.provider && cheapest.estimated_price_min && expensive.estimated_price_min) {
+          const savedAmount = expensive.estimated_price_min - cheapest.estimated_price_min;
+          if (savedAmount > 0) {
+            // Update savings data
+            const newSavings = {
+              ...savingsData,
+              totalSaved: savingsData.totalSaved + savedAmount,
+              ridesCompared: savingsData.ridesCompared + 1,
+              avgSavedPerRide: (savingsData.totalSaved + savedAmount) / (savingsData.ridesCompared + 1)
+            };
+            setSavingsData(newSavings);
+            localStorage.setItem('fairfareSavings', JSON.stringify(newSavings));
+          }
+        }
+      }
       
       if (isMobile) {
         // Mobile: App-first deep linking with fallback
@@ -1607,36 +1641,39 @@ function App() {
         // This is more reliable than iframe for modern mobile browsers
         window.location.href = estimate.deep_link;
         
-        // Short fallback timer - if app doesn't open within 1.5s, fall back to web
+        // Short fallback timer - if app doesn't open within 2s, fall back to web
         const fallbackTimeout = setTimeout(() => {
           if (!appOpened && !document.hidden) {
-            console.log(`${estimate.provider} app not detected, opening web link`);
+            console.log(`[FairFare] ${estimate.provider} app not detected, opening web link`);
+            toast.info(`Opening ${estimate.provider} website...`, { duration: 2000 });
             // Use location.replace to avoid back button issues
             window.location.href = estimate.web_link;
           }
           setOpeningApp(null);
-        }, 1500);
+        }, 2000);
         
-        // Cleanup after 3 seconds
+        // Cleanup after 4 seconds
         setTimeout(() => {
           document.removeEventListener('visibilitychange', handleVisibilityChange);
           clearTimeout(fallbackTimeout);
           setOpeningApp(null);
-        }, 3000);
+        }, 4000);
         
       } else {
         // Desktop: Open web version in new tab
-        setOpeningApp(null);
         const newWindow = window.open(estimate.web_link, '_blank', 'noopener,noreferrer');
         
         if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
           // Pop-up blocked - try clipboard fallback
-          await copyRouteToClipboard();
+          toast.warning(`Pop-up blocked. Opening ${estimate.provider}...`);
+          window.location.href = estimate.web_link;
         }
+        setOpeningApp(null);
       }
     } catch (error) {
-      console.error('Deep link error:', error);
+      console.error('[FairFare] Deep link error:', error);
       setOpeningApp(null);
+      toast.error(`Unable to open ${estimate?.provider || 'ride app'}. Please try again.`);
       // Fallback: Copy route to clipboard
       await copyRouteToClipboard();
     }
