@@ -2975,14 +2975,15 @@ I'll text you when the driver is assigned.`);
                       <Loader2 size={18} className="spinner" />
                       Opening {estimate.provider}...
                     </>
-                  ) : getSavingsInfo()?.cheaperProvider === estimate.provider ? (
-                    `Open ${estimate.provider} — Est. $${getSavingsInfo().cheaperPrice}`
+                  ) : isCheapest ? (
+                    `Open ${estimate.provider} — ~$${getSavingsInfo().cheaperPrice}`
                   ) : (
-                    `Open ${estimate.provider} — Est. $${getSavingsInfo()?.expensivePrice || ''}`
+                    `Open ${estimate.provider} — ~$${getSavingsInfo()?.expensivePrice || ''}`
                   )}
                 </button>
               </div>
-            ))}
+            );
+            })}
           </div>
 
           {/* Savings Summary & Share Card */}
