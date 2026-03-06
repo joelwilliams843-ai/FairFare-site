@@ -1788,6 +1788,42 @@ I'll text you when the driver is assigned.`);
                 {/* Autocomplete suggestions */}
                 {showPickupSuggestions && (activeField === 'pickup') && (
                   <div className="autocomplete-dropdown" data-testid="pickup-suggestions">
+                    {/* Favorites Section */}
+                    {favoriteLocations.length > 0 && !pickup && (
+                      <>
+                        <div className="suggestions-header">
+                          <Heart size={14} className="header-icon favorite" />
+                          Favorites
+                        </div>
+                        {favoriteLocations.map((fav) => (
+                          <div
+                            key={`fav-${fav.id}`}
+                            className="suggestion-item favorite"
+                            onClick={() => selectFavorite(fav, true)}
+                            data-testid={`pickup-favorite-${fav.id}`}
+                          >
+                            <Heart size={16} className="suggestion-icon favorite-icon" />
+                            <div className="suggestion-details">
+                              <span className="suggestion-main">{fav.label}</span>
+                              <span className="suggestion-sub">{fav.display_name}</span>
+                            </div>
+                            <button
+                              className="remove-favorite-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFromFavorites(fav.id);
+                              }}
+                              aria-label="Remove from favorites"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                        <div className="suggestions-divider" />
+                      </>
+                    )}
+                    
+                    {/* Recent Locations Section */}
                     {recentLocations.length > 0 && !pickup && (
                       <>
                         <div className="suggestions-header">Recent Locations</div>
@@ -1806,47 +1842,69 @@ I'll text you when the driver is assigned.`);
                     
                     {pickupSuggestions.length > 0 && (
                       <>
-                        {recentLocations.length > 0 && !pickup && <div className="suggestions-divider" />}
+                        {(recentLocations.length > 0 || favoriteLocations.length > 0) && !pickup && <div className="suggestions-divider" />}
                         {pickupSuggestions.map((suggestion, idx) => (
                           <div
                             key={idx}
                             className={`suggestion-item ${suggestion.isAirport ? 'airport' : ''} ${suggestion.isPOI ? 'poi' : ''}`}
-                            onClick={() => selectSuggestion(suggestion, true)}
                             data-testid={`pickup-suggestion-${idx}`}
                           >
-                            {suggestion.isAirport ? (
-                              <>
-                                <span className="airport-badge">✈ {suggestion.code}</span>
-                                <div className="suggestion-details">
-                                  <span className="suggestion-main">{suggestion.display_name.split(',')[0]}</span>
-                                  <span className="suggestion-sub">
-                                    {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                            <div 
+                              className="suggestion-content"
+                              onClick={() => selectSuggestion(suggestion, true)}
+                            >
+                              {suggestion.isAirport ? (
+                                <>
+                                  <span className="airport-badge">✈ {suggestion.code}</span>
+                                  <div className="suggestion-details">
+                                    <span className="suggestion-main">{suggestion.display_name.split(',')[0]}</span>
+                                    <span className="suggestion-sub">
+                                      {suggestion.display_name.split(',').slice(1).join(',').trim()}
+                                      {suggestion.formattedDistance && (
+                                        <span className="suggestion-distance"> • {suggestion.formattedDistance}</span>
+                                      )}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : suggestion.isPOI ? (
+                                <>
+                                  <Store size={16} className="suggestion-icon poi-icon" />
+                                  <div className="suggestion-details">
+                                    <span className="suggestion-main">{suggestion.display_name}</span>
                                     {suggestion.formattedDistance && (
-                                      <span className="suggestion-distance"> • {suggestion.formattedDistance}</span>
+                                      <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
                                     )}
-                                  </span>
-                                </div>
-                              </>
-                            ) : suggestion.isPOI ? (
-                              <>
-                                <Store size={16} className="suggestion-icon poi-icon" />
-                                <div className="suggestion-details">
-                                  <span className="suggestion-main">{suggestion.display_name}</span>
-                                  {suggestion.formattedDistance && (
-                                    <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
-                                  )}
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <MapPin size={16} className="suggestion-icon" />
-                                <div className="suggestion-details">
-                                  <span className="suggestion-main">{suggestion.display_name}</span>
-                                  {suggestion.formattedDistance && (
-                                    <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
-                                  )}
-                                </div>
-                              </>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <MapPin size={16} className="suggestion-icon" />
+                                  <div className="suggestion-details">
+                                    <span className="suggestion-main">{suggestion.display_name}</span>
+                                    {suggestion.formattedDistance && (
+                                      <span className="suggestion-distance-badge">{suggestion.formattedDistance}</span>
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                            {/* Add to favorites button */}
+                            {!isInFavorites(suggestion.display_name, { lat: suggestion.lat, lng: suggestion.lon }) && (
+                              <button
+                                className="add-favorite-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addToFavorites(
+                                    suggestion.display_name, 
+                                    { lat: suggestion.lat, lng: suggestion.lon },
+                                    suggestion.isAirport ? suggestion.code : null
+                                  );
+                                }}
+                                aria-label="Add to favorites"
+                                title="Add to favorites"
+                              >
+                                <Heart size={14} />
+                              </button>
                             )}
                           </div>
                         ))}
