@@ -816,6 +816,14 @@ I'll text you when the driver is assigned.`);
           </div>
 
           <div className="input-section">
+            {/* Location detected banner - auto-hides after 3 seconds */}
+            {showLocationBanner && (
+              <div className="location-banner" data-testid="location-banner">
+                <Navigation size={16} />
+                <span>Location detected!</span>
+              </div>
+            )}
+            
             <div className="input-group">
               <label className="input-label">PICKUP</label>
               <div className="input-wrapper-container">
@@ -843,6 +851,7 @@ I'll text you when the driver is assigned.`);
                       onClick={() => {
                         setPickup('');
                         setPickupCoords(null);
+                        setDetectedCoords(null);
                         setPickupSuggestions([]);
                       }}
                       className="clear-button"
@@ -860,6 +869,11 @@ I'll text you when the driver is assigned.`);
                     <Navigation size={18} />
                   </button>
                 </div>
+                
+                {/* Helper text for GPS-detected locations */}
+                {detectedCoords && pickup && (
+                  <p className="pickup-helper-text">If this address is slightly off, tap to adjust.</p>
+                )}
                 
                 {/* Autocomplete suggestions */}
                 {showPickupSuggestions && (activeField === 'pickup') && (
