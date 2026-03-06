@@ -615,27 +615,38 @@ function App() {
     }
     // Note: Keep detectedCoords so we use GPS position even if address text is edited
     
-    // Debounce autocomplete search
+    // Show suggestions dropdown
+    if (value.length >= 2) {
+      setShowPickupSuggestions(true);
+    }
+    
+    // Fast debounce for autocomplete (150ms for responsiveness)
     if (autocompleteTimer.current) {
       clearTimeout(autocompleteTimer.current);
     }
     
     autocompleteTimer.current = setTimeout(() => {
       searchAddress(value, true);
-    }, 300);
+    }, 150);
   };
 
   const handleDestChange = (value) => {
     setDestination(value);
     setDestCoords(null);
     
+    // Show suggestions dropdown
+    if (value.length >= 2) {
+      setShowDestSuggestions(true);
+    }
+    
+    // Fast debounce for autocomplete (150ms for responsiveness)
     if (autocompleteTimer.current) {
       clearTimeout(autocompleteTimer.current);
     }
     
     autocompleteTimer.current = setTimeout(() => {
       searchAddress(value, false);
-    }, 300);
+    }, 150);
   };
 
   const selectSuggestion = (suggestion, isPickup) => {
