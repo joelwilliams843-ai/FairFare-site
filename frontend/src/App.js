@@ -1215,40 +1215,50 @@ function App() {
   };
 
   const selectSuggestion = (suggestion, isPickup) => {
-    // Format address as: Street Address\nCity, State ZIP
-    // Preserve user-typed street number when possible
+    // Format address based on type:
+    // - POI/Place: "Place Name, City, State ZIP"
+    // - Address: "Street, City, State ZIP"
     const currentInput = isPickup ? pickup : destination;
-    
-    // Extract user-typed street number (if they typed something like "698 O'Brians")
-    const userTypedNumber = currentInput.match(/^(\d+)\s/)?.[1];
-    const suggestionNumber = suggestion.streetLine?.match(/^(\d+)\s/)?.[1];
     
     // Build the display address
     let displayAddress = '';
-    let streetLine = suggestion.streetLine || '';
     
-    // If user typed a different house number than what was suggested, preserve theirs
-    // but only if they typed a number and the suggestion has a similar street name
-    if (userTypedNumber && suggestionNumber && userTypedNumber !== suggestionNumber) {
-      // Check if the street names are similar (user typed number + part of street matches)
-      const userStreetPart = currentInput.replace(/^\d+\s*/, '').toLowerCase().trim();
-      const suggestionStreetPart = streetLine.replace(/^\d+\s*/, '').toLowerCase().trim();
-      
-      if (suggestionStreetPart.includes(userStreetPart) || userStreetPart.includes(suggestionStreetPart.split(' ')[0])) {
-        // Replace suggestion's number with user's typed number
-        streetLine = streetLine.replace(/^\d+/, userTypedNumber);
+    // If this is a POI/place with a name, use that as primary
+    if (suggestion.placeName || suggestion.businessName) {
+      const placeName = suggestion.placeName || suggestion.businessName;
+      if (suggestion.locationLine) {
+        displayAddress = `${placeName}, ${suggestion.locationLine}`;
+      } else {
+        displayAddress = placeName;
       }
-    }
-    
-    // Format: Street Address on line 1, City, State ZIP on line 2
-    if (streetLine && suggestion.locationLine) {
-      displayAddress = `${streetLine}, ${suggestion.locationLine}`;
-    } else if (streetLine) {
-      displayAddress = streetLine;
-    } else if (suggestion.locationLine) {
-      displayAddress = suggestion.locationLine;
     } else {
-      displayAddress = suggestion.display_name;
+      // Regular address - preserve user-typed street number when possible
+      let streetLine = suggestion.streetLine || '';
+      
+      // Extract user-typed street number (if they typed something like "698 O'Brians")
+      const userTypedNumber = currentInput.match(/^(\d+)\s/)?.[1];
+      const suggestionNumber = streetLine.match(/^(\d+)\s/)?.[1];
+      
+      // If user typed a different house number than what was suggested, preserve theirs
+      if (userTypedNumber && suggestionNumber && userTypedNumber !== suggestionNumber) {
+        const userStreetPart = currentInput.replace(/^\d+\s*/, '').toLowerCase().trim();
+        const suggestionStreetPart = streetLine.replace(/^\d+\s*/, '').toLowerCase().trim();
+        
+        if (suggestionStreetPart.includes(userStreetPart) || userStreetPart.includes(suggestionStreetPart.split(' ')[0])) {
+          streetLine = streetLine.replace(/^\d+/, userTypedNumber);
+        }
+      }
+      
+      // Format: Street, City, State ZIP
+      if (streetLine && suggestion.locationLine) {
+        displayAddress = `${streetLine}, ${suggestion.locationLine}`;
+      } else if (streetLine) {
+        displayAddress = streetLine;
+      } else if (suggestion.locationLine) {
+        displayAddress = suggestion.locationLine;
+      } else {
+        displayAddress = suggestion.display_name;
+      }
     }
     
     if (isPickup) {
