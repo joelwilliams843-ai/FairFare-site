@@ -3355,29 +3355,35 @@ I'll text you when the driver is assigned.`);
             {/* Action Buttons - Always visible */}
             <div className="handoff-actions">
               {(handoffState.status === 'timeout' || handoffState.status === 'error') && (
-                <button
-                  className="handoff-btn primary"
-                  onClick={() => {
-                    setHandoffState(prev => ({ ...prev, status: 'opening' }));
-                    executeHandoff();
-                  }}
-                  data-testid="handoff-retry-btn"
-                >
-                  Try Again
-                </button>
+                <>
+                  <button
+                    className="handoff-btn primary"
+                    onClick={() => {
+                      // Try deep link again to open native app
+                      if (handoffState.deepLink) {
+                        logHandoffEvent('HANDOFF_RETRY_NATIVE', { provider: handoffState.provider });
+                        window.location.href = handoffState.deepLink;
+                      }
+                    }}
+                    data-testid="handoff-open-app-btn"
+                  >
+                    Open {handoffState.provider} App
+                  </button>
+                </>
               )}
 
               <button
                 className="handoff-btn secondary"
                 onClick={() => {
-                  // Direct link - opens in system browser
+                  // Open web version with ride pre-populated
+                  logHandoffEvent('HANDOFF_OPEN_WEB', { provider: handoffState.provider, url: handoffState.webLink });
                   if (handoffState.webLink) {
                     window.open(handoffState.webLink, '_blank', 'noopener,noreferrer');
                   }
                 }}
                 data-testid="handoff-browser-btn"
               >
-                Open {handoffState.provider} in Browser
+                Open {handoffState.provider} Website
               </button>
 
               <button
