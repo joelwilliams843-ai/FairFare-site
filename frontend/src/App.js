@@ -1676,37 +1676,57 @@ function App() {
     }
   };
 
-  // Open the ride app via deep linking with improved error handling
+  // Log handoff events for debugging
+  const logHandoffEvent = (event, data) => {
+    const logEntry = {
+      event,
+      ...data,
+      timestamp: new Date().toISOString(),
+      platform: Capacitor.isNativePlatform() ? 'Native' : 
+                /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iOS Web' :
+                /Android/.test(navigator.userAgent) ? 'Android Web' : 'Desktop',
+      userAgent: navigator.userAgent.substring(0, 100)
+    };
+    console.log('[FairFare Handoff]', event, logEntry);
+    
+    // Store in localStorage for debugging
+    try {
+      const logs = JSON.parse(localStorage.getItem('handoffLogs') || '[]');
+      logs.push(logEntry);
+      // Keep only last 20 logs
+      if (logs.length > 20) logs.shift();
+      localStorage.setItem('handoffLogs', JSON.stringify(logs));
+    } catch (e) {
+      // Ignore storage errors
+    }
+  };
+
+  // CRASH-PROOF: Open ride provider with guaranteed visible UI
   const openDeepLink = async (estimate) => {
-    if (!estimate) {
+    // SAFETY: Never proceed without estimate data
+    if (!estimate || !estimate.provider) {
+      logHandoffEvent('ERROR_NO_ESTIMATE', { estimate });
       toast.error('Unable to open ride app. Please try again.');
-      console.error('[FairFare] openDeepLink called with null estimate');
       return;
     }
-    
+
+    // SAFETY: Validate URLs exist
+    const webLink = estimate.web_link || `https://www.${estimate.provider.toLowerCase()}.com`;
+    const deepLink = estimate.deep_link || webLink;
+
+    logHandoffEvent('HANDOFF_START', {
+      provider: estimate.provider,
+      deepLink,
+      webLink
+    });
+
+    // Show helper card if ride is for someone else
+    if (rideForOther && passengerName && passengerPhone) {
+      setShowHelperCard(true);
+    }
+
+    // Track savings
     try {
-      // Show helper card if ride is for someone else
-      if (rideForOther && passengerName && passengerPhone) {
-        setShowHelperCard(true);
-      }
-      
-      const isNative = Capacitor.isNativePlatform();
-      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      const isAndroid = /Android/.test(navigator.userAgent);
-      const isMobile = isIOS || isAndroid;
-      
-      console.log('[FairFare] Opening ride app:', {
-        provider: estimate.provider,
-        deepLink: estimate.deep_link,
-        webLink: estimate.web_link,
-        platform: isNative ? 'Native App' : (isMobile ? (isIOS ? 'iOS Web' : 'Android Web') : 'Desktop'),
-        isNative
-      });
-      
-      // Show "Opening..." loader
-      setOpeningApp(estimate.provider);
-      
-      // Track savings when user opens a ride
       if (results?.estimates?.length >= 2) {
         const sortedByPrice = [...results.estimates].sort((a, b) => 
           (a.estimated_price_min || 0) - (b.estimated_price_min || 0)
@@ -1728,86 +1748,152 @@ function App() {
           }
         }
       }
+    } catch (e) {
+      // Don't let savings tracking break the handoff
+      console.error('[FairFare] Savings tracking error:', e);
+    }
+
+    // IMMEDIATELY show the handoff modal - this prevents blank screens
+    setHandoffState({
+      isOpen: true,
+      provider: estimate.provider,
+      status: 'opening',
+      deepLink,
+      webLink,
+      errorMessage: null,
+      startTime: Date.now()
+    });
+  };
+
+  // Handle opening the ride app (called from handoff modal)
+  const executeHandoff = async (useWebFallback = false) => {
+    const { provider, deepLink, webLink } = handoffState;
+    
+    if (!provider || !webLink) {
+      setHandoffState(prev => ({
+        ...prev,
+        status: 'error',
+        errorMessage: 'Missing provider information'
+      }));
+      return;
+    }
+
+    const urlToOpen = useWebFallback ? webLink : webLink; // Always use web for reliability
+    
+    logHandoffEvent(useWebFallback ? 'HANDOFF_WEB_FALLBACK' : 'HANDOFF_EXECUTE', {
+      provider,
+      url: urlToOpen
+    });
+
+    try {
+      const isNative = Capacitor.isNativePlatform();
       
-      // For Capacitor native apps, use Browser plugin
       if (isNative) {
+        // For Capacitor native apps, use Browser plugin
         try {
-          // First try to open the native app via deep link
-          // Lyft: lyft://ridetype?id=lyft&pickup[latitude]=X&pickup[longitude]=Y&destination[latitude]=X&destination[longitude]=Y
-          // Uber: uber://?action=setPickup&pickup[latitude]=X&pickup[longitude]=Y&dropoff[latitude]=X&dropoff[longitude]=Y
-          
-          console.log('[FairFare] Attempting native app deep link:', estimate.deep_link);
-          
-          // Use Capacitor Browser to open external URL
-          // This will handle both deep links (app schemes) and web URLs properly
           await Browser.open({ 
-            url: estimate.web_link,
+            url: urlToOpen,
             presentationStyle: 'popover'
           });
           
-          toast.success(`Opening ${estimate.provider}...`, { duration: 2000 });
+          logHandoffEvent('HANDOFF_SUCCESS_NATIVE', { provider, url: urlToOpen });
+          
+          // Close modal after a short delay
+          setTimeout(() => {
+            setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+          }, 1000);
           
         } catch (browserError) {
-          console.error('[FairFare] Browser plugin error:', browserError);
-          // Fallback to copying route
-          toast.error(`Couldn't open ${estimate.provider}. Route copied to clipboard.`);
-          await copyRouteToClipboard();
+          logHandoffEvent('HANDOFF_BROWSER_ERROR', { 
+            provider, 
+            error: browserError.message 
+          });
+          
+          setHandoffState(prev => ({
+            ...prev,
+            status: 'error',
+            errorMessage: `Couldn't open ${provider}. Please try the browser option.`
+          }));
         }
-        
-        setOpeningApp(null);
-        return;
-      }
-      
-      // For mobile web browsers (not native app)
-      if (isMobile && !isNative) {
-        let appOpened = false;
-        
-        const handleVisibilityChange = () => {
-          if (document.hidden) {
-            appOpened = true;
-            setOpeningApp(null);
-          }
-        };
-        
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        
-        // Try native app scheme first
-        window.location.href = estimate.deep_link;
-        
-        // Fallback timer - if app doesn't open within 2s, fall back to web
-        const fallbackTimeout = setTimeout(() => {
-          if (!appOpened && !document.hidden) {
-            console.log(`[FairFare] ${estimate.provider} app not detected, opening web link`);
-            toast.info(`Opening ${estimate.provider} website...`, { duration: 2000 });
-            window.location.href = estimate.web_link;
-          }
-          setOpeningApp(null);
-        }, 2000);
-        
-        // Cleanup after 4 seconds
-        setTimeout(() => {
-          document.removeEventListener('visibilitychange', handleVisibilityChange);
-          clearTimeout(fallbackTimeout);
-          setOpeningApp(null);
-        }, 4000);
-        
       } else {
-        // Desktop: Open web version in new tab
-        const newWindow = window.open(estimate.web_link, '_blank', 'noopener,noreferrer');
+        // For web browsers - open in new tab
+        const newWindow = window.open(urlToOpen, '_blank', 'noopener,noreferrer');
         
-        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-          toast.warning(`Pop-up blocked. Opening ${estimate.provider}...`);
-          window.location.href = estimate.web_link;
+        if (newWindow && !newWindow.closed) {
+          logHandoffEvent('HANDOFF_SUCCESS_WEB', { provider, url: urlToOpen });
+          
+          setTimeout(() => {
+            setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+          }, 1000);
+        } else {
+          // Pop-up blocked or failed - show error with alternatives
+          logHandoffEvent('HANDOFF_POPUP_BLOCKED', { provider });
+          
+          setHandoffState(prev => ({
+            ...prev,
+            status: 'error',
+            errorMessage: 'Pop-up blocked. Use the buttons below to open manually.'
+          }));
         }
-        setOpeningApp(null);
       }
     } catch (error) {
-      console.error('[FairFare] Deep link error:', error);
-      setOpeningApp(null);
-      toast.error(`Unable to open ${estimate?.provider || 'ride app'}. Please try again.`);
-      await copyRouteToClipboard();
+      logHandoffEvent('HANDOFF_EXCEPTION', { 
+        provider, 
+        error: error.message,
+        stack: error.stack?.substring(0, 200)
+      });
+      
+      setHandoffState(prev => ({
+        ...prev,
+        status: 'error',
+        errorMessage: `Unable to open ${provider}. Please try again.`
+      }));
     }
   };
+
+  // Close handoff modal and return to results
+  const closeHandoffModal = () => {
+    logHandoffEvent('HANDOFF_CANCELLED', { provider: handoffState.provider });
+    setHandoffState({
+      isOpen: false,
+      provider: null,
+      status: 'idle',
+      deepLink: null,
+      webLink: null,
+      errorMessage: null,
+      startTime: null
+    });
+  };
+
+  // Auto-execute handoff when modal opens
+  useEffect(() => {
+    if (handoffState.isOpen && handoffState.status === 'opening') {
+      // Small delay to ensure modal is visible first
+      const timer = setTimeout(() => {
+        executeHandoff();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [handoffState.isOpen, handoffState.status]);
+
+  // Timeout fail-safe: if still "opening" after 3 seconds, show error
+  useEffect(() => {
+    if (handoffState.isOpen && handoffState.status === 'opening' && handoffState.startTime) {
+      const timer = setTimeout(() => {
+        if (handoffState.status === 'opening') {
+          logHandoffEvent('HANDOFF_TIMEOUT', { provider: handoffState.provider });
+          setHandoffState(prev => ({
+            ...prev,
+            status: 'timeout',
+            errorMessage: `Taking longer than expected to open ${prev.provider}.`
+          }));
+        }
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [handoffState.isOpen, handoffState.status, handoffState.startTime]);
 
   const copyRouteToClipboard = async () => {
     try {
