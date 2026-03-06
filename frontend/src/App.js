@@ -2942,11 +2942,11 @@ I'll text you when the driver is assigned.`);
                 {getSavingsInfo() && (
                   <div className="estimated-price-container">
                     <div className="estimated-price">
-                      Est. ${getSavingsInfo().cheaperProvider === estimate.provider 
+                      ~${isCheapest 
                         ? getSavingsInfo().cheaperPrice 
                         : getSavingsInfo().expensivePrice}
                     </div>
-                    <div className="price-disclaimer">Final price in app</div>
+                    <div className="price-disclaimer">Final price shown in Uber/Lyft app</div>
                   </div>
                 )}
 
