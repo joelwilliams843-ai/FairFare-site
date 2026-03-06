@@ -2611,6 +2611,39 @@ I'll text you when the driver is assigned.`);
           {/* Results Content - Only show when we have valid results and no error */}
           {results && !loading && !error && (
             <>
+              {/* Savings Moment - Primary CTA */}
+              {getSavingsInfo()?.hasSavings && (
+                <div className="savings-moment" data-testid="savings-moment">
+                  <div className="savings-badge">
+                    <DollarSign size={18} />
+                    <span>Best Fare</span>
+                  </div>
+                  <div className="savings-content">
+                    <p className="savings-message">
+                      Save <span className="savings-amount">${getSavingsInfo().savings.toFixed(0)}</span> by choosing {getSavingsInfo().cheaperProvider}
+                    </p>
+                    <p className="savings-comparison">
+                      {getSavingsInfo().cheaperProvider}: ~${getSavingsInfo().cheaperPrice} vs ${getSavingsInfo().expensivePrice}
+                    </p>
+                  </div>
+                  <button
+                    data-testid="open-cheapest-btn"
+                    className="open-cheapest-button"
+                    onClick={() => openDeepLink(getSavingsInfo().cheaperEstimate)}
+                    disabled={openingApp !== null}
+                  >
+                    {openingApp === getSavingsInfo().cheaperProvider ? (
+                      <>
+                        <Loader2 size={18} className="spinner" />
+                        Opening...
+                      </>
+                    ) : (
+                      <>Open {getSavingsInfo().cheaperProvider} — Best Fare</>
+                    )}
+                  </button>
+                </div>
+              )}
+
               {/* Recommendation Banner */}
               {results.recommendation && (
                 <div className="recommendation-banner" data-testid="recommendation-banner">
