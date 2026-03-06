@@ -1037,9 +1037,11 @@ function App() {
         };
       });
 
-      // FILTER: Remove results too far away (> 100 miles) for short queries
-      if (userLocation.current && isShortQuery) {
-        suggestions = suggestions.filter(s => s.distance === null || s.distance <= 100);
+      // FILTER: Remove results too far away
+      // For POI searches (schools, businesses, etc.), be stricter about distance
+      if (userLocation.current) {
+        const maxDistance = isPOI ? 75 : 150; // 75 miles for POI, 150 for addresses
+        suggestions = suggestions.filter(s => s.distance === null || s.distance <= maxDistance);
       }
 
       // SORT by distance (nearest first) with strong local preference
