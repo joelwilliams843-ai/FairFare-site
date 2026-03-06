@@ -1390,31 +1390,100 @@ function App() {
   // Auto-geocode an address string
   const autoGeocode = async (address) => {
     try {
+      // Build params with location bias if available
+      const params = {
+        q: address,
+        format: 'json',
+        limit: 5, // Get multiple results to find best match
+        addressdetails: 1,
+        countrycodes: 'us',
+      };
+      
+      // Add location bias if we have user location
+      if (userLocation.current?.lat && userLocation.current?.lng) {
+        const lat = userLocation.current.lat;
+        const lng = userLocation.current.lng;
+        const delta = 0.5; // ~30 miles
+        params.viewbox = `${lng - delta},${lat + delta},${lng + delta},${lat - delta}`;
+        params.bounded = 0; // Prefer but don't limit to viewbox
+      }
+      
       const response = await axios.get(`${NOMINATIM_BASE}/search`, {
-        params: {
-          q: address,
-          format: 'json',
-          limit: 1,
-          addressdetails: 1,
-          countrycodes: 'us',
-        },
+        params,
         headers: {
           'User-Agent': 'FairFare/1.0'
         },
-        timeout: 5000
+        timeout: 8000
       });
       
       if (response.data && response.data.length > 0) {
-        const result = response.data[0];
+        // If we have location, prefer nearest result
+        let result = response.data[0];
+        
+        if (userLocation.current?.lat && response.data.length > 1) {
+          const userLat = userLocation.current.lat;
+          const userLng = userLocation.current.lng;
+          
+          // Find the closest result
+          let minDist = Infinity;
+          for (const r of response.data) {
+            const dist = calculateDistance(userLat, userLng, parseFloat(r.lat), parseFloat(r.lon));
+            if (dist < minDist) {
+              minDist = dist;
+              result = r;
+            }
+          }
+        }
+        
+        console.log('[FairFare] Auto-geocode success:', {
+          query: address,
+          result: result.display_name,
+          lat: result.lat,
+          lon: result.lon
+        });
+        
         return {
           lat: parseFloat(result.lat),
           lng: parseFloat(result.lon),
           display_name: formatAddressSingleLine(result)
         };
       }
+      
+      // If first attempt failed, try with cleaned address
+      const cleanedAddress = address
+        .replace(/[''`]/g, "'") // Normalize apostrophes
+        .replace(/\s+/g, ' ')   // Normalize spaces
+        .trim();
+      
+      if (cleanedAddress !== address) {
+        console.log('[FairFare] Retrying geocode with cleaned address:', cleanedAddress);
+        const retryResponse = await axios.get(`${NOMINATIM_BASE}/search`, {
+          params: {
+            q: cleanedAddress,
+            format: 'json',
+            limit: 1,
+            addressdetails: 1,
+            countrycodes: 'us',
+          },
+          headers: {
+            'User-Agent': 'FairFare/1.0'
+          },
+          timeout: 8000
+        });
+        
+        if (retryResponse.data && retryResponse.data.length > 0) {
+          const result = retryResponse.data[0];
+          return {
+            lat: parseFloat(result.lat),
+            lng: parseFloat(result.lon),
+            display_name: formatAddressSingleLine(result)
+          };
+        }
+      }
+      
       return null;
     } catch (error) {
-      console.error('[FairFare] Auto-geocode error:', error);
+      console.error('[FairFare] Auto-geocode error:', error.message || error);
       return null;
     }
   };
