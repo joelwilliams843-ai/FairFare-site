@@ -3246,12 +3246,84 @@ I'll text you when the driver is assigned.`);
         </div>
       )}
 
-      {/* Opening App Overlay */}
-      {openingApp && (
-        <div className="opening-app-overlay" data-testid="opening-app-overlay">
-          <div className="opening-app-content">
-            <Loader2 size={32} className="spinner" />
-            <p>Opening {openingApp}...</p>
+      {/* CRASH-PROOF Handoff Modal - Always visible when active */}
+      {handoffState.isOpen && (
+        <div className="handoff-modal-overlay" data-testid="handoff-modal">
+          <div className="handoff-modal">
+            {/* Provider Logo/Name */}
+            <div className="handoff-provider">
+              <span className={`provider-logo ${handoffState.provider?.toLowerCase()}`}>
+                {handoffState.provider}
+              </span>
+            </div>
+
+            {/* Status Messages */}
+            {handoffState.status === 'opening' && (
+              <div className="handoff-status opening">
+                <Loader2 size={40} className="spinner handoff-spinner" />
+                <p className="handoff-message">Opening {handoffState.provider}...</p>
+                <p className="handoff-submessage">Please wait</p>
+              </div>
+            )}
+
+            {handoffState.status === 'timeout' && (
+              <div className="handoff-status timeout">
+                <AlertTriangle size={40} className="handoff-warning-icon" />
+                <p className="handoff-message">Taking longer than expected</p>
+                <p className="handoff-submessage">{handoffState.errorMessage}</p>
+              </div>
+            )}
+
+            {handoffState.status === 'error' && (
+              <div className="handoff-status error">
+                <AlertTriangle size={40} className="handoff-error-icon" />
+                <p className="handoff-message">Unable to open {handoffState.provider}</p>
+                <p className="handoff-submessage">{handoffState.errorMessage}</p>
+              </div>
+            )}
+
+            {/* Action Buttons - Always visible */}
+            <div className="handoff-actions">
+              {(handoffState.status === 'timeout' || handoffState.status === 'error') && (
+                <button
+                  className="handoff-btn primary"
+                  onClick={() => {
+                    setHandoffState(prev => ({ ...prev, status: 'opening' }));
+                    executeHandoff();
+                  }}
+                  data-testid="handoff-retry-btn"
+                >
+                  Try Again
+                </button>
+              )}
+
+              <button
+                className="handoff-btn secondary"
+                onClick={() => {
+                  // Direct link - opens in system browser
+                  if (handoffState.webLink) {
+                    window.open(handoffState.webLink, '_blank', 'noopener,noreferrer');
+                  }
+                }}
+                data-testid="handoff-browser-btn"
+              >
+                Open {handoffState.provider} in Browser
+              </button>
+
+              <button
+                className="handoff-btn tertiary"
+                onClick={closeHandoffModal}
+                data-testid="handoff-back-btn"
+              >
+                ← Back to FairFare
+              </button>
+            </div>
+
+            {/* Route Info */}
+            <div className="handoff-route-info">
+              <p className="route-label">Your route:</p>
+              <p className="route-text">{pickup?.substring(0, 30)}... → {destination?.substring(0, 30)}...</p>
+            </div>
           </div>
         </div>
       )}
