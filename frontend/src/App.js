@@ -307,7 +307,15 @@ function App() {
 
   const handlePickupChange = (value) => {
     setPickup(value);
-    setPickupCoords(null); // Clear coords when manually typing
+    // Keep using detected GPS coords if they exist and user is just editing the displayed address
+    // Only clear coords if user completely clears the field
+    if (!value) {
+      setPickupCoords(null);
+    } else if (!detectedCoords) {
+      // Only clear coords if there were no GPS-detected coordinates
+      setPickupCoords(null);
+    }
+    // Note: Keep detectedCoords so we use GPS position even if address text is edited
     
     // Debounce autocomplete search
     if (autocompleteTimer.current) {
