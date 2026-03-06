@@ -190,6 +190,7 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - **Terms:** /terms
 
 ## Changelog
+- **March 2025:** POI search improvements - place names shown first, stronger location biasing
 - **March 2025:** Price clarity - "Est. $XX" with "Final price in app" disclaimer
 - **March 2025:** Address precision - preserve user-typed street numbers, clean City/State/ZIP format
 - **March 2025:** Visual polish - reduced neon/techy feel, more consumer-friendly appearance
