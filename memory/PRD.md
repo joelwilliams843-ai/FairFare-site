@@ -101,11 +101,22 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - ✅ Footer with legal links
 
 ### App Branding (COMPLETED)
-- ✅ Custom "F" logo with neon green accent
-- ✅ Dark theme (#0A1628 background)
-- ✅ Neon green accent (#00FF88)
+- ✅ Custom "F" logo with emerald green accent
+- ✅ Dark theme (#0F172A background - Slate 900)
+- ✅ Emerald green accent (#10B981)
 - ✅ No Uber/Lyft logos (text-only references)
 - ✅ Splash screen design
+- ✅ **Visual Polish (March 2025):** Reduced neon/techy feel, cleaner consumer-friendly appearance
+
+### Crash-Proof Handoff System (COMPLETED - March 2025)
+- ✅ **Handoff Modal:** Always shows "Opening [Provider]..." before any navigation
+- ✅ **Deep Link Logic:** Uses Capacitor App plugin for `lyft://` and `uber://` schemes
+- ✅ **Web Fallback:** Uses Capacitor Browser plugin for `https://` fallback URLs
+- ✅ **Timeout Safety:** 3-second timeout shows error state with options
+- ✅ **Fallback Buttons:** "Open [Provider] App" retry and "Open [Provider] Website" buttons
+- ✅ **Back Button:** User can always close modal and return to results
+- ✅ **Blank Screen Prevention:** Modal always visible during handoff process
+- ✅ **Logging:** Comprehensive handoff event logging for debugging
 
 ## Technical Stack
 - **Frontend:** React.js, Capacitor 6, PWA
