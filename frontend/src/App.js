@@ -1021,6 +1021,7 @@ function App() {
           display_name: formatAddressSingleLine(item),
           streetLine: streetLine || formatAddressSingleLine(item).split(',')[0],
           locationLine: locationLine,
+          placeName: placeName, // Business/POI name (e.g., "McDonough High School")
           full_name: item.display_name,
           lat,
           lon,
@@ -1030,9 +1031,9 @@ function App() {
           distance,
           formattedDistance: formatDistance(distance),
           isNearby,
-          isPOI: itemIsPOI,
+          isPOI: itemIsPOI || !!placeName, // Mark as POI if has a place name
           poiCategory: itemIsPOI ? poiCategory : null,
-          businessName: item.name || (item.address ? item.address.shop || item.address.amenity : null)
+          businessName: placeName || item.name || (item.address ? item.address.shop || item.address.amenity : null)
         };
       });
 
