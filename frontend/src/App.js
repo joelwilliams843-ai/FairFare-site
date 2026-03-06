@@ -2651,7 +2651,11 @@ I'll text you when the driver is assigned.`);
                   </div>
                   <div className="savings-content">
                     <p className="savings-message">
-                      Save <span className="savings-amount">${getSavingsInfo().savings.toFixed(0)}</span> by choosing {getSavingsInfo().cheaperProvider}
+                      {getSavingsInfo().savings >= 1 ? (
+                        <>Save <span className="savings-amount">${Math.round(getSavingsInfo().savings)}</span> by choosing {getSavingsInfo().cheaperProvider}</>
+                      ) : (
+                        <>Best price with {getSavingsInfo().cheaperProvider}</>
+                      )}
                     </p>
                     <p className="savings-comparison">
                       {getSavingsInfo().cheaperProvider}: ~${getSavingsInfo().cheaperPrice} vs ${getSavingsInfo().expensivePrice}
