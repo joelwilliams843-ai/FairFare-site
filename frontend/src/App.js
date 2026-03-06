@@ -1820,7 +1820,7 @@ I'll text you when the driver is assigned.`);
                   </div>
                   <div className="route-actions">
                     <button 
-                      onClick={() => useWatchedRoute(route)}
+                      onClick={() => loadWatchedRoute(route)}
                       className="use-route-btn"
                     >
                       Compare Now
