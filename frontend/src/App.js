@@ -454,8 +454,13 @@ function App() {
       return;
     }
 
+    // Use detectedCoords as fallback for pickup coordinates
+    const finalPickupCoords = (pickupCoords?.lat && pickupCoords?.lng) 
+      ? pickupCoords 
+      : detectedCoords;
+
     // Validate that we have coordinates
-    if (!pickupCoords?.lat || !pickupCoords?.lng) {
+    if (!finalPickupCoords?.lat || !finalPickupCoords?.lng) {
       toast.error("Could not determine pickup location. Please select from suggestions.");
       return;
     }
@@ -474,8 +479,8 @@ function App() {
       const response = await axios.post(`${API}/compare-rides`, {
         pickup: {
           address: pickup,
-          lat: pickupCoords.lat,
-          lng: pickupCoords.lng,
+          lat: finalPickupCoords.lat,
+          lng: finalPickupCoords.lng,
         },
         destination: {
           address: destination,
