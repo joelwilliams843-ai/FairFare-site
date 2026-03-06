@@ -1458,11 +1458,23 @@ I'll text you when the driver is assigned.`);
                         {pickupSuggestions.map((suggestion, idx) => (
                           <div
                             key={idx}
-                            className="suggestion-item"
+                            className={`suggestion-item ${suggestion.isAirport ? 'airport' : ''}`}
                             onClick={() => selectSuggestion(suggestion, true)}
                           >
-                            <MapPin size={16} className="suggestion-icon" />
-                            <span className="suggestion-text">{suggestion.display_name}</span>
+                            {suggestion.isAirport ? (
+                              <>
+                                <span className="airport-badge">✈ {suggestion.code}</span>
+                                <div className="suggestion-details">
+                                  <span className="suggestion-main">{suggestion.display_name.split(',')[0]}</span>
+                                  <span className="suggestion-sub">{suggestion.display_name.split(',').slice(1).join(',').trim()}</span>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <MapPin size={16} className="suggestion-icon" />
+                                <span className="suggestion-text">{suggestion.display_name}</span>
+                              </>
+                            )}
                           </div>
                         ))}
                       </>
