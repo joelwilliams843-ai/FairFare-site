@@ -1785,24 +1785,58 @@ function App() {
     
     if (!uber || !lyft) return null;
     
-    // Use estimated_price_min for comparison (or calculate from price_level)
-    const uberPrice = uber.estimated_price_min || (uber.price_level === "Good time to ride" ? 20 : 
-                      uber.price_level === "Normal demand" ? 25 : 
-                      uber.price_level === "Busy — expect delays" ? 32 : 40);
-    const lyftPrice = lyft.estimated_price_min || (lyft.price_level === "Good time to ride" ? 19 : 
-                      lyft.price_level === "Normal demand" ? 24 : 
-                      lyft.price_level === "Busy — expect delays" ? 30 : 38);
+    // Calculate price based on distance and time
+    const distance = results.distance_miles || 10;
+    const duration = results.duration_minutes || 30;
     
-    const diff = Math.abs(uberPrice - lyftPrice);
-    const cheaperProvider = uberPrice < lyftPrice ? 'Uber' : 'Lyft';
-    const cheaperPrice = Math.min(uberPrice, lyftPrice);
-    const expensivePrice = Math.max(uberPrice, lyftPrice);
+    // Base rate calculation: $2.50 base + $1.50/mile + $0.35/min
+    const basePrice = 2.50 + (distance * 1.50) + (duration * 0.35);
+    
+    // Time-of-day multiplier
+    const hour = new Date().getHours();
+    const isRushHour = (hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 19);
+    const isLateNight = hour >= 22 || hour <= 5;
+    const timeMultiplier = isRushHour ? 1.3 : isLateNight ? 1.15 : 1.0;
+    
+    // Surge likelihood multiplier
+    const getSurgeMultiplier = (likelihood) => {
+      if (likelihood === 'High') return 1.4;
+      if (likelihood === 'Moderate') return 1.2;
+      return 1.0;
+    };
+    
+    // Calculate price ranges for each provider
+    const uberSurge = getSurgeMultiplier(uber.surge_likelihood);
+    const lyftSurge = getSurgeMultiplier(lyft.surge_likelihood);
+    
+    // Low estimate (no surge, good conditions)
+    const uberLow = Math.round(basePrice * timeMultiplier * 0.95);
+    const lyftLow = Math.round(basePrice * timeMultiplier * 0.90); // Lyft typically slightly cheaper
+    
+    // High estimate (with surge buffer of 30%)
+    const uberHigh = Math.round(basePrice * timeMultiplier * uberSurge * 1.30);
+    const lyftHigh = Math.round(basePrice * timeMultiplier * lyftSurge * 1.30);
+    
+    // Mid-point for comparison
+    const uberMid = Math.round((uberLow + uberHigh) / 2);
+    const lyftMid = Math.round((lyftLow + lyftHigh) / 2);
+    
+    const diff = Math.abs(uberMid - lyftMid);
+    const cheaperProvider = uberMid < lyftMid ? 'Uber' : 'Lyft';
     
     return {
       savings: diff,
       cheaperProvider,
-      cheaperPrice: Math.round(cheaperPrice),
-      expensivePrice: Math.round(expensivePrice),
+      // Price ranges
+      uberLow,
+      uberHigh,
+      lyftLow,
+      lyftHigh,
+      // For backwards compatibility
+      cheaperPrice: cheaperProvider === 'Uber' ? uberLow : lyftLow,
+      expensivePrice: cheaperProvider === 'Uber' ? lyftLow : uberLow,
+      cheaperPriceRange: cheaperProvider === 'Uber' ? `${uberLow}–${uberHigh}` : `${lyftLow}–${lyftHigh}`,
+      expensivePriceRange: cheaperProvider === 'Uber' ? `${lyftLow}–${lyftHigh}` : `${uberLow}–${uberHigh}`,
       cheaperEstimate: cheaperProvider === 'Uber' ? uber : lyft,
       hasSavings: diff >= 1 // Show savings if $1 or more difference
     };
