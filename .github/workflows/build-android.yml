@@ -69,6 +69,7 @@ jobs:
       working-directory: frontend/android
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
       run: |
         ./gradlew bundleRelease --no-daemon --stacktrace
         echo "Build completed!"
