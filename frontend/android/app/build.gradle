@@ -54,6 +54,13 @@ android {
     }
 }
 
+// Force compatible version of androidx.browser (1.9.0 requires compileSdk 36)
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.browser:browser:1.8.0'
+    }
+}
+
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
