@@ -190,12 +190,12 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - **Terms:** /terms
 
 ## Changelog
+- **March 2025:** Google Places API integration for verified addresses and accurate coordinates
+- **March 2025:** Price range display with surge buffer ($48–69 format)
+- **March 2025:** Passenger context fields (Who is riding? / Passengers)
+- **March 2025:** Post-ride feedback loop ("Did you book this ride?")
+- **March 2025:** Strict address validation (require verified place_id selection)
 - **March 2025:** Simplified badges - only CHEAPEST and FASTEST, removed FairFare Pick
-- **March 2025:** Price language updated to "~$XX" with "Final price shown in Uber/Lyft app"
 - **March 2025:** Reduced neon glow on cards by 40% for consumer-friendly feel
-- **March 2025:** Search suggestion display - Uber/Lyft style layout with distance line
-- **March 2025:** POI search improvements - place names shown first, stronger location biasing
-- **March 2025:** Address precision - preserve user-typed street numbers, clean City/State/ZIP format
 - **March 2025:** Visual polish - reduced neon/techy feel, more consumer-friendly appearance
 - **March 2025:** Crash-proof handoff system with modal, timeout safety, and fallback buttons
-- **March 2025:** Enhanced address search with POI recognition, location biasing, distance sorting
