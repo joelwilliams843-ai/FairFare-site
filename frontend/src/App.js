@@ -958,40 +958,6 @@ function App() {
     setSearchLoading(true);
     
     try {
-      // Build search params with STRONG location biasing
-      const searchParams = {
-        q: query,
-        format: 'json',
-        limit: 20, // Get more results to filter locally
-        addressdetails: 1,
-        countrycodes: 'us', // US only
-        extratags: 1,
-      };
-
-      // ALWAYS add location biasing if user location is known
-      if (userLocation.current) {
-        // Bounding box: ~50km (30 miles) radius
-        // 1 degree latitude ≈ 69 miles, so 0.45 degrees ≈ 30 miles
-        const radiusDegrees = 0.45;
-        
-        searchParams.viewbox = [
-          userLocation.current.lng - radiusDegrees,
-          userLocation.current.lat + radiusDegrees,
-          userLocation.current.lng + radiusDegrees,
-          userLocation.current.lat - radiusDegrees
-        ].join(',');
-        
-        // ALWAYS bound to viewbox - this is key for nearby results
-        searchParams.bounded = 1;
-      }
-
-      console.log('[FairFare] Searching with params:', {
-        query,
-        hasLocation: !!userLocation.current,
-        bounded: searchParams.bounded,
-        viewbox: searchParams.viewbox
-      });
-
       // Call our backend Google Places API proxy
       const requestBody = {
         input: query,
