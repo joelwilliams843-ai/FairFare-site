@@ -942,7 +942,7 @@ function App() {
     const locationKey = userLocation.current 
       ? `${userLocation.current.lat.toFixed(2)},${userLocation.current.lng.toFixed(2)}`
       : 'default';
-    const cacheKey = `${query.toLowerCase().trim()}_${locationKey}_v2`;
+    const cacheKey = `google_${query.toLowerCase().trim()}_${locationKey}`;
     
     // Check cache
     const cached = searchCache.current.get(cacheKey);
