@@ -1042,24 +1042,12 @@ function App() {
       console.log(`[FairFare] Google Places search completed in ${Date.now() - startTime}ms (${suggestions.length} results)`);
       
     } catch (error) {
-      console.error("[FairFare] Address search error:", {
+      console.error("[FairFare] Google Places search error:", {
         query,
-        error: error.message,
-        code: error.code,
-        retryCount
+        error: error.message
       });
       
-      // Retry logic for network errors
-      if (retryCount < 2 && (error.code === 'ECONNABORTED' || error.message?.includes('timeout'))) {
-        const delay = Math.pow(2, retryCount) * 500;
-        console.log(`[FairFare] Retrying search in ${delay}ms`);
-        setTimeout(() => {
-          searchAddress(query, isPickup, retryCount + 1);
-        }, delay);
-        return;
-      }
-      
-      // Show airport matches on error
+      // Fallback: Show airport matches on error
       if (airportSuggestions.length > 0) {
         if (isPickup) setPickupSuggestions(airportSuggestions);
         else setDestSuggestions(airportSuggestions);
