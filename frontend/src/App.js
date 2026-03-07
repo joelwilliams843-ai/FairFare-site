@@ -3061,9 +3061,9 @@ I'll text you when the driver is assigned.`);
                 {getSavingsInfo() && (
                   <div className="estimated-price-container">
                     <div className="estimated-price">
-                      ~${isCheapest 
-                        ? getSavingsInfo().cheaperPrice 
-                        : getSavingsInfo().expensivePrice}
+                      Estimated ${isCheapest 
+                        ? getSavingsInfo().cheaperPriceRange
+                        : getSavingsInfo().expensivePriceRange}
                     </div>
                     <div className="price-disclaimer">Final price shown in Uber/Lyft app</div>
                   </div>
@@ -3094,10 +3094,8 @@ I'll text you when the driver is assigned.`);
                       <Loader2 size={18} className="spinner" />
                       Opening {estimate.provider}...
                     </>
-                  ) : isCheapest ? (
-                    `Open ${estimate.provider} — ~$${getSavingsInfo().cheaperPrice}`
                   ) : (
-                    `Open ${estimate.provider} — ~$${getSavingsInfo()?.expensivePrice || ''}`
+                    `Open ${estimate.provider}`
                   )}
                 </button>
               </div>
