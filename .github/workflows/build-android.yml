@@ -82,7 +82,7 @@ jobs:
       run: |
         echo "Using Java: $(java -version 2>&1 | head -1)"
         echo "JAVA_HOME: $JAVA_HOME"
-        ./gradlew bundleRelease --no-daemon --stacktrace -Dorg.gradle.java.home=$JAVA_HOME
+        ./gradlew bundleRelease --no-daemon --stacktrace
         echo "Build completed!"
     
     - name: Verify AAB artifact
