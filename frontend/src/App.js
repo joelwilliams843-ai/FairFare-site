@@ -2865,6 +2865,38 @@ I'll text you when the driver is assigned.`);
               </button>
             )}
 
+            {/* Passenger Context - Who is riding? */}
+            <div className="passenger-context">
+              <div className="context-row">
+                <label className="context-label">Who is riding?</label>
+                <div className="context-options">
+                  {['me', 'child', 'family', 'guest'].map((type) => (
+                    <button
+                      key={type}
+                      className={`context-option ${riderType === type ? 'active' : ''}`}
+                      onClick={() => setRiderType(type)}
+                    >
+                      {type === 'me' ? 'Me' : type === 'child' ? 'My Child' : type === 'family' ? 'Family' : 'Guest'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="context-row">
+                <label className="context-label">Passengers</label>
+                <div className="context-options">
+                  {[1, 2, 3, '4+'].map((count) => (
+                    <button
+                      key={count}
+                      className={`context-option ${passengerCount === count ? 'active' : ''}`}
+                      onClick={() => setPassengerCount(count)}
+                    >
+                      {count}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             <button
               data-testid="compare-btn"
               onClick={compareRides}
