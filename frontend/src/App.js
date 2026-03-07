@@ -1101,7 +1101,7 @@ function App() {
   // Fetch place details from Google Places API
   const fetchPlaceDetails = async (placeId) => {
     try {
-      const response = await axios.post(`${API}/places/details`, {
+      const response = await axios.post(`${API_URL}/api/places/details`, {
         place_id: placeId,
         session_token: sessionToken.current
       });
@@ -1110,9 +1110,10 @@ function App() {
       sessionToken.current = null;
       
       return {
-        lat: response.data.lat,
-        lng: response.data.lng,
-        formatted_address: response.data.formatted_address
+        lat: response.data.latitude,
+        lng: response.data.longitude,
+        formatted_address: response.data.formatted_address,
+        place_id: response.data.place_id
       };
     } catch (error) {
       console.error('[FairFare] Place details error:', error);
