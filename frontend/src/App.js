@@ -1005,96 +1005,24 @@ function App() {
         timeout: 8000
       });
 
-      let suggestions = response.data.map(item => {
-        const lat = parseFloat(item.lat);
-        const lon = parseFloat(item.lon);
-        
-        // Calculate distance from user
-        let distance = null;
-        let isNearby = false;
-        if (userLocation.current) {
-          distance = calculateDistance(
-            userLocation.current.lat, userLocation.current.lng,
-            lat, lon
-          );
-          isNearby = distance !== null && distance <= 30; // Within 30 miles
-        }
+      // Store session token for billing optimization
+      if (response.data.session_token && !sessionToken.current) {
+        sessionToken.current = response.data.session_token;
+      }
 
-        // Determine if this is a POI result
-        const itemIsPOI = item.class === 'shop' || 
-                          item.class === 'amenity' || 
-                          item.class === 'tourism' ||
-                          item.class === 'leisure' ||
-                          item.class === 'building' ||
-                          item.type === 'supermarket' ||
-                          item.type === 'fast_food' ||
-                          item.type === 'restaurant' ||
-                          item.type === 'cafe' ||
-                          item.type === 'pharmacy' ||
-                          item.type === 'hotel' ||
-                          item.type === 'school' ||
-                          item.type === 'university' ||
-                          item.type === 'college' ||
-                          item.type === 'hospital' ||
-                          item.type === 'church' ||
-                          item.type === 'stadium' ||
-                          item.type === 'park' ||
-                          (item.name && item.name.length > 0 && !item.name.includes('County'));
-        
-        // Extract address components for clean display
-        const addr = item.address || {};
-        
-        // Get the place/business name if it exists
-        const placeName = item.name && !item.name.includes('County') && !item.name.includes('District') 
-          ? item.name 
-          : (addr.shop || addr.amenity || null);
-        
-        // Build street line (street number + street name)
-        let streetLine = '';
-        if (addr.house_number && addr.road) {
-          streetLine = `${addr.house_number} ${addr.road}`;
-        } else if (addr.road) {
-          streetLine = addr.road;
-        } else if (item.name && !item.name.includes('County')) {
-          streetLine = item.name;
-        }
-        
-        // Get city (skip county/district/region)
-        const city = addr.city || addr.town || addr.village || addr.hamlet || 
-                     (addr.suburb && !addr.suburb.includes('County') ? addr.suburb : null) ||
-                     addr.neighbourhood || '';
-        const state = addr.state ? getStateAbbreviation(addr.state) : '';
-        const postalCode = addr.postcode || '';
-        
-        // Build location line (City, ST ZIP)
-        let locationLine = '';
-        if (city && state && postalCode) {
-          locationLine = `${city}, ${state} ${postalCode}`;
-        } else if (city && state) {
-          locationLine = `${city}, ${state}`;
-        } else if (city) {
-          locationLine = city;
-        }
-        
-        return {
-          display_name: formatAddressSingleLine(item),
-          streetLine: streetLine || formatAddressSingleLine(item).split(',')[0],
-          locationLine: locationLine,
-          placeName: placeName, // Business/POI name (e.g., "McDonough High School")
-          full_name: item.display_name,
-          lat,
-          lon,
-          type: item.type,
-          class: item.class,
-          importance: item.importance || 0,
-          distance,
-          formattedDistance: formatDistance(distance),
-          isNearby,
-          isPOI: itemIsPOI || !!placeName, // Mark as POI if has a place name
-          poiCategory: itemIsPOI ? poiCategory : null,
-          businessName: placeName || item.name || (item.address ? item.address.shop || item.address.amenity : null)
-        };
-      });
+      const suggestions = response.data.suggestions.map(suggestion => ({
+        place_id: suggestion.place_id,
+        display_name: suggestion.full_address,
+        streetLine: suggestion.main_text,
+        locationLine: suggestion.secondary_text,
+        placeName: suggestion.types.includes('establishment') ? suggestion.main_text : null,
+        businessName: suggestion.types.includes('establishment') ? suggestion.main_text : null,
+        lat: null, // Will be fetched when selected
+        lon: null,
+        isPOI: suggestion.types.includes('establishment') || suggestion.types.includes('point_of_interest'),
+        isVerified: true, // Google Places results are verified
+        types: suggestion.types
+      }));
 
       // FILTER: Remove results too far away
       // For POI searches (schools, businesses, etc.), be stricter about distance
