@@ -364,6 +364,158 @@ async def get_status_checks():
     
     return status_checks
 
+
+# ============== Google Places API Endpoints ==============
+
+class PlacesAutocompleteRequest(BaseModel):
+    input: str
+    location_lat: Optional[float] = None
+    location_lng: Optional[float] = None
+    session_token: Optional[str] = None
+
+class PlaceSuggestion(BaseModel):
+    place_id: str
+    main_text: str
+    secondary_text: str
+    full_address: str
+    types: List[str] = []
+
+class PlacesAutocompleteResponse(BaseModel):
+    suggestions: List[PlaceSuggestion]
+    session_token: str
+
+class PlaceDetailsRequest(BaseModel):
+    place_id: str
+    session_token: Optional[str] = None
+
+class PlaceDetailsResponse(BaseModel):
+    place_id: str
+    formatted_address: str
+    latitude: float
+    longitude: float
+    name: Optional[str] = None
+    types: List[str] = []
+
+@api_router.post("/places/autocomplete", response_model=PlacesAutocompleteResponse)
+async def places_autocomplete(request: PlacesAutocompleteRequest):
+    """Google Places Autocomplete for address search"""
+    
+    if not GOOGLE_PLACES_API_KEY:
+        raise HTTPException(status_code=500, detail="Google Places API key not configured")
+    
+    if len(request.input) < 2:
+        return PlacesAutocompleteResponse(suggestions=[], session_token=request.session_token or str(uuid.uuid4()))
+    
+    session_token = request.session_token or str(uuid.uuid4())
+    
+    # Build request for Google Places API (New)
+    payload = {
+        "input": request.input,
+        "includedRegionCodes": ["us"],
+        "languageCode": "en",
+        "sessionToken": session_token,
+    }
+    
+    # Add location bias if provided (15km radius)
+    if request.location_lat and request.location_lng:
+        payload["locationBias"] = {
+            "circle": {
+                "center": {
+                    "latitude": request.location_lat,
+                    "longitude": request.location_lng
+                },
+                "radius": 25000.0  # 25km radius for better local results
+            }
+        }
+    
+    try:
+        async with httpx.AsyncClient() as http_client:
+            response = await http_client.post(
+                "https://places.googleapis.com/v1/places:autocomplete",
+                json=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+                    "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types"
+                },
+                timeout=10.0
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Google Places API error: {response.status_code} - {response.text}")
+                raise HTTPException(status_code=502, detail="Failed to get suggestions from Google Places API")
+            
+            data = response.json()
+            suggestions = []
+            
+            for suggestion in data.get("suggestions", []):
+                if "placePrediction" in suggestion:
+                    place = suggestion["placePrediction"]
+                    structured = place.get("structuredFormat", {})
+                    
+                    suggestions.append(PlaceSuggestion(
+                        place_id=place.get("placeId", ""),
+                        main_text=structured.get("mainText", {}).get("text", ""),
+                        secondary_text=structured.get("secondaryText", {}).get("text", ""),
+                        full_address=place.get("text", {}).get("text", ""),
+                        types=place.get("types", [])
+                    ))
+            
+            return PlacesAutocompleteResponse(
+                suggestions=suggestions,
+                session_token=session_token
+            )
+            
+    except httpx.TimeoutException:
+        logger.error("Google Places API timeout")
+        raise HTTPException(status_code=504, detail="Google Places API request timed out")
+    except Exception as e:
+        logger.error(f"Google Places API error: {e}")
+        raise HTTPException(status_code=500, detail="Error communicating with Google Places API")
+
+@api_router.post("/places/details", response_model=PlaceDetailsResponse)
+async def get_place_details(request: PlaceDetailsRequest):
+    """Get detailed place information including exact coordinates"""
+    
+    if not GOOGLE_PLACES_API_KEY:
+        raise HTTPException(status_code=500, detail="Google Places API key not configured")
+    
+    try:
+        async with httpx.AsyncClient() as http_client:
+            response = await http_client.get(
+                f"https://places.googleapis.com/v1/places/{request.place_id}",
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+                    "X-Goog-FieldMask": "id,displayName,formattedAddress,location,types"
+                },
+                timeout=10.0
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Google Places Details API error: {response.status_code} - {response.text}")
+                raise HTTPException(status_code=502, detail="Failed to get place details from Google Places API")
+            
+            data = response.json()
+            location = data.get("location", {})
+            
+            return PlaceDetailsResponse(
+                place_id=data.get("id", request.place_id),
+                formatted_address=data.get("formattedAddress", ""),
+                latitude=location.get("latitude", 0.0),
+                longitude=location.get("longitude", 0.0),
+                name=data.get("displayName", {}).get("text"),
+                types=data.get("types", [])
+            )
+            
+    except httpx.TimeoutException:
+        logger.error("Google Places Details API timeout")
+        raise HTTPException(status_code=504, detail="Google Places API request timed out")
+    except Exception as e:
+        logger.error(f"Google Places Details API error: {e}")
+        raise HTTPException(status_code=500, detail="Error getting place details")
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
