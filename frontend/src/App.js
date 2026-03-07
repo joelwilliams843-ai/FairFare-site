@@ -556,6 +556,9 @@ function App() {
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   const userLocation = useRef(null); // Store user's current location for biasing
 
+  // Session token for Google Places billing optimization
+  const sessionToken = useRef(null);
+
   // Common POI keywords that should prioritize local results
   const POI_KEYWORDS = [
     // Grocery stores
