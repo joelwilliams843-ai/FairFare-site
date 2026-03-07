@@ -1098,7 +1098,29 @@ function App() {
     }, 150);
   };
 
-  const selectSuggestion = (suggestion, isPickup) => {
+  // Fetch place details from Google Places API
+  const fetchPlaceDetails = async (placeId) => {
+    try {
+      const response = await axios.post(`${API}/places/details`, {
+        place_id: placeId,
+        session_token: sessionToken.current
+      });
+      
+      // Clear session token after use (for billing optimization)
+      sessionToken.current = null;
+      
+      return {
+        lat: response.data.lat,
+        lng: response.data.lng,
+        formatted_address: response.data.formatted_address
+      };
+    } catch (error) {
+      console.error('[FairFare] Place details error:', error);
+      return null;
+    }
+  };
+
+  const selectSuggestion = async (suggestion, isPickup) => {
     // Format address based on type:
     // - POI/Place: "Place Name, City, State ZIP"
     // - Address: "Street, City, State ZIP"
