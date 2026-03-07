@@ -73,6 +73,18 @@ function App() {
     bestProviderPercent: 0
   });
   
+  // Passenger context (new)
+  const [riderType, setRiderType] = useState('me'); // 'me', 'child', 'family', 'guest'
+  const [passengerCount, setPassengerCount] = useState(1);
+  
+  // Post-ride feedback (new)
+  const [showPostRideFeedback, setShowPostRideFeedback] = useState(false);
+  const [lastBookedRide, setLastBookedRide] = useState(null);
+  
+  // Place IDs for verified locations (Google Places)
+  const [pickupPlaceId, setPickupPlaceId] = useState(null);
+  const [destPlaceId, setDestPlaceId] = useState(null);
+  
   // Share state
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const shareCanvasRef = useRef(null);
