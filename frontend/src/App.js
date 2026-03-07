@@ -1704,30 +1704,27 @@ function App() {
     // Base rate calculation: $2.50 base + $1.50/mile + $0.35/min
     const basePrice = 2.50 + (distance * 1.50) + (duration * 0.35);
     
-    // Time-of-day multiplier
+    // Time-of-day multiplier (subtle)
     const hour = new Date().getHours();
     const isRushHour = (hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 19);
     const isLateNight = hour >= 22 || hour <= 5;
-    const timeMultiplier = isRushHour ? 1.3 : isLateNight ? 1.15 : 1.0;
+    const timeMultiplier = isRushHour ? 1.15 : isLateNight ? 1.08 : 1.0;
     
-    // Surge likelihood multiplier
-    const getSurgeMultiplier = (likelihood) => {
-      if (likelihood === 'High') return 1.4;
-      if (likelihood === 'Moderate') return 1.2;
-      return 1.0;
+    // Dynamic surge factor based on demand level
+    const getSurgeFactor = (likelihood) => {
+      if (likelihood === 'High') return 1.35;
+      if (likelihood === 'Moderate') return 1.20;
+      return 1.10; // Low demand
     };
     
     // Calculate price ranges for each provider
-    const uberSurge = getSurgeMultiplier(uber.surge_likelihood);
-    const lyftSurge = getSurgeMultiplier(lyft.surge_likelihood);
+    // Low estimate = base calculation
+    const uberLow = Math.round(basePrice * timeMultiplier);
+    const lyftLow = Math.round(basePrice * timeMultiplier * 0.95); // Lyft typically ~5% cheaper
     
-    // Low estimate (no surge, good conditions)
-    const uberLow = Math.round(basePrice * timeMultiplier * 0.95);
-    const lyftLow = Math.round(basePrice * timeMultiplier * 0.90); // Lyft typically slightly cheaper
-    
-    // High estimate (with surge buffer of 30%)
-    const uberHigh = Math.round(basePrice * timeMultiplier * uberSurge * 1.30);
-    const lyftHigh = Math.round(basePrice * timeMultiplier * lyftSurge * 1.30);
+    // High estimate = low × surge factor
+    const uberHigh = Math.round(uberLow * getSurgeFactor(uber.surge_likelihood));
+    const lyftHigh = Math.round(lyftLow * getSurgeFactor(lyft.surge_likelihood));
     
     // Mid-point for comparison
     const uberMid = Math.round((uberLow + uberHigh) / 2);
