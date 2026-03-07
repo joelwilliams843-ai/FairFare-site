@@ -1293,8 +1293,11 @@ function App() {
 
   // Check if we have valid coordinates for comparison
   const canCompare = () => {
-    // Allow comparison if both fields have text (will auto-geocode if needed)
-    return pickup && pickup.length >= 3 && destination && destination.length >= 3;
+    // Require verified coordinates (from selecting a suggestion)
+    const hasPickupCoords = pickupCoords?.lat && pickupCoords?.lng;
+    const hasDestCoords = destCoords?.lat && destCoords?.lng;
+    
+    return pickup && pickup.length >= 3 && destination && destination.length >= 3 && hasPickupCoords && hasDestCoords;
   };
 
   // Get validation message for the compare button
@@ -1303,6 +1306,8 @@ function App() {
     if (!destination) return "Enter destination";
     if (pickup.length < 3) return "Enter more details for pickup";
     if (destination.length < 3) return "Enter more details for destination";
+    if (!pickupCoords?.lat) return "Select pickup from suggestions";
+    if (!destCoords?.lat) return "Select destination from suggestions";
     return null;
   };
 
