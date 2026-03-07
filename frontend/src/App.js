@@ -2995,7 +2995,7 @@ I'll text you when the driver is assigned.`);
                       Estimated cheapest option
                     </p>
                     <p className="savings-comparison">
-                      {getSavingsInfo().cheaperProvider}: ~${getSavingsInfo().cheaperPrice} vs ~${getSavingsInfo().expensivePrice}
+                      {getSavingsInfo().cheaperProvider}: Estimated ${getSavingsInfo().cheaperPriceRange}
                     </p>
                   </div>
                   <button
