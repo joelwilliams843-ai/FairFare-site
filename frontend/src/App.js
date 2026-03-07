@@ -908,7 +908,7 @@ function App() {
     return `${Math.round(miles)} mi`;
   };
 
-  // Search for address suggestions with location biasing and POI support
+  // Search for address suggestions using Google Places API
   const searchAddress = async (query, isPickup, retryCount = 0) => {
     if (!query || query.length < 2) {
       if (isPickup) setPickupSuggestions([]);
