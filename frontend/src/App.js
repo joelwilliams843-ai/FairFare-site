@@ -1509,16 +1509,18 @@ function App() {
 
     // Auto-geocode pickup if coordinates missing
     if (!finalPickupCoords?.lat || !finalPickupCoords?.lng) {
-      console.log('[FairFare] Auto-geocoding pickup address:', pickup);
+      console.log('[FairFare] Auto-geocoding pickup:', pickup);
+      toast.info("Finding your pickup location...", { duration: 2000 });
       const geocoded = await autoGeocode(pickup);
       if (geocoded) {
         finalPickupCoords = { lat: geocoded.lat, lng: geocoded.lng };
         setPickupCoords(finalPickupCoords);
+        console.log('[FairFare] Pickup geocoded:', geocoded);
       } else {
         setLoading(false);
-        const errorMsg = "Couldn't find that pickup location. Please select from suggestions.";
+        const errorMsg = "Couldn't find that pickup location. Try selecting from the suggestion list, or add city/state to your address.";
         setError({ type: 'geocoding', message: errorMsg, field: 'pickup' });
-        toast.error(errorMsg);
+        toast.error(errorMsg, { duration: 5000 });
         return;
       }
     }
