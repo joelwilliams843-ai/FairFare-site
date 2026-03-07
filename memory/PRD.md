@@ -5,14 +5,39 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 
 **Product Vision:** FairFare is a decision layer, NOT a fare comparison scraper. We provide guidance, not price predictions.
 
-**Status:** Production Readiness V1 - Android Play Store & iOS App Store preparation
+**Status:** Production Readiness V1.1 - Google Places API Integration Complete
 
 ## User Personas
 - Commuters who want to quickly decide between Uber and Lyft
 - Travelers looking for the best time to book
 - Users who frequently travel the same routes (weekend rides)
 
-## V1 Release Features (App Store Ready)
+## V1.1 Production Features (March 2025)
+
+### Google Places API Integration (COMPLETED - March 2025)
+- ✅ **Verified Addresses:** All addresses verified via Google Places API with place_id
+- ✅ **Accurate Coordinates:** Latitude/longitude fetched from Google Place Details API
+- ✅ **POI Search:** Schools, businesses, airports all searchable with accurate results
+- ✅ **Location Biasing:** Results biased to user's current location (25km radius)
+- ✅ **Strict Validation:** Users must select from verified suggestions
+- ✅ **Session Tokens:** Billing-optimized with Google Places session tokens
+
+### Price Range Display with Surge Buffer (COMPLETED - March 2025)
+- ✅ **Range Format:** Shows "Estimated $48–69" instead of single price
+- ✅ **Surge Buffer:** 30% buffer added to high estimate
+- ✅ **Time-of-Day:** Rush hour (1.3x) and late night (1.15x) multipliers
+- ✅ **Disclaimer:** "Final price shown in Uber/Lyft app" visible on all cards
+
+### Passenger Context (COMPLETED - March 2025)
+- ✅ **Rider Type:** Me / My Child / Family / Guest options
+- ✅ **Passenger Count:** 1, 2, 3, 4+ selection
+- ✅ **Future-Ready:** Data stored for safety features
+
+### Post-Ride Feedback Loop (COMPLETED - March 2025)
+- ✅ **Return Detection:** Detects when user returns from Uber/Lyft app
+- ✅ **Confirmation Prompt:** "Did you book this ride?"
+- ✅ **Savings Tracking:** "You saved approximately $X using FairFare"
+- ✅ **Habit Building:** Reinforces app usage
 
 ### Core Decision Engine (COMPLETED)
 - ✅ Traveler-friendly demand labels:
@@ -22,32 +47,7 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
   - "High demand — consider waiting" (red)
 - ✅ Recommendation banner with actionable advice
 - ✅ Surge likelihood indicators
-- ✅ "Live price shown in app" messaging
-- ✅ No fake numerical pricing
-
-### Route Validation (COMPLETED)
-- ✅ Coordinate validation before comparison
-- ✅ Long trip confirmation modal (> 150 miles)
-- ✅ Sanity check rejection (> 1000 miles)
-- ✅ Auto-geocode for recent locations
-
-### Deep Linking (COMPLETED)
-- ✅ App-first approach with fallback timer
-- ✅ "Opening [Provider]..." micro-loader
-- ✅ Works for both Uber and Lyft
-- ✅ Web fallback for desktop/no app installed
-
-### Address Search & Autocomplete (COMPLETED - March 2025)
-- ✅ **POI Name Priority:** Place names (schools, businesses) shown first
-- ✅ **Distance Display:** Shows "X.X mi away" below place name for easy selection
-- ✅ **Multiple Locations:** When same business has multiple locations, distance helps pick correct one
-- ✅ **Location Biasing:** Strong preference for results within 50 miles of user
-- ✅ **Address Format:** Clean "City, State" below place name (no county/region/country)
-- ✅ **POI Recognition:** 100+ brand keywords + schools, churches, parks, stadiums
-- ✅ **Distance-Based Sorting:** Nearest results shown first
-- ✅ **Airport Code Recognition:** 40+ US airports with instant matching
-- ✅ **Search Caching:** Faster repeated queries
-- ✅ **Favorites:** Save frequently visited locations for one-tap selection
+- ✅ CHEAPEST and FASTEST badges only
 
 ### Ride Comparison & Handoff (COMPLETED - March 2025)
 - ✅ **Savings Moment**: Shows "Save $X by choosing [Provider]" with prominent CTA
