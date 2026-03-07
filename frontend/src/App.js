@@ -1101,7 +1101,7 @@ function App() {
   // Fetch place details from Google Places API
   const fetchPlaceDetails = async (placeId) => {
     try {
-      const response = await axios.post(`${API_URL}/api/places/details`, {
+      const response = await axios.post(`${API}/places/details`, {
         place_id: placeId,
         session_token: sessionToken.current
       });
