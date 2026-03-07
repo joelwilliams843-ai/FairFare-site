@@ -1167,10 +1167,31 @@ function App() {
       }
     }
     
+    // Handle coordinate fetching
+    let coords = null;
+    if (suggestion.lat && suggestion.lon) {
+      // Already have coordinates (airport or cached result)
+      coords = { lat: suggestion.lat, lng: suggestion.lon };
+    } else if (suggestion.place_id) {
+      // Google Places suggestion - need to fetch details
+      toast.info('Getting location details...', { duration: 1000 });
+      const placeDetails = await fetchPlaceDetails(suggestion.place_id);
+      if (placeDetails) {
+        coords = { lat: placeDetails.lat, lng: placeDetails.lng };
+        // Use the formatted address from Google if available
+        if (placeDetails.formatted_address) {
+          displayAddress = placeDetails.formatted_address;
+        }
+      } else {
+        toast.error('Could not get location details. Please try another address.');
+        return;
+      }
+    }
+    
     if (isPickup) {
       setPickup(displayAddress);
       // Lock coordinates to this exact location
-      setPickupCoords({ lat: suggestion.lat, lng: suggestion.lon });
+      setPickupCoords(coords);
       // Clear detected coords since user explicitly selected a location
       setDetectedCoords(null);
       setPickupSuggestions([]);
@@ -1184,8 +1205,8 @@ function App() {
       
       console.log('Pickup selected:', {
         address: displayAddress,
-        lat: suggestion.lat,
-        lng: suggestion.lon,
+        lat: coords?.lat,
+        lng: coords?.lng,
         isAirport: suggestion.isAirport || false
       });
     } else {
