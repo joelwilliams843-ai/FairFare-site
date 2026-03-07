@@ -989,12 +989,20 @@ function App() {
         viewbox: searchParams.viewbox
       });
 
-      const response = await axios.get(`${NOMINATIM_BASE}/search`, {
-        params: searchParams,
-        headers: {
-          'User-Agent': 'FairFare/1.0'
-        },
-        timeout: 4000
+      // Call our backend Google Places API proxy
+      const requestBody = {
+        input: query,
+        session_token: sessionToken.current || undefined
+      };
+      
+      // Add location bias if available
+      if (userLocation.current) {
+        requestBody.location_lat = userLocation.current.lat;
+        requestBody.location_lng = userLocation.current.lng;
+      }
+
+      const response = await axios.post(`${API}/places/autocomplete`, requestBody, {
+        timeout: 8000
       });
 
       let suggestions = response.data.map(item => {
