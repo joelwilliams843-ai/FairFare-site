@@ -1998,6 +1998,18 @@ function App() {
       errorMessage: null,
       startTime: Date.now()
     });
+    
+    // Store ride info for post-ride feedback
+    const savingsInfo = getSavingsInfo();
+    setLastBookedRide({
+      provider: estimate.provider,
+      destination: destination,
+      estimatedSavings: savingsInfo?.savings || 0,
+      priceRange: estimate.provider === savingsInfo?.cheaperProvider 
+        ? savingsInfo?.cheaperPriceRange 
+        : savingsInfo?.expensivePriceRange,
+      timestamp: Date.now()
+    });
   };
 
   // Handle opening the ride app (called from handoff modal)
