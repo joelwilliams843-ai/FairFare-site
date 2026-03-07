@@ -3582,6 +3582,35 @@ I'll text you when the driver is assigned.`);
           </div>
         </div>
       )}
+
+      {/* Post-Ride Feedback Modal */}
+      {showPostRideFeedback && lastBookedRide && (
+        <div className="feedback-modal-overlay" data-testid="post-ride-feedback">
+          <div className="feedback-modal">
+            <h3 className="feedback-title">Did you book this ride?</h3>
+            <p className="feedback-destination">
+              To: {lastBookedRide.destination?.substring(0, 40)}...
+            </p>
+            <p className="feedback-provider">
+              via {lastBookedRide.provider}
+            </p>
+            <div className="feedback-buttons">
+              <button 
+                className="feedback-btn feedback-yes"
+                onClick={() => handlePostRideFeedback(true)}
+              >
+                Yes, I booked it
+              </button>
+              <button 
+                className="feedback-btn feedback-no"
+                onClick={() => handlePostRideFeedback(false)}
+              >
+                No, not yet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
