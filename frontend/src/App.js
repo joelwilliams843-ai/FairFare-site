@@ -2020,6 +2020,7 @@ function App() {
       
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handoffState.isOpen, handoffState.status]);
 
   // Timeout fail-safe: if still "opening" after 3 seconds, show error
@@ -2038,6 +2039,7 @@ function App() {
       
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handoffState.isOpen, handoffState.status, handoffState.startTime]);
 
   const copyRouteToClipboard = async () => {
