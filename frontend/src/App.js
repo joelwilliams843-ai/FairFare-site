@@ -314,6 +314,45 @@ function App() {
     toast.success('Route removed from Price Alerts');
   };
 
+  // Post-ride feedback: Show when user returns to app after booking
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && lastBookedRide) {
+        // Only show if they left within the last 10 minutes
+        const timeSinceBooking = Date.now() - lastBookedRide.timestamp;
+        if (timeSinceBooking < 10 * 60 * 1000 && timeSinceBooking > 3000) {
+          setShowPostRideFeedback(true);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [lastBookedRide]);
+
+  // Handle post-ride feedback response
+  const handlePostRideFeedback = (didBook) => {
+    setShowPostRideFeedback(false);
+    
+    if (didBook && lastBookedRide) {
+      // Track the booking
+      const newSavings = {
+        ...savingsData,
+        ridesCompared: savingsData.ridesCompared + 1,
+        totalSaved: savingsData.totalSaved + (lastBookedRide.estimatedSavings || 0)
+      };
+      setSavingsData(newSavings);
+      localStorage.setItem('fairfareSavings', JSON.stringify(newSavings));
+      
+      toast.success(
+        `Thanks for booking with ${lastBookedRide.provider}! You saved approximately $${lastBookedRide.estimatedSavings || 0} using FairFare.`,
+        { duration: 5000 }
+      );
+    }
+    
+    setLastBookedRide(null);
+  };
+
   // Load watched route for comparison
   const loadWatchedRoute = (route) => {
     setPickup(route.pickup);
