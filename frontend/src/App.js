@@ -1024,88 +1024,22 @@ function App() {
         types: suggestion.types
       }));
 
-      // FILTER: Remove results too far away
-      // For POI searches (schools, businesses, etc.), be stricter about distance
-      if (userLocation.current) {
-        const maxDistance = isPOI ? 75 : 150; // 75 miles for POI, 150 for addresses
-        suggestions = suggestions.filter(s => s.distance === null || s.distance <= maxDistance);
-      }
-
-      // SORT by distance (nearest first) with strong local preference
-      if (userLocation.current) {
-        suggestions.sort((a, b) => {
-          // Strong preference for results within 50 miles
-          const aIsLocal = a.distance !== null && a.distance <= 50;
-          const bIsLocal = b.distance !== null && b.distance <= 50;
-          
-          if (aIsLocal && !bIsLocal) return -1;
-          if (!aIsLocal && bIsLocal) return 1;
-          
-          // Then prioritize nearby results (within 30 miles)
-          if (a.isNearby && !b.isNearby) return -1;
-          if (!a.isNearby && b.isNearby) return 1;
-          
-          // Then sort by distance
-          if (a.distance !== null && b.distance !== null) {
-            return a.distance - b.distance;
-          }
-          if (a.distance !== null) return -1;
-          if (b.distance !== null) return 1;
-          
-          return 0;
-        });
-      }
-
-      // Remove duplicates and limit results
-      const uniqueSuggestions = [];
-      const seen = new Set();
-      const seenStreets = new Set();
-      
-      for (const sugg of suggestions) {
-        const coordKey = `${sugg.lat.toFixed(4)},${sugg.lon.toFixed(4)}`;
-        const streetKey = sugg.streetLine?.toLowerCase().trim();
-        
-        // Skip duplicates
-        if (seen.has(coordKey)) continue;
-        if (streetKey && seenStreets.has(streetKey)) continue;
-        
-        seen.add(coordKey);
-        if (streetKey) seenStreets.add(streetKey);
-        uniqueSuggestions.push(sugg);
-        
-        if (uniqueSuggestions.length >= 6) break;
-      }
-
-      // If no results found with bounded search, try without bounds (fallback)
-      if (uniqueSuggestions.length === 0 && userLocation.current && retryCount === 0) {
-        console.log('[FairFare] No nearby results, trying wider search...');
-        // Don't retry for now - just show no results
-      }
-
       // Cache the results
       searchCache.current.set(cacheKey, {
-        results: uniqueSuggestions,
+        results: suggestions,
         timestamp: Date.now()
       });
 
       // Combine airport matches with search results
-      const combined = [...airportSuggestions];
-      for (const sugg of uniqueSuggestions) {
-        const isDuplicate = combined.some(s => 
-          Math.abs(s.lat - sugg.lat) < 0.01 && Math.abs(s.lon - sugg.lon) < 0.01
-        );
-        if (!isDuplicate) {
-          combined.push(sugg);
-        }
-      }
+      const combined = [...airportSuggestions, ...suggestions].slice(0, 6);
 
       if (isPickup) {
-        setPickupSuggestions(combined.slice(0, 6));
+        setPickupSuggestions(combined);
       } else {
-        setDestSuggestions(combined.slice(0, 6));
+        setDestSuggestions(combined);
       }
       
-      console.log(`[FairFare] Search completed in ${Date.now() - startTime}ms (${uniqueSuggestions.length} results)`);
+      console.log(`[FairFare] Google Places search completed in ${Date.now() - startTime}ms (${suggestions.length} results)`);
       
     } catch (error) {
       console.error("[FairFare] Address search error:", {
