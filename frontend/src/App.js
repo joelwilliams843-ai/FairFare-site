@@ -1212,7 +1212,7 @@ function App() {
     } else {
       setDestination(displayAddress);
       // Lock coordinates to this exact location
-      setDestCoords({ lat: suggestion.lat, lng: suggestion.lon });
+      setDestCoords(coords);
       setDestSuggestions([]);
       setShowDestSuggestions(false);
       saveToRecent(displayAddress);
@@ -1224,8 +1224,8 @@ function App() {
       
       console.log('Destination selected:', {
         address: displayAddress,
-        lat: suggestion.lat,
-        lng: suggestion.lon,
+        lat: coords?.lat,
+        lng: coords?.lng,
         isAirport: suggestion.isAirport || false
       });
     }
