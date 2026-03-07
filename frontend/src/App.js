@@ -2945,7 +2945,7 @@ I'll text you when the driver is assigned.`);
                   </div>
                   <div className="savings-content">
                     <p className="savings-message">
-                      Estimated cheapest option
+                      Typical ride price range
                     </p>
                     <p className="savings-comparison">
                       {getSavingsInfo().cheaperProvider}: Estimated ${getSavingsInfo().cheaperPriceRange}
