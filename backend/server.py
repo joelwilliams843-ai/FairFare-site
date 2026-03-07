@@ -11,6 +11,7 @@ import uuid
 from datetime import datetime, timezone
 import math
 import random
+import httpx
 
 
 ROOT_DIR = Path(__file__).parent
