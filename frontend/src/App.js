@@ -924,9 +924,6 @@ function App() {
     }
 
     const startTime = Date.now();
-    const isPOI = isPOISearch(query);
-    const poiCategory = getPOICategory(query);
-    const isShortQuery = query.length <= 5; // Short queries like "640" need stricter filtering
     
     // Check for airport code matches first (instant)
     const airportMatches = matchAirportCode(query);
