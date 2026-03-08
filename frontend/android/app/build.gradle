@@ -1,8 +1,5 @@
 apply plugin: 'com.android.application'
 
-def keystorePropertiesFile = rootProject.file("keystore.properties")
-def keystorePassword = System.getenv("KEYSTORE_PASSWORD")
-
 android {
     namespace "com.tryfairfare.app"
     compileSdk rootProject.ext.compileSdkVersion
@@ -28,10 +25,11 @@ android {
     
     signingConfigs {
         release {
+            def ksPassword = System.getenv("KEYSTORE_PASSWORD")
             storeFile file('../fairfare-release-v2.keystore')
-            storePassword keystorePassword
+            storePassword ksPassword != null ? ksPassword : "placeholder"
             keyAlias 'fairfare-release'
-            keyPassword keystorePassword
+            keyPassword ksPassword != null ? ksPassword : "placeholder"
         }
     }
     
