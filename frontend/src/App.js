@@ -1994,19 +1994,24 @@ function App() {
         const result = await openExternalUrl(deepLink, true);
         
         if (result.success) {
-          // Deep link worked - app should be opening
-          logHandoffEvent('HANDOFF_SUCCESS_DEEPLINK', { provider });
-          setTimeout(() => {
-            setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
-          }, 1000);
+          // Deep link intent was fired successfully
+          // The app SHOULD open if installed - close modal immediately
+          logHandoffEvent('HANDOFF_DEEPLINK_FIRED', { provider });
+          
+          // Close modal immediately - don't wait
+          // If app doesn't open, user can come back and try website
+          setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+          
+          // Show a brief toast in case user comes back
+          toast.success(`Opening ${provider}...`, { duration: 2000 });
           return;
         } else {
-          // Deep link failed - show timeout/error state with options
-          logHandoffEvent('HANDOFF_DEEPLINK_FAILED', { provider, error: result.error });
+          // Deep link failed with error - offer alternatives
+          logHandoffEvent('HANDOFF_DEEPLINK_ERROR', { provider, error: result.error });
           setHandoffState(prev => ({
             ...prev,
             status: 'timeout',
-            errorMessage: `${provider} app may not be installed. Tap below to open in browser.`
+            errorMessage: `Couldn't open ${provider} app. Tap below to open in browser.`
           }));
           return;
         }
@@ -2017,9 +2022,8 @@ function App() {
       
       if (webResult.success) {
         logHandoffEvent('HANDOFF_SUCCESS_WEB', { provider, url: webLink });
-        setTimeout(() => {
-          setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
-        }, 1000);
+        // Close modal immediately
+        setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
       } else {
         setHandoffState(prev => ({
           ...prev,
