@@ -1,7 +1,9 @@
 apply plugin: 'com.android.application'
 
-// All values hardcoded - no external property lookups
-def keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: "placeholder"
+// Signing configuration - all values with safe defaults
+def keystorePasswordValue = System.getenv("KEYSTORE_PASSWORD")
+def keystoreAliasValue = System.getenv("KEY_ALIAS") ?: "fairfare-release"
+def keystoreFilePath = '../fairfare-release-v2.keystore'
 
 android {
     namespace "com.tryfairfare.app"
@@ -26,10 +28,19 @@ android {
     
     signingConfigs {
         release {
-            storeFile file('../fairfare-release-v2.keystore')
-            storePassword keystorePassword
-            keyAlias 'fairfare-release'
-            keyPassword keystorePassword
+            def ksFile = file(keystoreFilePath)
+            if (ksFile.exists() && keystorePasswordValue != null && !keystorePasswordValue.isEmpty()) {
+                storeFile ksFile
+                storePassword keystorePasswordValue
+                keyAlias keystoreAliasValue
+                keyPassword keystorePasswordValue
+            } else {
+                // Fallback for local/debug builds without signing
+                storeFile null
+                storePassword ""
+                keyAlias ""
+                keyPassword ""
+            }
         }
     }
     
@@ -38,7 +49,10 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            // Only apply signing config if keystore password is available
+            if (keystorePasswordValue != null && !keystorePasswordValue.isEmpty()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
     
