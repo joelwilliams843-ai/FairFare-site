@@ -2064,17 +2064,17 @@ function App() {
   // Auto-execute handoff when modal opens
   useEffect(() => {
     if (handoffState.isOpen && handoffState.status === 'opening') {
-      // Small delay to ensure modal is visible first
+      // Execute immediately - no need to wait
       const timer = setTimeout(() => {
         executeHandoff();
-      }, 500);
+      }, 100); // Reduced from 500ms to 100ms
       
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handoffState.isOpen, handoffState.status]);
 
-  // Timeout fail-safe: if still "opening" after 3 seconds, show error
+  // Timeout fail-safe: if still "opening" after 2 seconds, show options
   useEffect(() => {
     if (handoffState.isOpen && handoffState.status === 'opening' && handoffState.startTime) {
       const timer = setTimeout(() => {
@@ -2083,10 +2083,10 @@ function App() {
           setHandoffState(prev => ({
             ...prev,
             status: 'timeout',
-            errorMessage: `Taking longer than expected to open ${prev.provider}.`
+            errorMessage: `Tap below to open ${prev.provider}.`
           }));
         }
-      }, 3000);
+      }, 2000); // Reduced from 3000ms to 2000ms
       
       return () => clearTimeout(timer);
     }
