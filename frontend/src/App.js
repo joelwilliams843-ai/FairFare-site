@@ -1566,16 +1566,36 @@ function App() {
       
       // Validate response data
       if (!response.data) {
-        throw new Error('Empty response from server');
+        console.warn('[FairFare] Empty response, using fallback');
+        const fallbackData = generateFallbackEstimates();
+        setResults(fallbackData);
+        setLastUpdated(new Date());
+        setView("results");
+        setLoading(false);
+        toast.info("Using estimated data. Tap provider to see live prices.", { duration: 4000 });
+        return;
       }
       
       if (!response.data.estimates || !Array.isArray(response.data.estimates)) {
-        console.error('[FairFare] Invalid response:', JSON.stringify(response.data));
-        throw new Error(`Invalid response format: missing estimates. Got: ${JSON.stringify(response.data).substring(0, 200)}`);
+        console.warn('[FairFare] Invalid response format, using fallback:', JSON.stringify(response.data).substring(0, 200));
+        const fallbackData = generateFallbackEstimates();
+        setResults(fallbackData);
+        setLastUpdated(new Date());
+        setView("results");
+        setLoading(false);
+        toast.info("Using estimated data. Tap provider to see live prices.", { duration: 4000 });
+        return;
       }
       
       if (response.data.estimates.length === 0) {
-        throw new Error('No ride options available for this route');
+        console.warn('[FairFare] No estimates returned, using fallback');
+        const fallbackData = generateFallbackEstimates();
+        setResults(fallbackData);
+        setLastUpdated(new Date());
+        setView("results");
+        setLoading(false);
+        toast.info("Using estimated data. Tap provider to see live prices.", { duration: 4000 });
+        return;
       }
       
       // Check if long trip requires confirmation
