@@ -1,193 +1,191 @@
 <analysis>**original_problem_statement:**
-The user wants to finalize a FairFare mobile app for a beta release. The app compares Uber and Lyft prices and aims to be the fastest way to check which ride is cheaper.
-
-The initial goal of generating a production Android App Bundle (.AAB) has evolved to include a series of critical UX and stability fixes based on beta tester feedback. The current priorities are:
+The user wants to finalize a FairFare mobile app for a beta release. The app compares Uber and Lyft prices. The primary goal is to resolve critical bugs reported by beta testers to ensure a stable, trustworthy user experience before a public launch.
 
 PRODUCT REQUIREMENTS (based on latest user feedback):
-1.  **Crash-Proof Ride Handoff (CRITICAL BLOCKER):** When a user selects Uber or Lyft, the app must reliably open the corresponding native rideshare app with the ride pre-populated. It must *never* show a blank screen. A robust handoff modal with loading states, error messages (Unable to open...), and fallback buttons (Open in browser, Back to FairFare) is required.
-2.  **Address Search & Usability:**
-    *   **Prioritize Nearby Results:** Address search must heavily favor local results based on the user's GPS location and a ~50km bounding box, eliminating irrelevant global matches for partial queries (e.g., 640).
-    *   **Improve POI Recognition:** Search must support business names, landmarks, and airports (e.g., Publix, ATL), behaving like modern map applications.
-    *   **Flexible Input:** The app should allow manually typed addresses to be resolved automatically, without strictly requiring selection from a suggestion list.
-    *   **Clean Address Formatting:** Addresses must be simplified to , removing raw geocoder data like county or region.
-3.  **Savings Moment Feature:** After comparison, the UI must clearly highlight the cheaper option with a Best Fare badge and a message stating the savings amount (e.g., You save by choosing Lyft). A primary CTA like Open Lyft — Best Fare should be present.
-4.  **Visual Polish:** The app's visual tone should be adjusted to feel less techy and more like a modern, trustworthy consumer rideshare tool.
-5.  **Logo Integrity:** The current FairFare logo must NOT be modified, redesigned, or replaced in any way.
+1.  **CRITICAL: Destination Accuracy & Safety (P0):** The app must *only* accept pickup/destination from a verified suggestion (Google Place ID) or map pin. Manually typed addresses that don't match a verified suggestion must be rejected to prevent routing to incorrect locations. The exact verified address from Google must be used, without any modification or approximation.
+2.  **CRITICAL: Lyft/Uber Handoff Reliability (P0):** The handoff to the native Uber/Lyft app must be seamless and immediate. The user must not get stuck on a loading modal. The deep link must open the provider app directly without intermediate browser prompts (like a Safari confirmation).
+3.  **Improve Price Trust:** Instead of a single estimate (), the app must display a dynamic price *range* (e.g., ) to better manage user expectations against real-time surge pricing.
+4.  **Add Passenger Context:** Add optional UI fields for Who is riding? and Number of passengers to support future features.
+5.  **Post-Ride Feedback Loop:** After handoff, prompt the user to confirm if they booked the ride to reinforce the app's value.
+6.  **Website-App Parity:** The marketing website's styling should be updated to match the final app UI.
+7.  **Geocoder Upgrade:** The geocoder was upgraded from OpenStreetMap Nominatim to Google Places API for improved accuracy.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The project is a full-stack application with a React frontend and a mock FastAPI backend, packaged with Capacitor for native builds.
--   **Frontend:** The UI is contained within a large, monolithic React file (, now over 3400 lines) and styled with a corresponding . It features a dark theme with neon green accents.
--   **Core Features:** The application includes address autocomplete with POI/airport recognition, a Favorites feature to save locations, a Share My Savings feature, and Price Alerts using .
--   **Error Handling:** Robust error/loading states have been added to the ride comparison view to prevent blank screens.
--   **Ride Handoff:** A crash-proof handoff modal has been implemented to manage the transition to external ride-sharing apps, complete with loading states, error messages, and fallback options.
--   **CI/CD:** A GitHub Actions workflow () exists for building the Android App Bundle (.AAB).
+The project is a full-stack application with a React frontend (packaged with Capacitor) and a FastAPI backend.
+-   **Frontend:** A large, monolithic React component () contains the entire application logic. The UI has been visually polished to be more consumer-friendly. It includes features for address search, price comparison, favorites, and price alerts.
+-   **Backend:** The FastAPI backend () provides mock ride comparison data and now includes endpoints that proxy requests to the Google Places API for autocomplete and place details, using an API key stored in .
+-   **Key Integrations:** The app uses Capacitor for native functionality (), the Google Places API for all geocoding, and GitHub Actions for CI/CD.
+-   **Error Handling:** The app includes a fallback mode that generates mock estimates if the backend API fails, preventing the user from seeing a missing estimates error in production.
 
 **Last working item**:
--   Last item agent was working: The agent was attempting to fix the ride provider handoff. The user reported that the app was not opening the installed native Lyft/Uber app, but instead was showing the Download the app page. The agent's final fix involved using the Capacitor App plugin () to handle the custom URL schemes (, ) required for deep linking. The user then reported this was *still* not working in the preview environment.
+-   Last item agent was working: Debugging a new Android build failure. After fixing several prior build issues (ESLint, Java version, Gradle versions), the user reported a new error:  at line 16 of . The agent was just about to investigate this file.
 -   Status: IN PROGRESS
--   Agent Testing Done: Y (The agent confirmed via screenshots that the modal UI appears correctly in the web preview, but also noted that deep linking cannot be fully tested in a web environment).
--   Which testing method agent to use? The next agent CANNOT test this fix in the web preview. The agent must explain to the user that native deep linking () only works in a native build, not a web browser. The user must be guided to use Save to GitHub and rebuild their native app to verify the fix.
--   User Testing Done: Y (User confirmed it is not working in the web preview, which is the expected behavior for that environment).
+-   Agent Testing Done: N
+-   Which testing method agent to use? The agent must first fix the build error by inspecting . This is a configuration/code fix, not a functional test.
+-   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Native App Handoff (Deep Linking) Fails (P0)
--   Issue 2: Android Build Fails Due to User Workflow (P0)
--   Issue 3: Intermittent Failed to load error (P2)
+-   Issue 1: Android Build Fails with Value is null (P0)
+-   Issue 2: Lyft Handoff Gets Stuck (P0)
+-   Issue 3: Address Accuracy Still Incorrectly Resolving (P0)
+-   Issue 4: Intermittent Failed to load error (P2)
 
 **Issues Detail:**
--   **Issue 1:** Native App Handoff (Deep Linking) Fails
-    -   **Description:** The primary critical blocker. The user reports that clicking Open Lyft/Uber does not open the installed native app. This is because the user is testing in a web-based preview environment, which cannot handle custom URL schemes like  or .
-    -   **Attempted fixes:**
-        1.  Initial implementation used , which failed in the WebView.
-        2.  Switched to Capacitor  plugin, which correctly opened web fallback links but not native apps.
-        3.  Final implementation uses a helper function that correctly routes  and  schemes to Capacitor's  and  schemes to . This is the correct approach for a native Capacitor app.
+-   **Issue 1: Android Build Fails with Value is null**
+    -   **Description:** This is the current, highest-priority blocker. The CI/CD pipeline is failing with an error pointing to line 16 of . This prevents the user from creating a new build to test other fixes.
+    -   **Attempted fixes:** None yet for this specific error.
     -   **Next debug checklist:**
-        1.  **Do not try to fix this for the web preview.**
-        2.  Clearly explain to the user *why* it fails in the preview (browsers don't know what  means).
-        3.  Instruct the user that the fix can only be verified in a native build.
-        4.  Guide the user to:
-            a. Use Save to GitHub to push the latest code.
-            b. Rebuild the native Android/iOS app.
-            c. Test the handoff on a physical device with Uber/Lyft installed.
-    -   **Why fix this issue and what will be achieved with the fix?** This is the core functionality of the app. Fixing it will allow users to seamlessly book the cheapest ride, fulfilling the app's main purpose.
-    -   **Status:** IN PROGRESS (Code is likely correct, but blocked on user testing in the correct environment).
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Neither. The user must test the native app.
-    -   **Blocked on other issue:** None.
+        1.  View the file .
+        2.  Inspect line 16 and the surrounding context to identify what value is null. It could be a missing environment variable, an incorrectly configured plugin, or a problem with a recently added configuration.
+        3.  Hypothesize the cause and apply a fix using .
+        4.  Increment the  in the same file to prepare for the next build attempt.
+    -   **Why fix this issue and what will be achieved with the fix?** Fixing this unblocks the entire release process, allowing the user to generate a new AAB to test the other critical fixes.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N (This specific error is new, but build failures are a recurring theme).
+    -   **Should Test frontend/backend/both after fix?** Neither. The fix is verified by a successful CI/CD build run initiated by the user.
+    -   **Blocked on other issue:** None. This is the primary blocker.
 
--   **Issue 2:** Android Build Fails Due to User Workflow
-    -   **Description:** The user repeatedly reports that the Google Play Console rejects their build because the  (e.g., 5) has already been used. The agent increments the version, but the user reports the same error.
-    -   **Attempted fixes:** The agent has correctly incremented the  and  in  multiple times (up to version 7).
-    -   **Next debug checklist:**
-        1.  Reiterate to the user that the CI/CD pipeline runs from their GitHub repository.
-        2.  After every change, they **must** click the **Save to GitHub** button before re-running the build pipeline.
-    -   **Why fix this issue and what will be achieved with the fix?** This workflow issue is preventing the user from publishing any updates to the Play Store. Resolving it unblocks all future releases.
-    -   **Status:** IN PROGRESS (Agent's work is done, blocked on user action).
+-   **Issue 2: Lyft Handoff Gets Stuck**
+    -   **Description:** A tester reported getting stuck on the handoff modal (Taking longer than expected...) when trying to open the Lyft app.
+    -   **Attempted fixes:** The agent theorized that the app couldn't reliably detect if the deep link was successful. The fix was to immediately close the handoff modal after firing the  event, rather than waiting for a success/fail callback that never comes.
+    -   **Next debug checklist:** This fix has been implemented but **not tested by the user**. The next agent should be prepared for the user to report that this is still an issue. If it is, further investigation is needed into the  and  functions in .
+    -   **Why fix this issue and what will be achieved with the fix?** This is core app functionality. A successful handoff is critical for the app's purpose.
+    -   **Status:** USER VERIFICATION PENDING
     -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Neither. The user must test by running their CI/CD pipeline.
-    -   **Blocked on other issue:** None.
+    -   **Should Test frontend/backend/both after fix?** Neither. Must be tested by the user on a native build.
+    -   **Blocked on other issue:** Android Build Fails with Value is null
 
--   **Issue 3:** Intermittent Failed to load error
-    -   **Description:** A long-standing issue from previous sessions where the user reported an intermittent Failed to load error. It has not been reproduced or addressed.
-    -   **Next debug checklist:** Review PWA service worker, check  hooks in  for race conditions, consider adding a React Error Boundary.
-    -   **Why fix this issue and what will be achieved with the fix?** Improves overall app stability for the production release.
+-   **Issue 3: Address Accuracy Still Incorrectly Resolving**
+    -   **Description:** The user reported that 640 OBrians Path" was still being resolved to "698 OBrians Path. This indicates an approximation is happening instead of using the exact selected Google Places result.
+    -   **Attempted fixes:** The agent identified and removed legacy code in the  function that attempted to preserve user-typed street numbers. The code was updated to *only* use the  and coordinates from the selected Google Place ID.
+    -   **Next debug checklist:** This fix has also been implemented but **not tested by the user**. If the user reports the issue persists, the  function in  must be re-examined to ensure no other logic is overwriting the exact Google result.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical safety and trust issue. Users must be routed to the exact address they select.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Neither. Must be tested by the user on a native build.
+    -   **Blocked on other issue:** Android Build Fails with Value is null
+
+-   **Issue 4: Intermittent Failed to load error**
+    -   **Description:** A long-standing, low-priority issue where the user has occasionally seen a Failed to load error. It has not been reproduced or investigated.
+    -   **Attempted fixes:** None.
+    -   **Next debug checklist:** Review  hooks in  for race conditions, investigate the PWA service worker, or consider adding a React Error Boundary.
     -   **Status:** NOT STARTED
     -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** frontend
-    -   **Blocked on other issue:** Blocked by the P0 handoff and build issues.
+    -   **Should Test frontend/backend/both after fix?** Frontend.
+    -   **Blocked on other issue:** Blocked by all P0 issues.
 
 **In progress Task List**:
--   **Task 1:** Finalize production-ready Android build (P0)
-    -   **Where to resume:** Address Issue #1 (Handoff) and Issue #2 (Build Workflow).
-    -   **What will be achieved with this?** A stable, releasable app that successfully hands off to Uber/Lyft.
+-   **Task 1: Finalize production-ready Android build**
+    -   **Where to resume:** Fix the P0 build error in .
+    -   **What will be achieved with this?** A releasable app that can be tested by the user.
     -   **Status:** BLOCKED
-    -   **Should Test frontend/backend/both after fix?** Neither
-    -   **Blocked on something:** Blocked by user testing the handoff in a native build and adopting the correct Save to GitHub workflow.
+    -   **Should Test frontend/backend/both after fix?** Neither.
+    -   **Blocked on something:** The build error itself.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **Improve visual tone (P1):** Adjust styling to feel less techy and more like a modern consumer rideshare app.
-    -   **Add cumulative savings counter (P2):** Implement the optional enhancement to track total savings for all users.
+    -   **P1:** Update the website styling to match the app UI.
 -   **Future Tasks:**
-    -   **Implement Ride for someone else feature (P2).**
-    -   **Refactor  (P2):** Critically important for future maintainability.
-    -   **Implement FairFare Plus - Surge Guard feature (P2).**
-    -   **Implement real map view (P2):** This is de-prioritized by the user for now.
+    -   **P2:** Refactor  (now over 3500 lines) into smaller, manageable components.
+    -   **P2:** Implement Ride for someone else feature.
+    -   **P2:** Implement FairFare Plus - Surge Guard feature.
+    -   **P2:** Add contact selection from phone contacts to auto-fill rider information.
 
 **Completed work in this session**
--   **Address Search & Stability:** Implemented numerous improvements: expanded POI keywords, stricter location biasing (), distance-based sorting, Nearby badges, network status checks, and retry logic. Verified that searches for partial numbers (e.g., 640) now correctly return local results.
--   **Address Formatting:** Cleaned up address display in suggestions to a clear two-line format (, ).
--   **Favorites Feature:** Added functionality to save, manage, and select favorite locations from the search dropdown.
--   **Ride Comparison Error Handling:** Added robust loading states and error messages to the comparison flow to prevent blank screens.
--   **Savings Moment Feature:** Implemented UI to show the savings amount, a BEST FARE badge, and a primary CTA to open the cheapest ride.
--   **Crash-Proof Handoff Modal:** Completely redesigned the handoff flow to use a robust modal that prevents blank screens and provides clear fallback options (Try Again, Open in Browser).
--   **Deep Link Logic:** Implemented the correct native-first deep linking logic using  for  schemes and  for web fallbacks.
--   **Android Build Maintenance:** Fixed an ESLint warning breaking the CI build and incremented the  to 7.
+-   **CRITICAL:** Replaced OpenStreetMap with **Google Places API** for all address search and geocoding, including backend proxy endpoints and frontend implementation.
+-   **CRITICAL:** Implemented a **fallback mock mode** in the frontend to prevent missing estimates errors in the production app if the backend is unreachable.
+-   **CRITICAL:** Fixed a series of complex, sequential **Android build errors** related to ESLint dependencies, Java version incompatibility (switching the CI to JDK 21), outdated Gradle/AGP versions, and an  dependency conflict.
+-   **CRITICAL:** Implemented a fix for **address accuracy** by removing custom logic and forcing the use of the exact  from Google Places.
+-   **CRITICAL:** Implemented a potential fix for the **Lyft handoff getting stuck** by immediately closing the modal after firing the deep link.
+-   Implemented a **price range estimation model** with a dynamic surge buffer (e.g., Estimated 7–2).
+-   Added **Passenger Context UI** fields (Who is riding?, Passengers).
+-   Implemented a **post-ride feedback modal** triggered on app resume.
+-   Enforced strict address validation, requiring a selection from Google Places suggestions.
+-   Performed a visual polish pass, reducing the techy neon look and updating badges to CHEAPEST / FASTEST.
+-   Created a  document for the user.
 
 **Earlier issues found/mentioned but not fixed**
 -   The long-standing Intermittent Failed to load error has not been addressed.
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork:** Intermittent Failed to load error reported by the user.
--   **Recurrence count:** At least 4 sessions.
+-   **Recurrence count:** At least 5 sessions.
 -   **Status:** NOT STARTED
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend:** React.js, PWA, Capacitor.js (, ), , Web Share API, Notifications API
--   **Backend:** FastAPI (mock)
+-   **Frontend:** React.js, Capacitor.js (), Axios
+-   **Backend:** FastAPI
 -   **CI/CD:** GitHub Actions
--   **3rd Party APIs:** OpenStreetMap Nominatim
+-   **3rd Party APIs:** Google Places API (Autocomplete and Place Details)
 -   **Styling:** Monolithic  file.
 
 **key DB schema**
 -   N/A (Uses  for watched routes and favorites).
 
 **changes in tech stack**
--   **Added:**  for handling web fallbacks in the native app.
+-   **MAJOR:** Replaced **OpenStreetMap Nominatim** with **Google Places API** for all geocoding tasks.
 
 **All files of reference**
--   : **CRITICAL FILE.** The monolithic component has grown to over 3400 lines and contains all UI, state, and logic.
--   : The main stylesheet, also very large.
--   : The Android build pipeline definition.
--   : Contains the  (currently 7) and .
--   : The mock backend, defines the deep link and web link formats.
+-   : **CURRENT BLOCKER.** Contains the Value is null error.
+-   : **CRITICAL FILE.** The monolithic component containing all UI, state, and logic. All recent fixes for address accuracy and handoff are here.
+-   : The CI/CD pipeline definition, which was heavily modified to resolve Java/Gradle version issues.
+-   : The backend, now with  and  endpoints.
+-   : Now contains the .
 
 **Areas that need refactoring**:
--    is now critically oversized (>3400 lines). It urgently needs to be broken down into smaller components (e.g., , , , ) to be maintainable. This should be proposed as a high-priority task after the current blockers are resolved.
+-    is critically oversized at over 3500 lines. It is the source of most bugs and is extremely difficult to maintain. It urgently needs to be broken down into smaller components (e.g., , , , ). This should be proposed as a P0 task once the build is stable.
 
 **key api endpoints**
--   : Mock backend endpoint that returns ride estimates, including  and .
--   : External API for address autocomplete.
+-   : Mock backend endpoint that returns ride estimates.
+-   : Proxies to Google Places Autocomplete API.
+-   : Proxies to Google Places Details API.
 
 **Critical Info for New Agent**
--   **The P0 blocker is the handoff/deep linking.** The user is testing in the web preview, where native deep links () will always fail. You must **stop trying to fix this for the preview**. Your primary task is to clearly explain this limitation to the user and instruct them to test the fix by building the native app and running it on a device. The current code using  is the correct approach for a native environment.
--   **The Android build versioning is a recurring user workflow issue.** The user must click **Save to GitHub** after you make changes and before they run their build pipeline. Be extremely explicit about this step every time.
--   **The logo is off-limits.** Do not modify it.
--   **Map integration is de-prioritized** by the user. Do not work on it.
--   The Nominatim API is heavily rate-limited in the test environment. Failures during testing (e.g., via  or screenshots) are expected and do not necessarily indicate a code bug.
+-   **Your immediate P0 task is to fix the Android build.** The user is blocked by a  error in  at line 16. Investigate and fix this file first.
+-   **The user only tests in the live native build.** Do not try to replicate native-specific issues (deep linking, GPS) in the web preview. Your fixes will only be verified after the user completes a successful build and release.
+-   **Two critical fixes are awaiting user verification:** Address Accuracy and Lyft Handoff. The code for these fixes is in . Be prepared for the user to report that these issues are not resolved, and be ready to re-investigate the  and / functions.
+-   **CI/CD is fragile.** This project has a long history of complex build failures. Be methodical when editing Gradle files or the GitHub Actions workflow. Assume any change could have downstream effects on the build.
+-   **Propose refactoring .** Once the build is stable, you should strongly advocate for refactoring the massive  file. It is a major source of technical debt and risk.
 
 **documents and test reports created in this job**
--   : Updated to reflect completed features and new requirements.
+-   
+-    (updated multiple times)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Reports handoff is still not working on the preview. (Status: **Pending**, this is the current P0 issue).
-2.  **User:** Asks if the version needs to be updated to 7. (Status: **Completed**, agent updated it).
-3.  **User:** Reports handoff to Lyft failed and will try Uber. (Status: **Acknowledged**, part of the ongoing handoff issue).
-4.  **User:** Reports handoff isn't opening the installed app, just the app store. Uploads screenshot. (Status: **Addressed**, agent updated code to prioritize ).
-5.  **User:** Reports a critical bug: a blank dark screen after selecting a ride. (Status: **Addressed**, agent implemented a crash-proof handoff modal).
-6.  **User:** Reports address search still returns global results for queries like 640. (Status: **Addressed**, agent implemented stricter location biasing).
-7.  **User:** Reports handoff is not working on the preview. (Status: **Acknowledged**, part of the ongoing handoff issue).
-8.  **User:** Asks if the version was updated. (Status: **Completed**, agent confirmed version is 6).
-9.  **User:** Provides a comprehensive list of beta feedback and improvements to implement. (Status: **Mostly completed**, agent implemented all high-priority items).
-10. **User:** Reports address display needs to be simplified and corrected. (Status: **Completed**, agent fixed the address formatting).
+1.  **User:** Reports the build failed with an  error requiring . (Status: **Addressed**, agent pinned the dependency to an older version).
+2.  **User:** Reports a tester got a missing estimates error in the live app. (Status: **Addressed**, agent implemented a fallback mock mode).
+3.  **User:** Confirms the tester had GPS, network, and selected a suggestion. (Status: **Acknowledged**, led to implementing fallback mode).
+4.  **User:** Asks for confirmation on the next steps to fix the missing estimates error. (Status: **Addressed**).
+5.  **User:** Reports two new critical issues: 1) Address accuracy is still wrong (640 becomes 698), and 2) Lyft handoff gets stuck on a modal. (Status: **Addressed**, agent implemented fixes for both).
+6.  **User:** Asks if the next build should be version 10. (Status: **Addressed**, agent confirmed version 10 is set).
+7.  **Agent:** Provides a summary of the fixes and instructs the user on the next steps (Save to GitHub, run build).
+8.  **User:** Reports the build failed with a new error: Value is null at line 16 of . (Status: **Pending**, this is the current blocker).
+9.  **Agent:** States their intention to check the  file. (Status: **Acknowledged**).
+10. **User:** Generate the summary now.
 
 **Project Health Check:**
--   **Broken:** The ride provider handoff is the critical broken feature, though the code is likely correct and is blocked on testing in the right environment. The user's CI/CD workflow is also fragile.
--   **Mocked:** The entire backend logic for ride pricing is mocked in .
+-   **Broken:** The Android CI/CD pipeline is broken, preventing any new releases. Core features (address accuracy, Lyft handoff) have pending fixes that are unverified and potentially still broken in the live environment.
+-   **Mocked:** The backend for ride pricing remains a mock service, though it now generates a dynamic range.
 
 **3rd Party Integrations**
--   **OpenStreetMap Nominatim:** Address autocomplete.
--   **Capacitor.js:** Native app wrapper.
-    -   : Used for core app events and opening native deep links.
-    -   : Used for opening web fallback links.
-    -   
-    -   
--   **GitHub Actions:** CI/CD pipeline.
--   **html-to-image:** Frontend library for Share My Savings.
+-   **Google Places API:** Used for address autocomplete and fetching place details with coordinates. Requires a User API Key ( in ).
+-   **Capacitor.js:** Native app wrapper ( is used for deep linking).
+-   **GitHub Actions:** CI/CD pipeline for Android builds.
 
 **Testing status**
 -   **Testing agent used after significant changes:** NO
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None.
--   **Known regressions:** The core handoff feature is perceived as non-functional by the user due to testing in the wrong environment.
+-   **Test files created:** None
+-   **Known regressions:** The CI/CD build pipeline is not working.
 
 **Credentials to test flow:**
--   N/A
+-   Google Places API Key is located at  with the variable name .
 
 **What agent forgot to execute**
--   The agent has not effectively communicated the critical difference between the web preview environment and a native app environment regarding deep linking. Instead of explaining the limitation and guiding the user, the agent continued to try and fix the issue for the preview, leading to a loop. The next agent's first action should be to educate the user on this point to break the cycle.</analysis>
+-   The agent has not created any automated tests (e.g., using Jest or Pytest). This makes the project highly susceptible to regressions, especially given the monolithic nature of  and the fragility of the build process.
+-   The agent did not proactively refactor  despite its massive size being a clear and present risk to maintainability and stability. The work has been purely reactive.</analysis>
