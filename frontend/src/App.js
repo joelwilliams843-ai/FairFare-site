@@ -1480,7 +1480,7 @@ function App() {
     });
     
     try {
-      const response = await axios.post(`${API}/compare-rides`, {
+      const requestPayload = {
         pickup: {
           address: pickup,
           lat: finalPickupCoords.lat,
@@ -1491,7 +1491,11 @@ function App() {
           lat: finalDestCoords.lat,
           lng: finalDestCoords.lng,
         },
-      }, {
+      };
+      
+      console.log('[FairFare] Sending compare request:', JSON.stringify(requestPayload));
+      
+      const response = await axios.post(`${API}/compare-rides`, requestPayload, {
         timeout: 15000 // 15 second timeout
       });
       
