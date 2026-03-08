@@ -40,7 +40,10 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            def keystorePass = System.getenv("KEYSTORE_PASSWORD")
+            if (keystorePass != null && keystorePass != "") {
+                signingConfig signingConfigs.release
+            }
         }
     }
     
