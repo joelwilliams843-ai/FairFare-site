@@ -1,9 +1,27 @@
 apply plugin: 'com.android.application'
 
-// Defensive defaults in case variables.gradle hasn't been applied
-def sdkVersion = rootProject.hasProperty('ext') && rootProject.ext.has('compileSdkVersion') ? rootProject.ext.compileSdkVersion : 35
-def minSdk = rootProject.hasProperty('ext') && rootProject.ext.has('minSdkVersion') ? rootProject.ext.minSdkVersion : 22
-def targetSdk = rootProject.hasProperty('ext') && rootProject.ext.has('targetSdkVersion') ? rootProject.ext.targetSdkVersion : 35
+// Defensive defaults - completely safe null handling
+def sdkVersion = 35
+def minSdk = 22
+def targetSdk = 35
+
+// Try to get values from variables.gradle if available
+try {
+    if (rootProject.ext.has('compileSdkVersion')) {
+        sdkVersion = rootProject.ext.compileSdkVersion
+    }
+    if (rootProject.ext.has('minSdkVersion')) {
+        minSdk = rootProject.ext.minSdkVersion
+    }
+    if (rootProject.ext.has('targetSdkVersion')) {
+        targetSdk = rootProject.ext.targetSdkVersion
+    }
+} catch (Exception e) {
+    logger.warn("Using default SDK versions: compileSdk=$sdkVersion, minSdk=$minSdk, targetSdk=$targetSdk")
+}
+
+// Keystore password with safe default
+def keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: "placeholder"
 
 android {
     namespace "com.tryfairfare.app"
@@ -28,11 +46,10 @@ android {
     
     signingConfigs {
         release {
-            def ksPassword = System.getenv("KEYSTORE_PASSWORD")
             storeFile file('../fairfare-release-v2.keystore')
-            storePassword ksPassword != null ? ksPassword : "placeholder"
+            storePassword keystorePassword
             keyAlias 'fairfare-release'
-            keyPassword ksPassword != null ? ksPassword : "placeholder"
+            keyPassword keystorePassword
         }
     }
     
@@ -71,15 +88,34 @@ repositories {
     }
 }
 
+// Dependency versions with safe defaults
+def appCompatVersion = '1.6.1'
+def coordinatorLayoutVersion = '1.2.0'
+def splashScreenVersion = '1.0.1'
+def junitVer = '4.13.2'
+def androidxJunitVer = '1.1.5'
+def espressoVer = '3.5.1'
+
+try {
+    if (rootProject.ext.has('androidxAppCompatVersion')) appCompatVersion = rootProject.ext.androidxAppCompatVersion
+    if (rootProject.ext.has('androidxCoordinatorLayoutVersion')) coordinatorLayoutVersion = rootProject.ext.androidxCoordinatorLayoutVersion
+    if (rootProject.ext.has('coreSplashScreenVersion')) splashScreenVersion = rootProject.ext.coreSplashScreenVersion
+    if (rootProject.ext.has('junitVersion')) junitVer = rootProject.ext.junitVersion
+    if (rootProject.ext.has('androidxJunitVersion')) androidxJunitVer = rootProject.ext.androidxJunitVersion
+    if (rootProject.ext.has('androidxEspressoCoreVersion')) espressoVer = rootProject.ext.androidxEspressoCoreVersion
+} catch (Exception e) {
+    logger.warn("Using default dependency versions")
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "androidx.appcompat:appcompat:${rootProject.ext.has('androidxAppCompatVersion') ? rootProject.ext.androidxAppCompatVersion : '1.6.1'}"
-    implementation "androidx.coordinatorlayout:coordinatorlayout:${rootProject.ext.has('androidxCoordinatorLayoutVersion') ? rootProject.ext.androidxCoordinatorLayoutVersion : '1.2.0'}"
-    implementation "androidx.core:core-splashscreen:${rootProject.ext.has('coreSplashScreenVersion') ? rootProject.ext.coreSplashScreenVersion : '1.0.1'}"
+    implementation "androidx.appcompat:appcompat:$appCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$coordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$splashScreenVersion"
     implementation project(':capacitor-android')
-    testImplementation "junit:junit:${rootProject.ext.has('junitVersion') ? rootProject.ext.junitVersion : '4.13.2'}"
-    androidTestImplementation "androidx.test.ext:junit:${rootProject.ext.has('androidxJunitVersion') ? rootProject.ext.androidxJunitVersion : '1.1.5'}"
-    androidTestImplementation "androidx.test.espresso:espresso-core:${rootProject.ext.has('androidxEspressoCoreVersion') ? rootProject.ext.androidxEspressoCoreVersion : '3.5.1'}"
+    testImplementation "junit:junit:$junitVer"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVer"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVer"
     implementation project(':capacitor-cordova-android-plugins')
 }
 
