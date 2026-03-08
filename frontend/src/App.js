@@ -2385,32 +2385,40 @@ I'll text you when the driver is assigned.`);
 
   // Logo component with glow effect - matches the app icon design
   const FairFareLogo = ({ size = 40, className = "" }) => (
-    <svg width={size} height={size} viewBox="0 0 48 48" className={`fairfare-logo ${className}`}>
+    <svg width={size} height={size} viewBox="0 0 512 512" className={`fairfare-logo ${className}`}>
       <defs>
         <filter id="logoGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+          <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <filter id="logoGlowStrong" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="12" result="coloredBlur"/>
           <feMerge>
             <feMergeNode in="coloredBlur"/>
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
       </defs>
-      <g filter="url(#logoGlow)">
-        {/* Outer F stroke */}
-        <path d="M12 6 L12 42" stroke="#00FF88" strokeWidth="3" strokeLinecap="round" fill="none"/>
-        <path d="M12 6 Q24 6 32 6 Q38 6 38 12" stroke="#00FF88" strokeWidth="3" strokeLinecap="round" fill="none"/>
-        <path d="M12 24 L28 24" stroke="#00FF88" strokeWidth="3" strokeLinecap="round" fill="none"/>
-        {/* Inner F stroke (double-line effect) */}
-        <path d="M15 10 L15 38" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
-        <path d="M15 10 Q24 10 30 10 Q34 10 34 14" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
-        <path d="M15 24 L26 24" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
+      {/* Background */}
+      <rect width="512" height="512" fill="#0a1628"/>
+      {/* F Letter with glow */}
+      <g filter="url(#logoGlowStrong)">
+        {/* Vertical stroke of F */}
+        <rect x="100" y="100" width="40" height="312" rx="20" fill="#00ff88"/>
+        {/* Top horizontal stroke of F */}
+        <rect x="100" y="100" width="280" height="40" rx="20" fill="#00ff88"/>
+        {/* Middle horizontal stroke of F */}
+        <rect x="100" y="236" width="180" height="40" rx="20" fill="#00ff88"/>
       </g>
-      {/* Route dots */}
-      <circle cx="32" cy="24" r="2.5" fill="#00FF88"/>
-      <circle cx="38" cy="24" r="1.8" fill="#00FF88" opacity="0.7"/>
-      <circle cx="42" cy="24" r="1.2" fill="#00FF88" opacity="0.5"/>
-      <circle cx="12" cy="42" r="2" fill="#00FF88"/>
-      <circle cx="38" cy="12" r="2" fill="#00FF88"/>
+      {/* Trailing dots with glow */}
+      <g filter="url(#logoGlow)">
+        <circle cx="320" cy="256" r="24" fill="#00ff88"/>
+        <circle cx="380" cy="256" r="18" fill="#00ff88"/>
+        <circle cx="428" cy="256" r="12" fill="#00ff88"/>
+      </g>
     </svg>
   );
 
