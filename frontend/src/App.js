@@ -1479,6 +1479,48 @@ function App() {
       timestamp: new Date().toISOString()
     });
     
+    // Helper function to generate fallback estimates when API is unreachable
+    const generateFallbackEstimates = () => {
+      const distance = calculateDistance(
+        finalPickupCoords.lat, finalPickupCoords.lng,
+        finalDestCoords.lat, finalDestCoords.lng
+      ) || 10;
+      const duration = Math.round(distance * 1.8); // ~1.8 min per mile
+      
+      return {
+        estimates: [
+          {
+            provider: 'Uber',
+            ride_type: 'UberX',
+            eta_minutes: Math.floor(Math.random() * 5) + 2,
+            price_level: 'Normal demand',
+            surge_likelihood: 'Low',
+            availability: 'Good',
+            deep_link: `uber://?action=setPickup&pickup[latitude]=${finalPickupCoords.lat}&pickup[longitude]=${finalPickupCoords.lng}&dropoff[latitude]=${finalDestCoords.lat}&dropoff[longitude]=${finalDestCoords.lng}`,
+            web_link: `https://m.uber.com/ul/?action=setPickup&pickup[latitude]=${finalPickupCoords.lat}&pickup[longitude]=${finalPickupCoords.lng}&dropoff[latitude]=${finalDestCoords.lat}&dropoff[longitude]=${finalDestCoords.lng}`
+          },
+          {
+            provider: 'Lyft',
+            ride_type: 'Standard',
+            eta_minutes: Math.floor(Math.random() * 5) + 3,
+            price_level: 'Normal demand',
+            surge_likelihood: 'Low',
+            availability: 'Good',
+            deep_link: `lyft://ridetype?id=lyft&pickup[latitude]=${finalPickupCoords.lat}&pickup[longitude]=${finalPickupCoords.lng}&destination[latitude]=${finalDestCoords.lat}&destination[longitude]=${finalDestCoords.lng}`,
+            web_link: `https://ride.lyft.com/?pickup[latitude]=${finalPickupCoords.lat}&pickup[longitude]=${finalPickupCoords.lng}&destination[latitude]=${finalDestCoords.lat}&destination[longitude]=${finalDestCoords.lng}`
+          }
+        ],
+        distance_miles: Math.round(distance * 100) / 100,
+        duration_minutes: duration,
+        pickup_coords: { lat: finalPickupCoords.lat, lng: finalPickupCoords.lng, address: pickup },
+        destination_coords: { lat: finalDestCoords.lat, lng: finalDestCoords.lng, address: destination },
+        route_status: 'valid',
+        recommendation: 'Compare prices in both apps for the best deal.',
+        requires_confirmation: false,
+        is_fallback: true // Flag to indicate this is offline/fallback data
+      };
+    };
+    
     try {
       const requestPayload = {
         pickup: {
@@ -1495,9 +1537,22 @@ function App() {
       
       console.log('[FairFare] Sending compare request:', JSON.stringify(requestPayload));
       
-      const response = await axios.post(`${API}/compare-rides`, requestPayload, {
-        timeout: 15000 // 15 second timeout
-      });
+      let response;
+      try {
+        response = await axios.post(`${API}/compare-rides`, requestPayload, {
+          timeout: 10000 // 10 second timeout
+        });
+      } catch (networkError) {
+        // Network failed - use fallback estimates
+        console.warn('[FairFare] API unreachable, using fallback estimates:', networkError.message);
+        const fallbackData = generateFallbackEstimates();
+        setResults(fallbackData);
+        setLastUpdated(new Date());
+        setView("results");
+        setLoading(false);
+        toast.info("Using estimated data. Tap provider to see live prices.", { duration: 4000 });
+        return;
+      }
       
       // Log successful response
       console.log('[FairFare] API Response:', {
