@@ -1501,7 +1501,8 @@ function App() {
         hasData: !!response.data,
         estimates: response.data?.estimates?.length || 0,
         distance: response.data?.distance_miles,
-        duration: response.data?.duration_minutes
+        duration: response.data?.duration_minutes,
+        rawResponse: JSON.stringify(response.data).substring(0, 500)
       });
       
       // Validate response data
@@ -1510,7 +1511,8 @@ function App() {
       }
       
       if (!response.data.estimates || !Array.isArray(response.data.estimates)) {
-        throw new Error('Invalid response format: missing estimates');
+        console.error('[FairFare] Invalid response:', JSON.stringify(response.data));
+        throw new Error(`Invalid response format: missing estimates. Got: ${JSON.stringify(response.data).substring(0, 200)}`);
       }
       
       if (response.data.estimates.length === 0) {
