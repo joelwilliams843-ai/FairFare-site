@@ -1122,112 +1122,76 @@ function App() {
   };
 
   const selectSuggestion = async (suggestion, isPickup) => {
-    // Format address based on type:
-    // - POI/Place: "Place Name, City, State ZIP"
-    // - Address: "Street, City, State ZIP"
-    const currentInput = isPickup ? pickup : destination;
-    
-    // Build the display address
+    // Handle coordinate fetching FIRST - this is critical for accuracy
+    let coords = null;
     let displayAddress = '';
     
-    // If this is a POI/place with a name, use that as primary
-    if (suggestion.placeName || suggestion.businessName) {
-      const placeName = suggestion.placeName || suggestion.businessName;
-      if (suggestion.locationLine) {
-        displayAddress = `${placeName}, ${suggestion.locationLine}`;
-      } else {
-        displayAddress = placeName;
-      }
-    } else {
-      // Regular address - preserve user-typed street number when possible
-      let streetLine = suggestion.streetLine || '';
-      
-      // Extract user-typed street number (if they typed something like "698 O'Brians")
-      const userTypedNumber = currentInput.match(/^(\d+)\s/)?.[1];
-      const suggestionNumber = streetLine.match(/^(\d+)\s/)?.[1];
-      
-      // If user typed a different house number than what was suggested, preserve theirs
-      if (userTypedNumber && suggestionNumber && userTypedNumber !== suggestionNumber) {
-        const userStreetPart = currentInput.replace(/^\d+\s*/, '').toLowerCase().trim();
-        const suggestionStreetPart = streetLine.replace(/^\d+\s*/, '').toLowerCase().trim();
-        
-        if (suggestionStreetPart.includes(userStreetPart) || userStreetPart.includes(suggestionStreetPart.split(' ')[0])) {
-          streetLine = streetLine.replace(/^\d+/, userTypedNumber);
-        }
-      }
-      
-      // Format: Street, City, State ZIP
-      if (streetLine && suggestion.locationLine) {
-        displayAddress = `${streetLine}, ${suggestion.locationLine}`;
-      } else if (streetLine) {
-        displayAddress = streetLine;
-      } else if (suggestion.locationLine) {
-        displayAddress = suggestion.locationLine;
-      } else {
-        displayAddress = suggestion.display_name;
-      }
-    }
-    
-    // Handle coordinate fetching
-    let coords = null;
     if (suggestion.lat && suggestion.lon) {
       // Already have coordinates (airport or cached result)
       coords = { lat: suggestion.lat, lng: suggestion.lon };
+      // Use the display name for airports
+      displayAddress = suggestion.display_name || suggestion.streetLine || '';
     } else if (suggestion.place_id) {
-      // Google Places suggestion - need to fetch details
+      // Google Places suggestion - fetch EXACT details from Google
       toast.info('Getting location details...', { duration: 1000 });
       const placeDetails = await fetchPlaceDetails(suggestion.place_id);
       if (placeDetails) {
         coords = { lat: placeDetails.lat, lng: placeDetails.lng };
-        // Use the formatted address from Google if available
-        if (placeDetails.formatted_address) {
-          displayAddress = placeDetails.formatted_address;
-        }
+        // CRITICAL: Use EXACT formatted address from Google - no modifications
+        displayAddress = placeDetails.formatted_address;
+        console.log('[FairFare] Using exact Google address:', displayAddress);
       } else {
         toast.error('Could not get location details. Please try another address.');
         return;
       }
+    } else {
+      // Fallback for suggestions without place_id (shouldn't happen with Google Places)
+      displayAddress = suggestion.display_name || suggestion.streetLine || '';
+      toast.error('Please select a verified address from the suggestions.');
+      return;
+    }
+    
+    if (!coords) {
+      toast.error('Could not verify location. Please try another address.');
+      return;
     }
     
     if (isPickup) {
       setPickup(displayAddress);
-      // Lock coordinates to this exact location
       setPickupCoords(coords);
-      // Clear detected coords since user explicitly selected a location
+      setPickupPlaceId(suggestion.place_id || null);
       setDetectedCoords(null);
       setPickupSuggestions([]);
       setShowPickupSuggestions(false);
       saveToRecent(displayAddress);
       
-      // Show confirmation for airport selections
       if (suggestion.isAirport) {
         toast.success(`✈️ ${suggestion.code} selected`, { duration: 2000 });
       }
       
-      console.log('Pickup selected:', {
+      console.log('[FairFare] Pickup LOCKED:', {
         address: displayAddress,
-        lat: coords?.lat,
-        lng: coords?.lng,
-        isAirport: suggestion.isAirport || false
+        lat: coords.lat,
+        lng: coords.lng,
+        place_id: suggestion.place_id
       });
     } else {
       setDestination(displayAddress);
-      // Lock coordinates to this exact location
       setDestCoords(coords);
+      setDestPlaceId(suggestion.place_id || null);
       setDestSuggestions([]);
       setShowDestSuggestions(false);
       saveToRecent(displayAddress);
       
-      // Show confirmation for airport selections
       if (suggestion.isAirport) {
         toast.success(`✈️ ${suggestion.code} selected`, { duration: 2000 });
       }
       
-      console.log('Destination selected:', {
+      console.log('[FairFare] Destination LOCKED:', {
         address: displayAddress,
-        lat: coords?.lat,
-        lng: coords?.lng,
-        isAirport: suggestion.isAirport || false
+        lat: coords.lat,
+        lng: coords.lng,
+        place_id: suggestion.place_id
       });
     }
   };
