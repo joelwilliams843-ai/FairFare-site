@@ -1,31 +1,11 @@
 apply plugin: 'com.android.application'
 
-// Defensive defaults - completely safe null handling
-def sdkVersion = 35
-def minSdk = 22
-def targetSdk = 35
-
-// Try to get values from variables.gradle if available
-try {
-    if (rootProject.ext.has('compileSdkVersion')) {
-        sdkVersion = rootProject.ext.compileSdkVersion
-    }
-    if (rootProject.ext.has('minSdkVersion')) {
-        minSdk = rootProject.ext.minSdkVersion
-    }
-    if (rootProject.ext.has('targetSdkVersion')) {
-        targetSdk = rootProject.ext.targetSdkVersion
-    }
-} catch (Exception e) {
-    logger.warn("Using default SDK versions: compileSdk=$sdkVersion, minSdk=$minSdk, targetSdk=$targetSdk")
-}
-
-// Keystore password with safe default
+// All values hardcoded - no external property lookups
 def keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: "placeholder"
 
 android {
     namespace "com.tryfairfare.app"
-    compileSdk sdkVersion
+    compileSdk 35
     
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
@@ -34,8 +14,8 @@ android {
     
     defaultConfig {
         applicationId "com.tryfairfare.app"
-        minSdkVersion minSdk
-        targetSdkVersion targetSdk
+        minSdkVersion 22
+        targetSdkVersion 35
         versionCode 10
         versionName "1.0.10"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -75,7 +55,7 @@ android {
     }
 }
 
-// Force compatible version of androidx.browser (1.9.0 requires compileSdk 36)
+// Force compatible version of androidx.browser
 configurations.all {
     resolutionStrategy {
         force 'androidx.browser:browser:1.8.0'
@@ -88,34 +68,15 @@ repositories {
     }
 }
 
-// Dependency versions with safe defaults
-def appCompatVersion = '1.6.1'
-def coordinatorLayoutVersion = '1.2.0'
-def splashScreenVersion = '1.0.1'
-def junitVer = '4.13.2'
-def androidxJunitVer = '1.1.5'
-def espressoVer = '3.5.1'
-
-try {
-    if (rootProject.ext.has('androidxAppCompatVersion')) appCompatVersion = rootProject.ext.androidxAppCompatVersion
-    if (rootProject.ext.has('androidxCoordinatorLayoutVersion')) coordinatorLayoutVersion = rootProject.ext.androidxCoordinatorLayoutVersion
-    if (rootProject.ext.has('coreSplashScreenVersion')) splashScreenVersion = rootProject.ext.coreSplashScreenVersion
-    if (rootProject.ext.has('junitVersion')) junitVer = rootProject.ext.junitVersion
-    if (rootProject.ext.has('androidxJunitVersion')) androidxJunitVer = rootProject.ext.androidxJunitVersion
-    if (rootProject.ext.has('androidxEspressoCoreVersion')) espressoVer = rootProject.ext.androidxEspressoCoreVersion
-} catch (Exception e) {
-    logger.warn("Using default dependency versions")
-}
-
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "androidx.appcompat:appcompat:$appCompatVersion"
-    implementation "androidx.coordinatorlayout:coordinatorlayout:$coordinatorLayoutVersion"
-    implementation "androidx.core:core-splashscreen:$splashScreenVersion"
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
+    implementation "androidx.core:core-splashscreen:1.0.1"
     implementation project(':capacitor-android')
-    testImplementation "junit:junit:$junitVer"
-    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVer"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVer"
+    testImplementation "junit:junit:4.13.2"
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.5.1"
     implementation project(':capacitor-cordova-android-plugins')
 }
 
@@ -127,5 +88,5 @@ try {
         apply plugin: 'com.google.gms.google-services'
     }
 } catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+    logger.info("google-services.json not found, google-services plugin not applied.")
 }
