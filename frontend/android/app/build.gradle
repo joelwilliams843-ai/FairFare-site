@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
-def keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-def hasKeystore = keystorePassword != null && !keystorePassword.isEmpty()
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystorePassword = System.getenv("KEYSTORE_PASSWORD")
 
 android {
     namespace "com.tryfairfare.app"
@@ -28,12 +28,10 @@ android {
     
     signingConfigs {
         release {
-            if (hasKeystore) {
-                storeFile file('../fairfare-release-v2.keystore')
-                storePassword keystorePassword
-                keyAlias 'fairfare-release'
-                keyPassword keystorePassword
-            }
+            storeFile file('../fairfare-release-v2.keystore')
+            storePassword keystorePassword
+            keyAlias 'fairfare-release'
+            keyPassword keystorePassword
         }
     }
     
@@ -42,9 +40,7 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (hasKeystore) {
-                signingConfig signingConfigs.release
-            }
+            signingConfig signingConfigs.release
         }
     }
     
