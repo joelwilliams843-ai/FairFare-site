@@ -29,10 +29,35 @@ ext {
     kotlin_version = '1.9.10'
 }
 
+// Propagate ext properties to all subprojects immediately
+subprojects {
+    afterEvaluate { project ->
+        // Ensure ext properties are accessible
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+    
+    // Make ext properties available as project properties
+    ext {
+        androidxActivityVersion = rootProject.ext.androidxActivityVersion
+        androidxAppCompatVersion = rootProject.ext.androidxAppCompatVersion
+        androidxCoordinatorLayoutVersion = rootProject.ext.androidxCoordinatorLayoutVersion
+        androidxCoreVersion = rootProject.ext.androidxCoreVersion
+        androidxFragmentVersion = rootProject.ext.androidxFragmentVersion
+        androidxWebkitVersion = rootProject.ext.androidxWebkitVersion
+        junitVersion = rootProject.ext.junitVersion
+        androidxJunitVersion = rootProject.ext.androidxJunitVersion
+        androidxEspressoCoreVersion = rootProject.ext.androidxEspressoCoreVersion
+        cordovaAndroidVersion = rootProject.ext.cordovaAndroidVersion
+        kotlin_version = rootProject.ext.kotlin_version
+        minSdkVersion = rootProject.ext.minSdkVersion
+        compileSdkVersion = rootProject.ext.compileSdkVersion
+        targetSdkVersion = rootProject.ext.targetSdkVersion
     }
 }
 
