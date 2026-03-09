@@ -52,11 +52,11 @@ jobs:
       working-directory: frontend
       run: npx cap sync android
     
-    - name: Patch Capacitor files to fix null property bug
+    - name: Patch Capacitor Android to fix null property bug
       working-directory: frontend
       run: |
-        echo "Patching Capacitor Android build.gradle..."
-        cat > node_modules/@capacitor/android/capacitor/build.gradle << 'GRADLE_EOF'
+        echo "Patching node_modules/@capacitor/android/capacitor/build.gradle..."
+        cat > node_modules/@capacitor/android/capacitor/build.gradle << 'EOF'
         ext {
             androidxActivityVersion = '1.7.0'
             androidxAppCompatVersion = '1.6.1'
@@ -121,69 +121,17 @@ jobs:
             androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
             implementation 'com.google.code.gson:gson:2.10.1'
         }
-        GRADLE_EOF
-        
-        echo "Patching capacitor-cordova-android-plugins build.gradle..."
-        cat > android/capacitor-cordova-android-plugins/build.gradle << 'CORDOVA_EOF'
-        ext {
-            androidxAppCompatVersion = '1.6.1'
-            cordovaAndroidVersion = '10.1.1'
-        }
-        buildscript {
-            repositories {
-                google()
-                mavenCentral()
-            }
-            dependencies {
-                classpath 'com.android.tools.build:gradle:8.0.0'
-            }
-        }
-        apply plugin: 'com.android.library'
-        android {
-            namespace "capacitor.cordova.android.plugins"
-            compileSdk 33
-            defaultConfig {
-                minSdkVersion 22
-                targetSdkVersion 33
-                versionCode 1
-                versionName "1.0"
-            }
-            lintOptions {
-                abortOnError false
-            }
-            compileOptions {
-                sourceCompatibility JavaVersion.VERSION_17
-                targetCompatibility JavaVersion.VERSION_17
-            }
-        }
-        repositories {
-            google()
-            mavenCentral()
-            flatDir{
-                dirs 'src/main/libs', 'libs'
-            }
-        }
-        dependencies {
-            implementation fileTree(dir: 'src/main/libs', include: ['*.jar'])
-            implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
-            implementation "org.apache.cordova:framework:$cordovaAndroidVersion"
-        }
-        apply from: "cordova.variables.gradle"
-        for (def func : cdvPluginPostBuildExtras) {
-            func()
-        }
-        CORDOVA_EOF
-        
-        echo "Patching cordova.variables.gradle..."
-        cat > android/capacitor-cordova-android-plugins/cordova.variables.gradle << 'VARS_EOF'
-        ext {
-            cdvMinSdkVersion = 22
-            cdvPluginPostBuildExtras = []
-            cordovaConfig = [:]
-        }
-        VARS_EOF
-        
-        echo "All patches applied!"
+        EOF
+        echo "Patch applied!"
+    
+    - name: Remove cordova-android-plugins if regenerated
+      working-directory: frontend/android
+      run: |
+        rm -rf capacitor-cordova-android-plugins
+        # Fix settings.gradle if cap sync added it back
+        echo "include ':app'" > settings.gradle
+        echo "apply from: 'capacitor.settings.gradle'" >> settings.gradle
+        echo "Settings.gradle fixed"
     
     - name: Verify keystore exists
       working-directory: frontend/android
