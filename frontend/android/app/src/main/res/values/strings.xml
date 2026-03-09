@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FairFare</string>
+    <string name="title_activity_main">FairFare</string>
+    <string name="package_name">com.tryfairfare.app</string>
+    <string name="custom_url_scheme">com.tryfairfare.app</string>
+</resources>
