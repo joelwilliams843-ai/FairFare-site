@@ -1,0 +1,94 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name (e.g., 1.0.0)'
+        required: false
+        default: '1.0'
+      build_number:
+        description: 'Build number (integer)'
+        required: false
+        default: '1'
+
+jobs:
+  build:
+    name: Build iOS App
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install frontend dependencies
+      working-directory: frontend
+      run: yarn install
+    
+    - name: Build web app
+      working-directory: frontend
+      run: yarn build
+    
+    - name: Sync Capacitor to iOS
+      working-directory: frontend
+      run: npx cap sync ios
+    
+    - name: Install CocoaPods dependencies
+      working-directory: frontend/ios/App
+      run: pod install
+    
+    - name: Update version numbers
+      working-directory: frontend/ios/App
+      run: |
+        # Update version in project
+        /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ github.event.inputs.version_name }}" App/Info.plist
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ github.event.inputs.build_number }}" App/Info.plist
+        echo "Version set to ${{ github.event.inputs.version_name }} (${{ github.event.inputs.build_number }})"
+    
+    - name: Build iOS App (Unsigned)
+      working-directory: frontend/ios/App
+      run: |
+        xcodebuild -workspace App.xcworkspace \
+          -scheme App \
+          -sdk iphoneos \
+          -configuration Release \
+          -archivePath build/FairFare.xcarchive \
+          archive \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          | xcpretty
+    
+    - name: Create unsigned IPA
+      working-directory: frontend/ios/App
+      run: |
+        mkdir -p build/Payload
+        cp -r build/FairFare.xcarchive/Products/Applications/App.app build/Payload/
+        cd build
+        zip -r FairFare-unsigned.ipa Payload
+        ls -la FairFare-unsigned.ipa
+    
+    - name: Upload unsigned IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: fairfare-ios-unsigned
+        path: frontend/ios/App/build/FairFare-unsigned.ipa
+        retention-days: 90
+        if-no-files-found: error
+
+# Note: For App Store submission, you'll need to:
+# 1. Set up Apple Developer account
+# 2. Create signing certificate and provisioning profile
+# 3. Add secrets: APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD, APPLE_PROVISIONING_PROFILE_BASE64
+# 4. Use the signed build job below (uncomment and configure)
+
+#   build-signed:
+#     name: Build Signed iOS App
+#     runs-on: macos-latest
+#     steps:
+#     ... (similar steps with code signing)
