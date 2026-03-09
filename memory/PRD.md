@@ -83,11 +83,17 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - ✅ localStorage persistence
 - ✅ Price drop notifications
 
-### iOS Native Build (COMPLETED)
-- ✅ Capacitor 6 configured
-- ✅ Bundle ID: `com.fairfare.app`
-- ✅ iOS-specific settings configured
-- ✅ Splash screen and status bar setup
+### iOS Native Build (COMPLETED - March 2025)
+- ✅ Capacitor 5 configured (`@capacitor/ios@5.7.8`)
+- ✅ Bundle ID: `com.tryfairfare.app`
+- ✅ iOS-specific Info.plist configurations:
+  - Location permissions configured
+  - URL scheme `fairfare://` for deep linking
+  - `LSApplicationQueriesSchemes` for Uber/Lyft app detection
+  - App Transport Security configured
+- ✅ App icon updated with FairFare logo (1024x1024)
+- ✅ Splash screen with FairFare branding
+- ✅ GitHub Actions CI/CD workflow (`.github/workflows/build-ios.yml`)
 
 ### Android Native Build (COMPLETED)
 - ✅ Capacitor Android configured
