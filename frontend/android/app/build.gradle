@@ -21,21 +21,11 @@ android {
         }
     }
     
-    signingConfigs {
-        release {
-            storeFile file('../fairfare-release-v2.keystore')
-            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "placeholder"
-            keyAlias System.getenv("KEY_ALIAS") ?: "fairfare-release"
-            keyPassword System.getenv("KEY_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD") ?: "placeholder"
-        }
-    }
-    
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
     
