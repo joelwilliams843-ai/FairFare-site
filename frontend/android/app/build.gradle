@@ -17,9 +17,9 @@ android {
     
     signingConfigs {
         release {
-            storeFile file('../fairfare-release-v2.keystore')
+            storeFile file('../fairfare-upload.keystore')
             storePassword System.getenv("KEYSTORE_PASSWORD") ?: "placeholder"
-            keyAlias System.getenv("KEY_ALIAS") ?: "fairfare-release"
+            keyAlias System.getenv("KEY_ALIAS") ?: "fairfare-upload"
             keyPassword System.getenv("KEY_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD") ?: "placeholder"
         }
     }
