@@ -6,33 +6,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.5.0'
-        classpath 'com.google.gms:google-services:4.4.0'
-    }
-}
-
-ext {
-    minSdkVersion = 22
-    compileSdkVersion = 35
-    targetSdkVersion = 35
-    androidxActivityVersion = '1.8.0'
-    androidxAppCompatVersion = '1.6.1'
-    androidxCoordinatorLayoutVersion = '1.2.0'
-    androidxCoreVersion = '1.12.0'
-    androidxFragmentVersion = '1.6.2'
-    coreSplashScreenVersion = '1.0.1'
-    androidxWebkitVersion = '1.9.0'
-    junitVersion = '4.13.2'
-    androidxJunitVersion = '1.1.5'
-    androidxEspressoCoreVersion = '3.5.1'
-    cordovaAndroidVersion = '10.1.1'
-    kotlin_version = '1.9.10'
-}
-
-// Propagate ext properties to all subprojects immediately
-subprojects {
-    afterEvaluate { project ->
-        // Ensure ext properties are accessible
+        classpath 'com.android.tools.build:gradle:8.0.0'
+        classpath 'com.google.gms:google-services:4.3.15'
     }
 }
 
@@ -40,24 +15,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-    }
-    
-    // Make ext properties available as project properties
-    ext {
-        androidxActivityVersion = rootProject.ext.androidxActivityVersion
-        androidxAppCompatVersion = rootProject.ext.androidxAppCompatVersion
-        androidxCoordinatorLayoutVersion = rootProject.ext.androidxCoordinatorLayoutVersion
-        androidxCoreVersion = rootProject.ext.androidxCoreVersion
-        androidxFragmentVersion = rootProject.ext.androidxFragmentVersion
-        androidxWebkitVersion = rootProject.ext.androidxWebkitVersion
-        junitVersion = rootProject.ext.junitVersion
-        androidxJunitVersion = rootProject.ext.androidxJunitVersion
-        androidxEspressoCoreVersion = rootProject.ext.androidxEspressoCoreVersion
-        cordovaAndroidVersion = rootProject.ext.cordovaAndroidVersion
-        kotlin_version = rootProject.ext.kotlin_version
-        minSdkVersion = rootProject.ext.minSdkVersion
-        compileSdkVersion = rootProject.ext.compileSdkVersion
-        targetSdkVersion = rootProject.ext.targetSdkVersion
     }
 }
 
