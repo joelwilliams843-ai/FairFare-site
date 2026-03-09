@@ -1,2 +1,0 @@
-// Variables are now defined in build.gradle
-// This file is kept for compatibility but all ext properties are set in the root build.gradle
