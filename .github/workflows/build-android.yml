@@ -185,9 +185,21 @@ jobs:
         EOF
         echo "Cordova files fixed!"
     
-    - name: Verify keystore exists
+    - name: Decode keystore from secret
       working-directory: frontend/android
-      run: ls -la fairfare-release-v2.keystore
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      run: |
+        if [ -n "$KEYSTORE_BASE64" ]; then
+          echo "$KEYSTORE_BASE64" | base64 --decode > fairfare-release-v2.keystore
+          echo "Keystore decoded from secret"
+          ls -la fairfare-release-v2.keystore
+        else
+          echo "ERROR: KEYSTORE_BASE64 secret is not set!"
+          echo "Please add your keystore as a base64-encoded GitHub secret."
+          echo "To create it, run: base64 -i your-keystore.keystore | pbcopy"
+          exit 1
+        fi
     
     - name: Make gradlew executable
       working-directory: frontend/android
