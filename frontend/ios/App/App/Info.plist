@@ -45,5 +45,42 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	
+	<!-- Location permissions (for future feature) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>FairFare uses your location to find rides near you and provide accurate pickup addresses.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>FairFare uses your location to find rides near you and provide accurate pickup addresses.</string>
+	
+	<!-- URL Schemes for deep linking -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.tryfairfare.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fairfare</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- Allow opening Uber and Lyft apps -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>uber</string>
+		<string>lyft</string>
+	</array>
+	
+	<!-- App Transport Security -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	
+	<!-- Status bar style -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
 </dict>
 </plist>
