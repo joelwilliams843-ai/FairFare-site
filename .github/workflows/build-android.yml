@@ -67,9 +67,10 @@ jobs:
             junitVersion = '4.13.2'
             androidxJunitVersion = '1.1.5'
             androidxEspressoCoreVersion = '3.5.1'
+            cordovaAndroidVersion = '10.1.1'
+            kotlin_version = '1.8.20'
         }
         buildscript {
-            ext.kotlin_version = '1.8.20'
             repositories {
                 google()
                 mavenCentral()
@@ -109,6 +110,7 @@ jobs:
         }
         dependencies {
             implementation fileTree(dir: 'libs', include: ['*.jar'])
+            implementation platform("org.jetbrains.kotlin:kotlin-bom:$kotlin_version")
             implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
             implementation "androidx.core:core:$androidxCoreVersion"
             implementation "androidx.activity:activity:$androidxActivityVersion"
@@ -118,27 +120,80 @@ jobs:
             testImplementation "junit:junit:$junitVersion"
             androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
             androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
-            implementation 'com.google.code.gson:gson:2.10.1'
+            implementation "org.apache.cordova:framework:$cordovaAndroidVersion"
         }
         EOF
-        echo "Capacitor Android patched!"
+        echo "Capacitor Android patched with cordova dependency!"
     
-    - name: Remove Cordova module and fix gradle files
+    - name: Fix cordova plugin files after cap sync
       working-directory: frontend/android
       run: |
-        echo "Removing capacitor-cordova-android-plugins..."
-        rm -rf capacitor-cordova-android-plugins
-        
-        echo "Fixing settings.gradle..."
-        cat > settings.gradle << 'EOF'
-        include ':app'
-        apply from: 'capacitor.settings.gradle'
+        echo "Fixing cordova.variables.gradle..."
+        cat > capacitor-cordova-android-plugins/cordova.variables.gradle << 'EOF'
+        ext {
+          cdvMinSdkVersion = 22
+          cdvPluginPostBuildExtras = []
+          cordovaConfig = [:]
+        }
         EOF
         
-        echo "Fixing app/build.gradle..."
+        echo "Fixing capacitor-cordova-android-plugins/build.gradle..."
+        cat > capacitor-cordova-android-plugins/build.gradle << 'EOF'
+        ext {
+            androidxAppCompatVersion = '1.6.1'
+            cordovaAndroidVersion = '10.1.1'
+        }
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.0.0'
+            }
+        }
+        apply plugin: 'com.android.library'
+        android {
+            namespace "capacitor.cordova.android.plugins"
+            compileSdk 33
+            defaultConfig {
+                minSdkVersion 22
+                targetSdkVersion 33
+                versionCode 1
+                versionName "1.0"
+            }
+            lintOptions {
+                abortOnError false
+            }
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+        repositories {
+            google()
+            mavenCentral()
+            flatDir{
+                dirs 'src/main/libs', 'libs'
+            }
+        }
+        dependencies {
+            implementation fileTree(dir: 'src/main/libs', include: ['*.jar'])
+            implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+            implementation "org.apache.cordova:framework:$cordovaAndroidVersion"
+        }
+        apply from: "cordova.variables.gradle"
+        for (def func : cdvPluginPostBuildExtras) {
+            func()
+        }
+        EOF
+        echo "Cordova plugin files fixed!"
+    
+    - name: Fix app build.gradle
+      working-directory: frontend/android
+      run: |
         cat > app/build.gradle << 'EOF'
         apply plugin: 'com.android.application'
-        
         android {
             namespace "com.tryfairfare.app"
             compileSdkVersion rootProject.ext.compileSdkVersion
@@ -172,7 +227,7 @@ jobs:
         }
         repositories {
             flatDir{
-                dirs 'libs'
+                dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
             }
         }
         dependencies {
@@ -184,6 +239,7 @@ jobs:
             testImplementation "junit:junit:$junitVersion"
             androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
             androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+            implementation project(':capacitor-cordova-android-plugins')
         }
         apply from: 'capacitor.build.gradle'
         try {
@@ -195,28 +251,7 @@ jobs:
             logger.info("google-services.json not found")
         }
         EOF
-        
-        echo "Fixing capacitor.build.gradle to remove cordova reference..."
-        cat > app/capacitor.build.gradle << 'EOF'
-        // DO NOT EDIT THIS FILE! IT IS GENERATED EACH TIME "capacitor update" IS RUN
-        android {
-          compileOptions {
-              sourceCompatibility JavaVersion.VERSION_17
-              targetCompatibility JavaVersion.VERSION_17
-          }
-        }
-        dependencies {
-            implementation project(':capacitor-app')
-            implementation project(':capacitor-browser')
-            implementation project(':capacitor-splash-screen')
-            implementation project(':capacitor-status-bar')
-        }
-        if (hasProperty('postBuildExtras')) {
-          postBuildExtras()
-        }
-        EOF
-        
-        echo "All cordova references removed!"
+        echo "app/build.gradle fixed!"
     
     - name: Decode keystore from secret
       working-directory: frontend/android
