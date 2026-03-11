@@ -95,14 +95,15 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - ✅ Splash screen with FairFare branding
 - ✅ GitHub Actions CI/CD workflow (`.github/workflows/build-ios.yml`)
 
-### Android Native Build (COMPLETED)
-- ✅ Capacitor Android configured
+### Android Native Build (COMPLETED - March 2025)
+- ✅ Capacitor Android configured (`@capacitor/android@5.7.8`)
 - ✅ Package ID: `com.tryfairfare.app`
 - ✅ Dark splash screen (#0A1628)
-- ✅ targetSdkVersion: 35
-- ✅ compileSdkVersion: 35
-- ✅ Signed release keystore ready
-- ✅ GitHub Actions CI/CD workflow
+- ✅ targetSdkVersion: 33
+- ✅ compileSdkVersion: 33
+- ✅ Signed release keystore ready (`fairfare-upload.keystore`)
+- ✅ GitHub Actions CI/CD workflow (`.github/workflows/build-android.yml`)
+- ✅ Android build successful (waiting 2 days for Google Play key update cooldown)
 
 ### Legal Pages (COMPLETED)
 - ✅ Privacy Policy at /privacy
