@@ -43,10 +43,17 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
+    - name: Install Android SDK 34
+      run: |
+        sdkmanager --install "platforms;android-34" "build-tools;34.0.0"
+        sdkmanager --list | grep -E "android-34|build-tools"
+    
     - name: Clear Gradle caches
       run: |
         rm -rf ~/.gradle/caches/
+        rm -rf ~/.gradle/wrapper/
         rm -rf frontend/android/.gradle/
+        rm -rf frontend/android/app/build/
     
     - name: Sync Capacitor to Android
       working-directory: frontend
