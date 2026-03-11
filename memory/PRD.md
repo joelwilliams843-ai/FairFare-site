@@ -99,11 +99,11 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - ✅ Capacitor Android configured (`@capacitor/android@5.7.8`)
 - ✅ Package ID: `com.tryfairfare.app`
 - ✅ Dark splash screen (#0A1628)
-- ✅ targetSdkVersion: 33
-- ✅ compileSdkVersion: 33
+- ✅ targetSdkVersion: 35 (Google Play requirement)
+- ✅ compileSdkVersion: 35
 - ✅ Signed release keystore ready (`fairfare-upload.keystore`)
 - ✅ GitHub Actions CI/CD workflow (`.github/workflows/build-android.yml`)
-- ✅ Android build successful (waiting 2 days for Google Play key update cooldown)
+- ✅ Current version: 1.0.11 (versionCode 11)
 
 ### Legal Pages (COMPLETED)
 - ✅ Privacy Policy at /privacy
