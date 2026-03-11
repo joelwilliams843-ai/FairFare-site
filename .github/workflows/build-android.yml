@@ -43,10 +43,10 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    - name: Install Android SDK 34
+    - name: Install Android SDK 35
       run: |
-        sdkmanager --install "platforms;android-34" "build-tools;34.0.0"
-        sdkmanager --list | grep -E "android-34|build-tools"
+        sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+        sdkmanager --list | grep -E "android-35|build-tools"
     
     - name: Clear Gradle caches
       run: |
@@ -78,13 +78,13 @@ jobs:
         echo '}' >> node_modules/@capacitor/android/capacitor/build.gradle
         echo 'buildscript {' >> node_modules/@capacitor/android/capacitor/build.gradle
         echo '    repositories { google(); mavenCentral() }' >> node_modules/@capacitor/android/capacitor/build.gradle
-        echo '    dependencies { classpath "com.android.tools.build:gradle:8.0.0" }' >> node_modules/@capacitor/android/capacitor/build.gradle
+        echo '    dependencies { classpath "com.android.tools.build:gradle:8.2.2" }' >> node_modules/@capacitor/android/capacitor/build.gradle
         echo '}' >> node_modules/@capacitor/android/capacitor/build.gradle
         echo 'apply plugin: "com.android.library"' >> node_modules/@capacitor/android/capacitor/build.gradle
         echo 'android {' >> node_modules/@capacitor/android/capacitor/build.gradle
         echo '    namespace "com.getcapacitor.android"' >> node_modules/@capacitor/android/capacitor/build.gradle
-        echo '    compileSdk 34' >> node_modules/@capacitor/android/capacitor/build.gradle
-        echo '    defaultConfig { minSdkVersion 22; targetSdkVersion 34; versionCode 1; versionName "1.0"; consumerProguardFiles "proguard-rules.pro" }' >> node_modules/@capacitor/android/capacitor/build.gradle
+        echo '    compileSdk 35' >> node_modules/@capacitor/android/capacitor/build.gradle
+        echo '    defaultConfig { minSdkVersion 22; targetSdkVersion 35; versionCode 1; versionName "1.0"; consumerProguardFiles "proguard-rules.pro" }' >> node_modules/@capacitor/android/capacitor/build.gradle
         echo '    buildTypes { release { minifyEnabled false; proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro" } }' >> node_modules/@capacitor/android/capacitor/build.gradle
         echo '    lintOptions { abortOnError false }' >> node_modules/@capacitor/android/capacitor/build.gradle
         echo '    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }' >> node_modules/@capacitor/android/capacitor/build.gradle
@@ -112,9 +112,9 @@ jobs:
         
         # Patch capacitor-cordova-android-plugins/build.gradle
         echo 'ext { androidxAppCompatVersion = "1.6.1"; cordovaAndroidVersion = "10.1.1" }' > android/capacitor-cordova-android-plugins/build.gradle
-        echo 'buildscript { repositories { google(); mavenCentral() }; dependencies { classpath "com.android.tools.build:gradle:8.0.0" } }' >> android/capacitor-cordova-android-plugins/build.gradle
+        echo 'buildscript { repositories { google(); mavenCentral() }; dependencies { classpath "com.android.tools.build:gradle:8.2.2" } }' >> android/capacitor-cordova-android-plugins/build.gradle
         echo 'apply plugin: "com.android.library"' >> android/capacitor-cordova-android-plugins/build.gradle
-        echo 'android { namespace "capacitor.cordova.android.plugins"; compileSdk 34; defaultConfig { minSdkVersion 22; targetSdkVersion 34 }; lintOptions { abortOnError false }; compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 } }' >> android/capacitor-cordova-android-plugins/build.gradle
+        echo 'android { namespace "capacitor.cordova.android.plugins"; compileSdk 35; defaultConfig { minSdkVersion 22; targetSdkVersion 35 }; lintOptions { abortOnError false }; compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 } }' >> android/capacitor-cordova-android-plugins/build.gradle
         echo 'repositories { google(); mavenCentral(); flatDir { dirs "src/main/libs", "libs" } }' >> android/capacitor-cordova-android-plugins/build.gradle
         echo 'dependencies { implementation fileTree(dir: "src/main/libs", include: ["*.jar"]); implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"; implementation "org.apache.cordova:framework:$cordovaAndroidVersion" }' >> android/capacitor-cordova-android-plugins/build.gradle
         echo 'apply from: "cordova.variables.gradle"' >> android/capacitor-cordova-android-plugins/build.gradle
