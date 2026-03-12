@@ -2861,10 +2861,10 @@ I'll text you when the driver is assigned.`);
             <button
               data-testid="compare-btn"
               onClick={compareRides}
-              disabled={loading || !canCompare()}
-              className="compare-button"
+              disabled={loading || !canAttemptCompare()}
+              className={`compare-button ${canAttemptCompare() && !canCompare() ? 'will-geocode' : ''}`}
             >
-              {loading ? "Finding fares..." : canCompare() ? "Find My Fare" : getValidationMessage()}
+              {loading ? "Finding fares..." : canCompare() ? "Find My Fare" : canAttemptCompare() ? "Find My Fare" : getValidationMessage()}
             </button>
 
             {pickup && destination && !savedRoute && (
