@@ -179,32 +179,50 @@ function App() {
   // Auto-geocode addresses that don't have coordinates (handles app updates with cached data)
   useEffect(() => {
     const geocodeIfNeeded = async () => {
+      let pickupGeocoded = false;
+      let destGeocoded = false;
+      
       // Auto-geocode pickup if we have text but no coordinates
       if (pickup && pickup.length >= 5 && !pickupCoords?.lat) {
         console.log('[FairFare] Auto-geocoding pickup:', pickup);
-        const coords = await autoGeocode(pickup);
-        if (coords) {
-          setPickupCoords({ lat: coords.lat, lng: coords.lng });
-          console.log('[FairFare] Pickup geocoded:', coords);
+        try {
+          const coords = await autoGeocode(pickup);
+          if (coords) {
+            setPickupCoords({ lat: coords.lat, lng: coords.lng });
+            console.log('[FairFare] Pickup geocoded:', coords);
+            pickupGeocoded = true;
+          }
+        } catch (err) {
+          console.warn('[FairFare] Pickup geocode failed:', err.message);
         }
       }
       
       // Auto-geocode destination if we have text but no coordinates
       if (destination && destination.length >= 5 && !destCoords?.lat) {
         console.log('[FairFare] Auto-geocoding destination:', destination);
-        const coords = await autoGeocode(destination);
-        if (coords) {
-          setDestCoords({ lat: coords.lat, lng: coords.lng });
-          console.log('[FairFare] Destination geocoded:', coords);
+        try {
+          const coords = await autoGeocode(destination);
+          if (coords) {
+            setDestCoords({ lat: coords.lat, lng: coords.lng });
+            console.log('[FairFare] Destination geocoded:', coords);
+            destGeocoded = true;
+          }
+        } catch (err) {
+          console.warn('[FairFare] Destination geocode failed:', err.message);
         }
+      }
+      
+      // Log status for debugging
+      if (pickupGeocoded || destGeocoded) {
+        console.log('[FairFare] Auto-geocode completed:', { pickupGeocoded, destGeocoded });
       }
     };
     
-    // Debounce to avoid multiple geocode calls
-    const timer = setTimeout(geocodeIfNeeded, 500);
+    // Debounce to avoid multiple geocode calls - longer delay for stability
+    const timer = setTimeout(geocodeIfNeeded, 800);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickup, destination]);
+  }, [pickup, destination, pickupCoords?.lat, destCoords?.lat]);
 
   // Price check simulation for watched routes
   useEffect(() => {
