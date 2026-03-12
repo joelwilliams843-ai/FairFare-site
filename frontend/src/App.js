@@ -176,6 +176,36 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Auto-geocode addresses that don't have coordinates (handles app updates with cached data)
+  useEffect(() => {
+    const geocodeIfNeeded = async () => {
+      // Auto-geocode pickup if we have text but no coordinates
+      if (pickup && pickup.length >= 5 && !pickupCoords?.lat) {
+        console.log('[FairFare] Auto-geocoding pickup:', pickup);
+        const coords = await autoGeocode(pickup);
+        if (coords) {
+          setPickupCoords({ lat: coords.lat, lng: coords.lng });
+          console.log('[FairFare] Pickup geocoded:', coords);
+        }
+      }
+      
+      // Auto-geocode destination if we have text but no coordinates
+      if (destination && destination.length >= 5 && !destCoords?.lat) {
+        console.log('[FairFare] Auto-geocoding destination:', destination);
+        const coords = await autoGeocode(destination);
+        if (coords) {
+          setDestCoords({ lat: coords.lat, lng: coords.lng });
+          console.log('[FairFare] Destination geocoded:', coords);
+        }
+      }
+    };
+    
+    // Debounce to avoid multiple geocode calls
+    const timer = setTimeout(geocodeIfNeeded, 500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickup, destination]);
+
   // Price check simulation for watched routes
   useEffect(() => {
     if (watchedRoutes.length > 0) {
