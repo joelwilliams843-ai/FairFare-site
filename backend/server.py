@@ -396,6 +396,89 @@ class PlaceDetailsResponse(BaseModel):
     name: Optional[str] = None
     types: List[str] = []
 
+class ReverseGeocodeRequest(BaseModel):
+    latitude: float
+    longitude: float
+
+class ReverseGeocodeResponse(BaseModel):
+    formatted_address: str
+    place_id: Optional[str] = None
+    address_components: dict = {}
+
+@api_router.post("/places/reverse-geocode", response_model=ReverseGeocodeResponse)
+async def reverse_geocode(request: ReverseGeocodeRequest):
+    """Reverse geocode coordinates to get formatted address using Google Geocoding API"""
+    
+    if not GOOGLE_PLACES_API_KEY:
+        raise HTTPException(status_code=500, detail="Google Places API key not configured")
+    
+    try:
+        async with httpx.AsyncClient() as http_client:
+            response = await http_client.get(
+                "https://maps.googleapis.com/maps/api/geocode/json",
+                params={
+                    "latlng": f"{request.latitude},{request.longitude}",
+                    "key": GOOGLE_PLACES_API_KEY,
+                    "result_type": "street_address|premise|subpremise|route"
+                },
+                timeout=10.0
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Google Geocoding API error: {response.status_code} - {response.text}")
+                raise HTTPException(status_code=502, detail="Failed to reverse geocode")
+            
+            data = response.json()
+            
+            if data.get("status") != "OK" or not data.get("results"):
+                # Fallback: try without result_type filter
+                response = await http_client.get(
+                    "https://maps.googleapis.com/maps/api/geocode/json",
+                    params={
+                        "latlng": f"{request.latitude},{request.longitude}",
+                        "key": GOOGLE_PLACES_API_KEY
+                    },
+                    timeout=10.0
+                )
+                data = response.json()
+            
+            if data.get("status") == "OK" and data.get("results"):
+                result = data["results"][0]
+                
+                # Parse address components
+                components = {}
+                for comp in result.get("address_components", []):
+                    types = comp.get("types", [])
+                    if "street_number" in types:
+                        components["street_number"] = comp["long_name"]
+                    elif "route" in types:
+                        components["street"] = comp["long_name"]
+                    elif "locality" in types:
+                        components["city"] = comp["long_name"]
+                    elif "administrative_area_level_1" in types:
+                        components["state"] = comp["short_name"]
+                    elif "postal_code" in types:
+                        components["zip"] = comp["long_name"]
+                
+                return ReverseGeocodeResponse(
+                    formatted_address=result.get("formatted_address", ""),
+                    place_id=result.get("place_id"),
+                    address_components=components
+                )
+            
+            # If no results, return coordinates as fallback
+            return ReverseGeocodeResponse(
+                formatted_address=f"Location ({request.latitude:.4f}, {request.longitude:.4f})",
+                address_components={}
+            )
+            
+    except httpx.TimeoutException:
+        logger.error("Google Geocoding API timeout")
+        raise HTTPException(status_code=504, detail="Geocoding request timed out")
+    except Exception as e:
+        logger.error(f"Reverse geocode error: {e}")
+        raise HTTPException(status_code=500, detail="Error during reverse geocoding")
+
 @api_router.post("/places/autocomplete", response_model=PlacesAutocompleteResponse)
 async def places_autocomplete(request: PlacesAutocompleteRequest):
     """Google Places Autocomplete for address search"""
