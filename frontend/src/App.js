@@ -1158,24 +1158,26 @@ function App() {
     }
   };
 
-  // Geocode an address to get coordinates
+  // Geocode an address to get coordinates (using Google Geocoding API)
   const geocodeAddress = async (address) => {
     try {
-      const response = await axios.get(`${NOMINATIM_BASE}/search`, {
-        params: {
-          q: address,
-          format: 'json',
-          limit: 1
-        },
-        headers: {
-          'User-Agent': 'FairFare/1.0'
-        }
+      const requestBody = { address };
+      
+      // Add location bias if available
+      if (userLocation.current?.lat && userLocation.current?.lng) {
+        requestBody.location_lat = userLocation.current.lat;
+        requestBody.location_lng = userLocation.current.lng;
+      }
+      
+      const response = await axios.post(`${API}/places/geocode`, requestBody, {
+        timeout: 10000
       });
       
-      if (response.data && response.data.length > 0) {
+      if (response.data) {
         return {
-          lat: parseFloat(response.data[0].lat),
-          lng: parseFloat(response.data[0].lon)
+          lat: response.data.latitude,
+          lng: response.data.longitude,
+          formatted_address: response.data.formatted_address
         };
       }
       return null;
