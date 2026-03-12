@@ -1709,12 +1709,34 @@ function App() {
     toast.success("Weekend Ride saved!");
   };
 
-  const loadWeekendRide = () => {
+  const loadWeekendRide = async () => {
     if (savedRoute) {
       setPickup(savedRoute.pickup);
       setDestination(savedRoute.destination);
-      setPickupCoords(savedRoute.pickupCoords);
-      setDestCoords(savedRoute.destCoords);
+      
+      // If we have saved coordinates, use them
+      if (savedRoute.pickupCoords?.lat && savedRoute.pickupCoords?.lng) {
+        setPickupCoords(savedRoute.pickupCoords);
+      } else if (savedRoute.pickup) {
+        // Auto-geocode if no coords saved
+        toast.info("Getting pickup coordinates...");
+        const coords = await autoGeocode(savedRoute.pickup);
+        if (coords) {
+          setPickupCoords({ lat: coords.lat, lng: coords.lng });
+        }
+      }
+      
+      if (savedRoute.destCoords?.lat && savedRoute.destCoords?.lng) {
+        setDestCoords(savedRoute.destCoords);
+      } else if (savedRoute.destination) {
+        // Auto-geocode if no coords saved
+        toast.info("Getting destination coordinates...");
+        const coords = await autoGeocode(savedRoute.destination);
+        if (coords) {
+          setDestCoords({ lat: coords.lat, lng: coords.lng });
+        }
+      }
+      
       toast.success("Weekend Ride loaded!");
     }
   };
