@@ -479,6 +479,70 @@ async def reverse_geocode(request: ReverseGeocodeRequest):
         logger.error(f"Reverse geocode error: {e}")
         raise HTTPException(status_code=500, detail="Error during reverse geocoding")
 
+class ForwardGeocodeRequest(BaseModel):
+    address: str
+    location_lat: Optional[float] = None
+    location_lng: Optional[float] = None
+
+class ForwardGeocodeResponse(BaseModel):
+    latitude: float
+    longitude: float
+    formatted_address: str
+    place_id: Optional[str] = None
+
+@api_router.post("/places/geocode", response_model=ForwardGeocodeResponse)
+async def forward_geocode(request: ForwardGeocodeRequest):
+    """Forward geocode address to coordinates using Google Geocoding API"""
+    
+    if not GOOGLE_PLACES_API_KEY:
+        raise HTTPException(status_code=500, detail="Google Places API key not configured")
+    
+    try:
+        params = {
+            "address": request.address,
+            "key": GOOGLE_PLACES_API_KEY,
+            "region": "us"
+        }
+        
+        # Add location bias if provided
+        if request.location_lat and request.location_lng:
+            params["bounds"] = f"{request.location_lat - 0.5},{request.location_lng - 0.5}|{request.location_lat + 0.5},{request.location_lng + 0.5}"
+        
+        async with httpx.AsyncClient() as http_client:
+            response = await http_client.get(
+                "https://maps.googleapis.com/maps/api/geocode/json",
+                params=params,
+                timeout=10.0
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Google Geocoding API error: {response.status_code}")
+                raise HTTPException(status_code=502, detail="Failed to geocode address")
+            
+            data = response.json()
+            
+            if data.get("status") == "OK" and data.get("results"):
+                result = data["results"][0]
+                location = result["geometry"]["location"]
+                
+                return ForwardGeocodeResponse(
+                    latitude=location["lat"],
+                    longitude=location["lng"],
+                    formatted_address=result.get("formatted_address", request.address),
+                    place_id=result.get("place_id")
+                )
+            
+            raise HTTPException(status_code=404, detail="Address not found")
+            
+    except httpx.TimeoutException:
+        logger.error("Google Geocoding API timeout")
+        raise HTTPException(status_code=504, detail="Geocoding request timed out")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Forward geocode error: {e}")
+        raise HTTPException(status_code=500, detail="Error during geocoding")
+
 @api_router.post("/places/autocomplete", response_model=PlacesAutocompleteResponse)
 async def places_autocomplete(request: PlacesAutocompleteRequest):
     """Google Places Autocomplete for address search"""
