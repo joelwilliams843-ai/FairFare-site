@@ -815,59 +815,21 @@ function App() {
   // Reverse geocode coordinates to address with better formatting
   const reverseGeocode = async (lat, lng) => {
     try {
-      const response = await axios.get(`${NOMINATIM_BASE}/reverse`, {
-        params: {
-          lat,
-          lon: lng,
-          format: 'json',
-          addressdetails: 1
-        },
-        headers: {
-          'User-Agent': 'FairFare/1.0'
-        }
+      // Use Google Geocoding API via backend for accurate addresses
+      const response = await axios.post(`${API}/places/reverse-geocode`, {
+        latitude: lat,
+        longitude: lng
+      }, {
+        timeout: 10000
       });
       
-      if (response.data && response.data.address) {
-        const addr = response.data.address;
-        
-        // Extract components (excluding county, district, region)
-        const houseNumber = addr.house_number || '';
-        const street = addr.road || addr.street || '';
-        const city = addr.city || addr.town || addr.village || 
-                     (addr.suburb && !addr.suburb.includes('County') ? addr.suburb : '') || 
-                     addr.neighbourhood || '';
-        const state = addr.state ? getStateAbbreviation(addr.state) : '';
-        const postalCode = addr.postcode || '';
-        
-        // Build street line
-        let streetLine = '';
-        if (houseNumber && street) {
-          streetLine = `${houseNumber} ${street}`;
-        } else if (street) {
-          streetLine = street;
-        }
-        
-        // Build location line (City, ST ZIP)
-        let locationLine = '';
-        if (city && state && postalCode) {
-          locationLine = `${city}, ${state} ${postalCode}`;
-        } else if (city && state) {
-          locationLine = `${city}, ${state}`;
-        } else if (city) {
-          locationLine = city;
-        }
-        
-        // Combine for single-line format: Street, City, ST ZIP
-        let formattedAddress = streetLine;
-        if (locationLine) {
-          formattedAddress += formattedAddress ? `, ${locationLine}` : locationLine;
-        }
-        
-        return formattedAddress || `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      if (response.data && response.data.formatted_address) {
+        return response.data.formatted_address;
       }
       return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
     } catch (error) {
       console.error("[FairFare] Reverse geocoding error:", error);
+      // Fallback to coordinates display
       return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
     }
   };
