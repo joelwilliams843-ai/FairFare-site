@@ -11,9 +11,6 @@ import { App as CapacitorApp } from '@capacitor/app';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Nominatim API (OpenStreetMap) - Free, no API key
-const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
-
 function App() {
   const [view, setView] = useState("input");
   const [showSplash, setShowSplash] = useState(true);
