@@ -351,11 +351,31 @@ function App() {
   };
 
   // Load watched route for comparison
-  const loadWatchedRoute = (route) => {
+  const loadWatchedRoute = async (route) => {
     setPickup(route.pickup);
     setDestination(route.destination);
-    setPickupCoords(route.pickupCoords);
-    setDestCoords(route.destCoords);
+    
+    // If we have saved coordinates, use them
+    if (route.pickupCoords?.lat && route.pickupCoords?.lng) {
+      setPickupCoords(route.pickupCoords);
+    } else if (route.pickup) {
+      // Auto-geocode if no coords saved
+      const coords = await autoGeocode(route.pickup);
+      if (coords) {
+        setPickupCoords({ lat: coords.lat, lng: coords.lng });
+      }
+    }
+    
+    if (route.destCoords?.lat && route.destCoords?.lng) {
+      setDestCoords(route.destCoords);
+    } else if (route.destination) {
+      // Auto-geocode if no coords saved
+      const coords = await autoGeocode(route.destination);
+      if (coords) {
+        setDestCoords({ lat: coords.lat, lng: coords.lng });
+      }
+    }
+    
     setView('input');
     toast.info('Route loaded! Tap "Find My Fare" to compare.');
   };
