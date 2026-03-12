@@ -1019,8 +1019,14 @@ function App() {
     } catch (error) {
       console.error("[FairFare] Google Places search error:", {
         query,
-        error: error.message
+        error: error.message,
+        code: error.code
       });
+      
+      // Show user-friendly message on network errors
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout') || error.message?.includes('Network')) {
+        toast.error("Unable to search addresses. Check your connection.", { duration: 3000 });
+      }
       
       // Fallback: Show airport matches on error
       if (airportSuggestions.length > 0) {
