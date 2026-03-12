@@ -1268,21 +1268,31 @@ function App() {
 
   // Check if we have valid coordinates for comparison
   const canCompare = () => {
-    // Require verified coordinates (from selecting a suggestion)
+    // Allow comparison if we have addresses (coords will be auto-geocoded)
+    const hasPickupText = pickup && pickup.length >= 5;
+    const hasDestText = destination && destination.length >= 5;
     const hasPickupCoords = pickupCoords?.lat && pickupCoords?.lng;
     const hasDestCoords = destCoords?.lat && destCoords?.lng;
     
-    return pickup && pickup.length >= 3 && destination && destination.length >= 3 && hasPickupCoords && hasDestCoords;
+    // Can compare if: both addresses filled AND both have coords
+    // OR both addresses are long enough (will auto-geocode on submit)
+    return (hasPickupText && hasDestText) && (hasPickupCoords && hasDestCoords);
+  };
+  
+  // Check if we can attempt comparison (addresses exist, will geocode if needed)
+  const canAttemptCompare = () => {
+    const hasPickupText = pickup && pickup.length >= 5;
+    const hasDestText = destination && destination.length >= 5;
+    return hasPickupText && hasDestText;
   };
 
   // Get validation message for the compare button
   const getValidationMessage = () => {
     if (!pickup) return "Enter pickup location";
     if (!destination) return "Enter destination";
-    if (pickup.length < 3) return "Enter more details for pickup";
-    if (destination.length < 3) return "Enter more details for destination";
-    if (!pickupCoords?.lat) return "Select pickup from suggestions";
-    if (!destCoords?.lat) return "Select destination from suggestions";
+    if (pickup.length < 5) return "Enter full pickup address";
+    if (destination.length < 5) return "Enter full destination";
+    if (!pickupCoords?.lat || !destCoords?.lat) return "Finding locations...";
     return null;
   };
 
