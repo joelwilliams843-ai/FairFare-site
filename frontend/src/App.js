@@ -3357,9 +3357,9 @@ I'll text you when the driver is assigned.`);
                   <div className="route-meta">
                     <span className="last-checked">
                       <Clock size={12} />
-                      Checked {getTimeAgo(route.lastChecked)}
+                      {route.lastChecked ? `Checked ${getTimeAgo(route.lastChecked)}` : 'Not checked yet'}
                     </span>
-                    <span className="best-provider">Best: {route.bestProvider}</span>
+                    <span className="best-provider">{route.bestProvider ? `Best: ${route.bestProvider}` : ''}</span>
                   </div>
                   <div className="route-actions">
                     <button 
