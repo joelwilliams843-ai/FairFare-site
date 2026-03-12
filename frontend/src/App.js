@@ -3348,9 +3348,9 @@ I'll text you when the driver is assigned.`);
                       </p>
                     </div>
                     <div className="route-price-info">
-                      <span className="current-price">${route.currentPrice.toFixed(2)}</span>
+                      <span className="current-price">${route.currentPrice?.toFixed(2) || '--'}</span>
                       <span className={`price-change ${route.percentChange < 0 ? 'down' : route.percentChange > 0 ? 'up' : ''}`}>
-                        {route.percentChange > 0 ? '+' : ''}{route.percentChange}%
+                        {route.percentChange !== undefined ? (route.percentChange > 0 ? '+' : '') + route.percentChange + '%' : ''}
                       </span>
                     </div>
                   </div>
