@@ -1011,11 +1011,12 @@ function App() {
         locationLine: suggestion.secondary_text,
         placeName: suggestion.types.includes('establishment') ? suggestion.main_text : null,
         businessName: suggestion.types.includes('establishment') ? suggestion.main_text : null,
-        lat: null, // Will be fetched when selected
-        lon: null,
+        lat: suggestion.latitude || null,
+        lon: suggestion.longitude || null,
         isPOI: suggestion.types.includes('establishment') || suggestion.types.includes('point_of_interest'),
         isVerified: true, // Google Places results are verified
-        types: suggestion.types
+        types: suggestion.types,
+        distance_miles: suggestion.distance_miles || null
       }));
 
       // Cache the results
