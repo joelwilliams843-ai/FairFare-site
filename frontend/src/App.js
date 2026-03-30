@@ -1107,6 +1107,7 @@ function App() {
         
         setPickupCoords({ lat, lng });
         setDetectedCoords({ lat, lng });
+        userLocation.current = { lat, lng }; // Set immediately for search biasing
         
         const address = await reverseGeocode(lat, lng);
         setPickup(address);
@@ -1122,6 +1123,7 @@ function App() {
             const lng = position.coords.longitude;
             setPickupCoords({ lat, lng });
             setDetectedCoords({ lat, lng });
+            userLocation.current = { lat, lng }; // Set immediately for search biasing
             
             const address = await reverseGeocode(lat, lng);
             setPickup(address);
