@@ -592,6 +592,11 @@ async def places_autocomplete(request: PlacesAutocompleteRequest):
                 "radius": 16000.0  # 16km radius (~10 miles) - prioritizes local but doesn't exclude
             }
         }
+        # Add origin for distance calculation
+        payload["origin"] = {
+            "latitude": request.location_lat,
+            "longitude": request.location_lng
+        }
     
     try:
         async with httpx.AsyncClient() as http_client:
