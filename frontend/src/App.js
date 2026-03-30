@@ -1058,31 +1058,74 @@ function App() {
   };
 
   const detectLocation = async () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          setPickupCoords({ lat, lng });
-          setDetectedCoords({ lat, lng }); // Store original GPS coords
-          
-          // Reverse geocode to get address
-          const address = await reverseGeocode(lat, lng);
-          setPickup(address);
-          
-          // Show banner and auto-hide after 3 seconds
-          setShowLocationBanner(true);
-          setTimeout(() => {
-            setShowLocationBanner(false);
-          }, 3000);
-        },
-        (error) => {
-          // Silently fail on initial load
-          if (error.code !== error.PERMISSION_DENIED) {
-            console.log("Geolocation not available, manual entry enabled");
+    // Use Capacitor Geolocation on native, fallback to browser API on web
+    const isNative = Capacitor.isNativePlatform();
+    
+    try {
+      if (isNative) {
+        // Request permission explicitly on native
+        const permStatus = await Geolocation.checkPermissions();
+        console.log('[FairFare] Location permission status:', permStatus);
+        
+        if (permStatus.location === 'prompt' || permStatus.location === 'prompt-with-rationale') {
+          const requested = await Geolocation.requestPermissions();
+          console.log('[FairFare] Permission requested result:', requested);
+          if (requested.location !== 'granted') {
+            toast.error("Location permission required to detect your pickup", { duration: 4000 });
+            return;
           }
+        } else if (permStatus.location === 'denied') {
+          toast.error("Location permission denied. Please enable in Settings.", { duration: 4000 });
+          return;
         }
-      );
+        
+        // Get position using Capacitor
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000
+        });
+        
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        console.log('[FairFare] Got native location:', { lat, lng });
+        
+        setPickupCoords({ lat, lng });
+        setDetectedCoords({ lat, lng });
+        
+        const address = await reverseGeocode(lat, lng);
+        setPickup(address);
+        
+        setShowLocationBanner(true);
+        setTimeout(() => setShowLocationBanner(false), 3000);
+        
+      } else if (navigator.geolocation) {
+        // Web browser fallback
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            setPickupCoords({ lat, lng });
+            setDetectedCoords({ lat, lng });
+            
+            const address = await reverseGeocode(lat, lng);
+            setPickup(address);
+            
+            setShowLocationBanner(true);
+            setTimeout(() => setShowLocationBanner(false), 3000);
+          },
+          (error) => {
+            if (error.code === error.PERMISSION_DENIED) {
+              toast.error("Location permission denied", { duration: 3000 });
+            } else {
+              console.log("Geolocation not available, manual entry enabled");
+            }
+          },
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      }
+    } catch (error) {
+      console.error('[FairFare] Location detection error:', error);
+      toast.error("Could not detect location. Please enter address manually.", { duration: 3000 });
     }
   };
 
