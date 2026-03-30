@@ -1004,20 +1004,35 @@ function App() {
         sessionToken.current = response.data.session_token;
       }
 
-      const suggestions = response.data.suggestions.map(suggestion => ({
-        place_id: suggestion.place_id,
-        display_name: suggestion.full_address,
-        streetLine: suggestion.main_text,
-        locationLine: suggestion.secondary_text,
-        placeName: suggestion.types.includes('establishment') ? suggestion.main_text : null,
-        businessName: suggestion.types.includes('establishment') ? suggestion.main_text : null,
-        lat: suggestion.latitude || null,
-        lon: suggestion.longitude || null,
-        isPOI: suggestion.types.includes('establishment') || suggestion.types.includes('point_of_interest'),
-        isVerified: true, // Google Places results are verified
-        types: suggestion.types,
-        distance_miles: suggestion.distance_miles || null
-      }));
+      const suggestions = response.data.suggestions.map(suggestion => {
+        const distance_miles = suggestion.distance_miles || null;
+        let formattedDistance = null;
+        if (distance_miles !== null) {
+          if (distance_miles < 0.1) {
+            formattedDistance = "< 0.1 mi";
+          } else if (distance_miles < 10) {
+            formattedDistance = `${distance_miles.toFixed(1)} mi`;
+          } else {
+            formattedDistance = `${Math.round(distance_miles)} mi`;
+          }
+        }
+        
+        return {
+          place_id: suggestion.place_id,
+          display_name: suggestion.full_address,
+          streetLine: suggestion.main_text,
+          locationLine: suggestion.secondary_text,
+          placeName: suggestion.types.includes('establishment') ? suggestion.main_text : null,
+          businessName: suggestion.types.includes('establishment') ? suggestion.main_text : null,
+          lat: suggestion.latitude || null,
+          lon: suggestion.longitude || null,
+          isPOI: suggestion.types.includes('establishment') || suggestion.types.includes('point_of_interest'),
+          isVerified: true, // Google Places results are verified
+          types: suggestion.types,
+          distance_miles: distance_miles,
+          formattedDistance: formattedDistance
+        };
+      });
 
       // Cache the results
       searchCache.current.set(cacheKey, {
