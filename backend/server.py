@@ -379,6 +379,9 @@ class PlaceSuggestion(BaseModel):
     secondary_text: str
     full_address: str
     types: List[str] = []
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    distance_miles: Optional[float] = None
 
 class PlacesAutocompleteResponse(BaseModel):
     suggestions: List[PlaceSuggestion]
