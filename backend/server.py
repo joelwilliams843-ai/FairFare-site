@@ -610,7 +610,7 @@ async def places_autocomplete(request: PlacesAutocompleteRequest):
                 headers={
                     "Content-Type": "application/json",
                     "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-                    "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types"
+                    "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types,suggestions.placePrediction.distanceMeters"
                 },
                 timeout=10.0
             )
@@ -627,13 +627,24 @@ async def places_autocomplete(request: PlacesAutocompleteRequest):
                     place = suggestion["placePrediction"]
                     structured = place.get("structuredFormat", {})
                     
+                    # Get distance if available (in meters from Google)
+                    distance_meters = place.get("distanceMeters")
+                    distance_miles = None
+                    if distance_meters is not None:
+                        distance_miles = round(distance_meters / 1609.34, 1)  # Convert to miles
+                    
                     suggestions.append(PlaceSuggestion(
                         place_id=place.get("placeId", ""),
                         main_text=structured.get("mainText", {}).get("text", ""),
                         secondary_text=structured.get("secondaryText", {}).get("text", ""),
                         full_address=place.get("text", {}).get("text", ""),
-                        types=place.get("types", [])
+                        types=place.get("types", []),
+                        distance_miles=distance_miles
                     ))
+            
+            # Sort by distance if we have location-based results
+            if request.location_lat and request.location_lng:
+                suggestions.sort(key=lambda x: x.distance_miles if x.distance_miles is not None else 9999)
             
             return PlacesAutocompleteResponse(
                 suggestions=suggestions,
