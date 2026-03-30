@@ -7,6 +7,7 @@ import { toast, Toaster } from "sonner";
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { App as CapacitorApp } from '@capacitor/app';
+import { Geolocation } from '@capacitor/geolocation';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
