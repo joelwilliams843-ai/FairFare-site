@@ -580,7 +580,8 @@ async def places_autocomplete(request: PlacesAutocompleteRequest):
         "sessionToken": session_token,
     }
     
-    # Add location bias if provided (10km radius = ~6 miles for local results)
+    # Add location bias if provided (16km radius = ~10 miles for local business searches)
+    # Using locationBias instead of locationRestriction to still allow broader results as fallback
     if request.location_lat and request.location_lng:
         payload["locationBias"] = {
             "circle": {
@@ -588,17 +589,7 @@ async def places_autocomplete(request: PlacesAutocompleteRequest):
                     "latitude": request.location_lat,
                     "longitude": request.location_lng
                 },
-                "radius": 16000.0  # 16km radius (~10 miles) for local business searches
-            }
-        }
-        # Also add location restriction for strict local results
-        payload["locationRestriction"] = {
-            "circle": {
-                "center": {
-                    "latitude": request.location_lat,
-                    "longitude": request.location_lng
-                },
-                "radius": 80000.0  # 80km (~50 miles) max search area
+                "radius": 16000.0  # 16km radius (~10 miles) - prioritizes local but doesn't exclude
             }
         }
     
