@@ -1981,7 +1981,7 @@ function App() {
     }
   };
 
-  // Safe URL opener that works on all platforms
+  // Safe URL opener that works on all platforms - PRIORITIZES NATIVE APP
   const openExternalUrl = async (url, isDeepLink = false) => {
     const isNative = Capacitor.isNativePlatform();
     
@@ -1990,15 +1990,23 @@ function App() {
     try {
       if (isNative) {
         if (isDeepLink) {
-          // For deep links (lyft://, uber://), use Capacitor App plugin
-          // IMPORTANT: This call succeeds even if app isn't installed on Android
-          // It will silently fail but return success
+          // For deep links (lyft://, uber://), try multiple approaches
+          // Approach 1: Use window.location.href - most reliable for deep links
+          try {
+            logHandoffEvent('OPEN_URL_TRYING_LOCATION_HREF', { url });
+            window.location.href = url;
+            // Give OS time to handle the intent
+            await new Promise(r => setTimeout(r, 100));
+            return { success: true, fired: true, method: 'location.href' };
+          } catch (hrefError) {
+            logHandoffEvent('OPEN_URL_HREF_FAILED', { url, error: hrefError.message });
+          }
+          
+          // Approach 2: Use Capacitor App plugin as backup
           try {
             await CapacitorApp.openUrl({ url });
             logHandoffEvent('OPEN_URL_DEEPLINK_FIRED', { url });
-            // We return success because we successfully fired the intent
-            // The OS will handle opening the app or showing "no app" dialog
-            return { success: true, fired: true };
+            return { success: true, fired: true, method: 'CapacitorApp' };
           } catch (appError) {
             logHandoffEvent('OPEN_URL_DEEPLINK_ERROR', { url, error: appError.message });
             return { success: false, error: appError.message };
