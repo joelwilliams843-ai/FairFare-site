@@ -213,8 +213,11 @@ function App() {
       let pickupGeocoded = false;
       let destGeocoded = false;
       
+      // Skip auto-geocode for temporary status messages
+      const isTemporaryPickup = pickup === "Detecting location..." || pickup === "Resolving address..." || pickupResolving;
+      
       // Auto-geocode pickup if we have text but no coordinates
-      if (pickup && pickup.length >= 5 && !pickupCoords?.lat) {
+      if (pickup && pickup.length >= 5 && !pickupCoords?.lat && !isTemporaryPickup) {
         console.log('[FairFare] Auto-geocoding pickup:', pickup);
         try {
           const coords = await autoGeocode(pickup);
