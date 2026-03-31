@@ -878,6 +878,49 @@ function App() {
     return states[lower] || stateName;
   };
 
+  // Smart address shortening for display
+  const shortenAddress = (address, maxLength = 35) => {
+    if (!address || address.length <= maxLength) return address;
+    
+    // Check for airport patterns
+    const airportMatch = address.match(/(.+?(?:Airport|International|Regional))/i);
+    if (airportMatch) {
+      // Look for airport code in parentheses
+      const codeMatch = address.match(/\(([A-Z]{3})\)/);
+      if (codeMatch) {
+        return `${airportMatch[1]} (${codeMatch[1]})`;
+      }
+      return airportMatch[1];
+    }
+    
+    // For regular addresses, get first part before comma
+    const parts = address.split(',');
+    if (parts[0].length <= maxLength) {
+      return parts.slice(0, 2).join(',').trim();
+    }
+    
+    return address.substring(0, maxLength - 3) + '...';
+  };
+
+  // Build deep links with address labels for Uber/Lyft
+  const buildProviderLinks = (pickupCoords, destCoords, pickupAddress, destAddress) => {
+    const pickupLabel = encodeURIComponent(shortenAddress(pickupAddress, 50));
+    const destLabel = encodeURIComponent(shortenAddress(destAddress, 50));
+    
+    return {
+      uber: {
+        // Uber deep link with labels
+        deepLink: `uber://?action=setPickup&pickup[latitude]=${pickupCoords.lat}&pickup[longitude]=${pickupCoords.lng}&pickup[nickname]=${pickupLabel}&dropoff[latitude]=${destCoords.lat}&dropoff[longitude]=${destCoords.lng}&dropoff[nickname]=${destLabel}`,
+        webLink: `https://m.uber.com/ul/?action=setPickup&pickup[latitude]=${pickupCoords.lat}&pickup[longitude]=${pickupCoords.lng}&pickup[nickname]=${pickupLabel}&dropoff[latitude]=${destCoords.lat}&dropoff[longitude]=${destCoords.lng}&dropoff[nickname]=${destLabel}`
+      },
+      lyft: {
+        // Lyft deep link with labels
+        deepLink: `lyft://ridetype?id=lyft&pickup[latitude]=${pickupCoords.lat}&pickup[longitude]=${pickupCoords.lng}&pickup[address]=${pickupLabel}&destination[latitude]=${destCoords.lat}&destination[longitude]=${destCoords.lng}&destination[address]=${destLabel}`,
+        webLink: `https://ride.lyft.com/?pickup[latitude]=${pickupCoords.lat}&pickup[longitude]=${pickupCoords.lng}&pickup[address]=${pickupLabel}&destination[latitude]=${destCoords.lat}&destination[longitude]=${destCoords.lng}&destination[address]=${destLabel}`
+      }
+    };
+  };
+
   // Reverse geocode coordinates to address with better formatting
   const reverseGeocode = async (lat, lng) => {
     try {
