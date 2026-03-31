@@ -16,10 +16,20 @@ function App() {
   const [view, setView] = useState("input");
   const [showSplash, setShowSplash] = useState(true);
   const [splashFading, setSplashFading] = useState(false);
+  
+  // UNIFIED LOCATION OBJECTS - Single source of truth
+  // Each location MUST be: { lat: number, lng: number, address: string } or null
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const [destinationLocation, setDestinationLocation] = useState(null);
+  const [pickupResolving, setPickupResolving] = useState(false);
+  const [destinationResolving, setDestinationResolving] = useState(false);
+  
+  // Legacy state kept for UI compatibility (derived from unified objects)
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [pickupCoords, setPickupCoords] = useState(null);
   const [destCoords, setDestCoords] = useState(null);
+  
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null); // Error state for ride comparison
