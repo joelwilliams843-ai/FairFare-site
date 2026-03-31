@@ -7,6 +7,11 @@
     "androidScheme": "https"
   },
   "plugins": {
+    "Geolocation": {
+      "enableHighAccuracy": true,
+      "timeout": 10000,
+      "maximumAge": 0
+    },
     "SplashScreen": {
       "launchShowDuration": 2000,
       "launchAutoHide": true,
