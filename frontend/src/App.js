@@ -1538,6 +1538,9 @@ function App() {
       ) || 10;
       const duration = Math.round(distance * 1.8); // ~1.8 min per mile
       
+      // Build proper deep links with address labels
+      const links = buildProviderLinks(finalPickupCoords, finalDestCoords, pickup, destination);
+      
       return {
         estimates: [
           {
@@ -1547,8 +1550,8 @@ function App() {
             price_level: 'Normal demand',
             surge_likelihood: 'Low',
             availability: 'Good',
-            deep_link: `uber://?action=setPickup&pickup[latitude]=${finalPickupCoords.lat}&pickup[longitude]=${finalPickupCoords.lng}&dropoff[latitude]=${finalDestCoords.lat}&dropoff[longitude]=${finalDestCoords.lng}`,
-            web_link: `https://m.uber.com/ul/?action=setPickup&pickup[latitude]=${finalPickupCoords.lat}&pickup[longitude]=${finalPickupCoords.lng}&dropoff[latitude]=${finalDestCoords.lat}&dropoff[longitude]=${finalDestCoords.lng}`
+            deep_link: links.uber.deepLink,
+            web_link: links.uber.webLink
           },
           {
             provider: 'Lyft',
@@ -1557,8 +1560,8 @@ function App() {
             price_level: 'Normal demand',
             surge_likelihood: 'Low',
             availability: 'Good',
-            deep_link: `lyft://ridetype?id=lyft&pickup[latitude]=${finalPickupCoords.lat}&pickup[longitude]=${finalPickupCoords.lng}&destination[latitude]=${finalDestCoords.lat}&destination[longitude]=${finalDestCoords.lng}`,
-            web_link: `https://ride.lyft.com/?pickup[latitude]=${finalPickupCoords.lat}&pickup[longitude]=${finalPickupCoords.lng}&destination[latitude]=${finalDestCoords.lat}&destination[longitude]=${finalDestCoords.lng}`
+            deep_link: links.lyft.deepLink,
+            web_link: links.lyft.webLink
           }
         ],
         distance_miles: Math.round(distance * 100) / 100,
