@@ -3532,7 +3532,7 @@ I'll text you when the driver is assigned.`);
         </div>
       )}
 
-      {/* CRASH-PROOF Handoff Modal - Always visible when active */}
+      {/* Simplified Handoff Modal */}
       {handoffState.isOpen && (
         <div className="handoff-modal-overlay" data-testid="handoff-modal">
           <div className="handoff-modal">
@@ -3548,67 +3548,49 @@ I'll text you when the driver is assigned.`);
               <div className="handoff-status opening">
                 <Loader2 size={40} className="spinner handoff-spinner" />
                 <p className="handoff-message">Opening {handoffState.provider}...</p>
-                <p className="handoff-submessage">Please wait</p>
               </div>
             )}
 
-            {handoffState.status === 'timeout' && (
+            {(handoffState.status === 'timeout' || handoffState.status === 'error') && (
               <div className="handoff-status timeout">
-                <AlertTriangle size={40} className="handoff-warning-icon" />
-                <p className="handoff-message">Taking longer than expected</p>
-                <p className="handoff-submessage">{handoffState.errorMessage}</p>
+                <p className="handoff-message">Ready to book?</p>
+                <p className="handoff-submessage">Tap below to continue to {handoffState.provider}</p>
               </div>
             )}
 
-            {handoffState.status === 'error' && (
-              <div className="handoff-status error">
-                <AlertTriangle size={40} className="handoff-error-icon" />
-                <p className="handoff-message">Unable to open {handoffState.provider}</p>
-                <p className="handoff-submessage">{handoffState.errorMessage}</p>
-              </div>
-            )}
-
-            {/* Action Buttons - Always visible */}
+            {/* Simplified Actions - One Primary Button */}
             <div className="handoff-actions">
               {(handoffState.status === 'timeout' || handoffState.status === 'error') && (
-                <>
-                  <button
-                    className="handoff-btn primary"
-                    onClick={async () => {
-                      // Try deep link again to open native app
-                      if (handoffState.deepLink) {
-                        logHandoffEvent('HANDOFF_RETRY_NATIVE', { provider: handoffState.provider });
-                        const result = await openExternalUrl(handoffState.deepLink, true);
-                        if (result.success) {
-                          setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
-                        }
-                      }
-                    }}
-                    data-testid="handoff-open-app-btn"
-                  >
-                    Open {handoffState.provider} App
-                  </button>
-                </>
-              )}
-
-              <button
-                className="handoff-btn secondary"
-                onClick={async () => {
-                  // Open web version with ride pre-populated
-                  logHandoffEvent('HANDOFF_OPEN_WEB', { provider: handoffState.provider, url: handoffState.webLink });
-                  if (handoffState.webLink) {
-                    const result = await openExternalUrl(handoffState.webLink, false);
-                    if (result.success) {
-                      setTimeout(() => {
+                <button
+                  className="handoff-btn primary large"
+                  onClick={async () => {
+                    logHandoffEvent('HANDOFF_PRIMARY_TAP', { provider: handoffState.provider });
+                    
+                    // Try native app first
+                    if (handoffState.deepLink) {
+                      const appResult = await openExternalUrl(handoffState.deepLink, true);
+                      if (appResult.success) {
                         setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
-                      }, 500);
+                        return;
+                      }
                     }
-                  }
-                }}
-                data-testid="handoff-browser-btn"
-              >
-                Open {handoffState.provider} Website
-              </button>
+                    
+                    // Automatic fallback to web
+                    if (handoffState.webLink) {
+                      logHandoffEvent('HANDOFF_AUTO_FALLBACK_WEB', { provider: handoffState.provider });
+                      const webResult = await openExternalUrl(handoffState.webLink, false);
+                      if (webResult.success) {
+                        setTimeout(() => {
+                          setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+                        }, 500);
+                      }
+                    }
+                  }}
+                  data-testid="handoff-primary-btn"
+                >
+                  Open {handoffState.provider}
+                </button>
+              )}
 
               <button
                 className="handoff-btn tertiary"
@@ -3619,10 +3601,15 @@ I'll text you when the driver is assigned.`);
               </button>
             </div>
 
-            {/* Route Info */}
+            {/* Route Info with proper address display */}
             <div className="handoff-route-info">
-              <p className="route-label">Your route:</p>
-              <p className="route-text">{pickup?.substring(0, 30)}... → {destination?.substring(0, 30)}...</p>
+              <p className="route-label">Your trip:</p>
+              <p className="route-text route-pickup">
+                <MapPin size={14} /> {shortenAddress(pickup, 40)}
+              </p>
+              <p className="route-text route-dest">
+                <Navigation size={14} /> {shortenAddress(destination, 40)}
+              </p>
             </div>
           </div>
         </div>
