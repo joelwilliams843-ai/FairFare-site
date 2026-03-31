@@ -201,23 +201,42 @@ def generate_decision_estimates(distance_miles: float, pickup: Location, destina
     else:
         lyft_wait = random.randint(10, 18)
     
-    # Create deep links with coordinates
+    # Create deep links with coordinates AND address labels
     pickup_lat = pickup.lat or 0
     pickup_lng = pickup.lng or 0
     dest_lat = destination.lat or 0
     dest_lng = destination.lng or 0
     
     from urllib.parse import quote
-    pickup_address = quote(pickup.address)
-    dest_address = quote(destination.address)
     
-    # Uber deep link format
-    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}"
-    uber_web = f"https://m.uber.com/ul/?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&pickup[formatted_address]={pickup_address}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&dropoff[formatted_address]={dest_address}"
+    # Smart address shortening for labels
+    def shorten_address(address, max_len=50):
+        if not address or len(address) <= max_len:
+            return address
+        # Check for airport
+        import re
+        airport_match = re.search(r'(.+?(?:Airport|International|Regional))', address, re.IGNORECASE)
+        if airport_match:
+            code_match = re.search(r'\(([A-Z]{3})\)', address)
+            if code_match:
+                return f"{airport_match.group(1)} ({code_match.group(1)})"
+            return airport_match.group(1)
+        # Regular address - first part
+        parts = address.split(',')
+        if parts[0] and len(parts[0]) <= max_len:
+            return ', '.join(parts[:2]).strip() if len(parts) > 1 else parts[0]
+        return address[:max_len-3] + '...'
     
-    # Lyft deep link format
-    lyft_deeplink = f"lyft://ridetype?id=lyft&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
-    lyft_web = f"https://ride.lyft.com/?pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}"
+    pickup_label = quote(shorten_address(pickup.address))
+    dest_label = quote(shorten_address(destination.address))
+    
+    # Uber deep link format with labels (nickname parameter)
+    uber_deeplink = f"uber://?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&pickup[nickname]={pickup_label}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&dropoff[nickname]={dest_label}"
+    uber_web = f"https://m.uber.com/ul/?action=setPickup&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&pickup[nickname]={pickup_label}&dropoff[latitude]={dest_lat}&dropoff[longitude]={dest_lng}&dropoff[nickname]={dest_label}"
+    
+    # Lyft deep link format with labels (address parameter)
+    lyft_deeplink = f"lyft://ridetype?id=lyft&pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&pickup[address]={pickup_label}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}&destination[address]={dest_label}"
+    lyft_web = f"https://ride.lyft.com/?pickup[latitude]={pickup_lat}&pickup[longitude]={pickup_lng}&pickup[address]={pickup_label}&destination[latitude]={dest_lat}&destination[longitude]={dest_lng}&destination[address]={dest_label}"
     
     estimates = [
         RideEstimate(
