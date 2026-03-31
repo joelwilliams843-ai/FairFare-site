@@ -1263,21 +1263,31 @@ function App() {
     // Use Capacitor Geolocation on native, fallback to browser API on web
     const isNative = Capacitor.isNativePlatform();
     
+    // Set resolving state - UI should show loading indicator
+    setPickupResolving(true);
+    setPickup("Detecting location...");
+    
     try {
+      let lat, lng;
+      
       if (isNative) {
         // Request permission explicitly on native
         const permStatus = await Geolocation.checkPermissions();
-        console.log('[FairFare] Location permission status:', permStatus);
+        console.log('[FairFare:Location] Permission status:', permStatus);
         
         if (permStatus.location === 'prompt' || permStatus.location === 'prompt-with-rationale') {
           const requested = await Geolocation.requestPermissions();
-          console.log('[FairFare] Permission requested result:', requested);
+          console.log('[FairFare:Location] Permission requested result:', requested);
           if (requested.location !== 'granted') {
             toast.error("Location permission required to detect your pickup", { duration: 4000 });
+            setPickupResolving(false);
+            setPickup("");
             return;
           }
         } else if (permStatus.location === 'denied') {
           toast.error("Location permission denied. Please enable in Settings.", { duration: 4000 });
+          setPickupResolving(false);
+          setPickup("");
           return;
         }
         
@@ -1287,55 +1297,63 @@ function App() {
           timeout: 10000
         });
         
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        console.log('[FairFare] Got native location:', { lat, lng });
-        
-        setPickupCoords({ lat, lng });
-        setDetectedCoords({ lat, lng });
-        userLocation.current = { lat, lng }; // Set immediately for search biasing
-        
-        // Show temporary text while resolving address
-        setPickup("Resolving address...");
-        
-        const address = await reverseGeocode(lat, lng);
-        setPickup(address);
-        
-        setShowLocationBanner(true);
-        setTimeout(() => setShowLocationBanner(false), 3000);
+        lat = position.coords.latitude;
+        lng = position.coords.longitude;
+        console.log('[FairFare:Location] Got native GPS coordinates:', { lat, lng });
         
       } else if (navigator.geolocation) {
         // Web browser fallback
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            setPickupCoords({ lat, lng });
-            setDetectedCoords({ lat, lng });
-            userLocation.current = { lat, lng }; // Set immediately for search biasing
-            
-            // Show temporary text while resolving address
-            setPickup("Resolving address...");
-            
-            const address = await reverseGeocode(lat, lng);
-            setPickup(address);
-            
-            setShowLocationBanner(true);
-            setTimeout(() => setShowLocationBanner(false), 3000);
-          },
-          (error) => {
-            if (error.code === error.PERMISSION_DENIED) {
-              toast.error("Location permission denied", { duration: 3000 });
-            } else {
-              console.log("Geolocation not available, manual entry enabled");
-            }
-          },
-          { enableHighAccuracy: true, timeout: 10000 }
-        );
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000
+          });
+        });
+        
+        lat = position.coords.latitude;
+        lng = position.coords.longitude;
+        console.log('[FairFare:Location] Got browser GPS coordinates:', { lat, lng });
+      } else {
+        throw new Error("Geolocation not available");
       }
+      
+      // Now reverse geocode to get the address from the EXACT coordinates
+      setPickup("Resolving address...");
+      const address = await reverseGeocode(lat, lng);
+      
+      // Validate we got a real address
+      if (!address || address.length < 5) {
+        throw new Error("Could not resolve address from coordinates");
+      }
+      
+      console.log('[FairFare:Location] Reverse geocoded address:', address);
+      
+      // Create unified location object and set it
+      const unifiedPickup = {
+        lat: lat,
+        lng: lng,
+        address: address
+      };
+      
+      setUnifiedPickup(unifiedPickup);
+      setDetectedCoords({ lat, lng });
+      
+      // Show success banner
+      setShowLocationBanner(true);
+      setTimeout(() => setShowLocationBanner(false), 3000);
+      
+      console.log('[FairFare:Location] Pickup set successfully:', unifiedPickup);
+      
     } catch (error) {
-      console.error('[FairFare] Location detection error:', error);
-      toast.error("Could not detect location. Please enter address manually.", { duration: 3000 });
+      console.error('[FairFare:Location] Detection error:', error);
+      if (error.code === 1) { // PERMISSION_DENIED
+        toast.error("Location permission denied", { duration: 3000 });
+      } else {
+        toast.error("Could not detect location. Please enter address manually.", { duration: 3000 });
+      }
+      setPickup("");
+    } finally {
+      setPickupResolving(false);
     }
   };
 
