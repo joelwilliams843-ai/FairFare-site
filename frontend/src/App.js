@@ -1731,13 +1731,23 @@ function App() {
     // Helper function to generate fallback estimates when API is unreachable
     const generateFallbackEstimates = () => {
       const distance = calculateDistance(
-        finalPickupCoords.lat, finalPickupCoords.lng,
-        finalDestCoords.lat, finalDestCoords.lng
+        finalPickup.lat, finalPickup.lng,
+        finalDest.lat, finalDest.lng
       ) || 10;
       const duration = Math.round(distance * 1.8); // ~1.8 min per mile
       
-      // Build proper deep links with address labels
-      const links = buildProviderLinks(finalPickupCoords, finalDestCoords, pickup, destination);
+      // Build proper deep links with VALIDATED location objects
+      const links = buildValidatedDeepLinks(finalPickup, finalDest);
+      
+      if (!links) {
+        console.error('[FairFare:DeepLink] Failed to build deep links');
+        return null;
+      }
+      
+      console.log('[FairFare:DeepLink] Generated fallback deep links:', {
+        uberDeepLink: links.uber.deepLink.substring(0, 100) + '...',
+        lyftDeepLink: links.lyft.deepLink.substring(0, 100) + '...'
+      });
       
       return {
         estimates: [
@@ -1764,8 +1774,8 @@ function App() {
         ],
         distance_miles: Math.round(distance * 100) / 100,
         duration_minutes: duration,
-        pickup_coords: { lat: finalPickupCoords.lat, lng: finalPickupCoords.lng, address: pickup },
-        destination_coords: { lat: finalDestCoords.lat, lng: finalDestCoords.lng, address: destination },
+        pickup_coords: finalPickup,
+        destination_coords: finalDest,
         route_status: 'valid',
         recommendation: 'Compare prices in both apps for the best deal.',
         requires_confirmation: false,
