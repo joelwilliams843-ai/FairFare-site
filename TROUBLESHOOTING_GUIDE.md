@@ -25,10 +25,10 @@
 #### 3. Try Incognito/Private Mode
 - **Chrome:** `Ctrl/Cmd + Shift + N`
 - **Safari:** `Cmd + Shift + N`
-- Open: https://farecompare-26.preview.emergentagent.com
+- Open: https://geocode-debug.preview.emergentagent.com
 
 #### 4. Check Network Connection
-- Open: https://farecompare-26.preview.emergentagent.com/api/
+- Open: https://geocode-debug.preview.emergentagent.com/api/
 - Should show: `{"message":"FairFare API"}`
 - If not, network issue exists
 
@@ -83,13 +83,13 @@
 
 ### Check if Backend is Running
 ```bash
-curl https://farecompare-26.preview.emergentagent.com/api/
+curl https://geocode-debug.preview.emergentagent.com/api/
 ```
 
 **Expected:** `{"message":"FairFare API"}`
 
 ### Check if Frontend is Running
-Open: https://farecompare-26.preview.emergentagent.com
+Open: https://geocode-debug.preview.emergentagent.com
 
 **Expected:** FairFare homepage with inputs
 
@@ -288,10 +288,10 @@ Use this to verify FairFare is working:
 If none of these solutions work:
 
 1. **Try the URL directly:**
-   https://farecompare-26.preview.emergentagent.com
+   https://geocode-debug.preview.emergentagent.com
 
 2. **Test the API:**
-   https://farecompare-26.preview.emergentagent.com/api/
+   https://geocode-debug.preview.emergentagent.com/api/
 
 3. **Use a different device:**
    - Try on phone if on desktop

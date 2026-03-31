@@ -2245,6 +2245,22 @@ function App() {
     const webLink = estimate.web_link || `https://www.${estimate.provider.toLowerCase()}.com`;
     const deepLink = estimate.deep_link || webLink;
 
+    // ============================================================
+    // DEBUG LOGGING - ESTIMATE DATA (Requested by user)
+    // This shows what data comes from the estimate before handoff
+    // ============================================================
+    console.log('='.repeat(60));
+    console.log('[FairFare:HANDOFF_DEBUG] *** openDeepLink CALLED ***');
+    console.log('[FairFare:HANDOFF_DEBUG] estimate object:', JSON.stringify(estimate, null, 2));
+    console.log('[FairFare:HANDOFF_DEBUG] estimate.deep_link:', estimate.deep_link);
+    console.log('[FairFare:HANDOFF_DEBUG] estimate.web_link:', estimate.web_link);
+    console.log('[FairFare:HANDOFF_DEBUG] Final deepLink to use:', deepLink);
+    console.log('[FairFare:HANDOFF_DEBUG] Final webLink to use:', webLink);
+    console.log('='.repeat(60));
+    // ============================================================
+    // END DEBUG LOGGING
+    // ============================================================
+
     logHandoffEvent('HANDOFF_START', {
       provider: estimate.provider,
       deepLink,
@@ -2321,6 +2337,36 @@ function App() {
       return;
     }
 
+    // ============================================================
+    // DEBUG LOGGING - HANDOFF VERIFICATION (Requested by user)
+    // This logging helps debug why native apps may not prefill correctly
+    // ============================================================
+    console.log('='.repeat(60));
+    console.log('[FairFare:HANDOFF_DEBUG] *** EXECUTE HANDOFF TRIGGERED ***');
+    console.log('[FairFare:HANDOFF_DEBUG] Provider:', provider);
+    console.log('[FairFare:HANDOFF_DEBUG] useWebFallback:', useWebFallback);
+    console.log('[FairFare:HANDOFF_DEBUG] --- CURRENT STATE ---');
+    console.log('[FairFare:HANDOFF_DEBUG] pickupLocation:', JSON.stringify(pickupLocation, null, 2));
+    console.log('[FairFare:HANDOFF_DEBUG] destinationLocation:', JSON.stringify(destinationLocation, null, 2));
+    console.log('[FairFare:HANDOFF_DEBUG] pickup (string):', pickup);
+    console.log('[FairFare:HANDOFF_DEBUG] destination (string):', destination);
+    console.log('[FairFare:HANDOFF_DEBUG] pickupCoords:', JSON.stringify(pickupCoords, null, 2));
+    console.log('[FairFare:HANDOFF_DEBUG] --- DEEP LINK DATA ---');
+    console.log('[FairFare:HANDOFF_DEBUG] deepLink (FULL):', deepLink);
+    console.log('[FairFare:HANDOFF_DEBUG] webLink (FULL):', webLink);
+    console.log('[FairFare:HANDOFF_DEBUG] --- PARSED FROM DEEP LINK ---');
+    try {
+      // Parse the deep link to show what coordinates/addresses are embedded
+      const dlUrl = new URL(deepLink.replace('uber://', 'https://uber.com/').replace('lyft://', 'https://lyft.com/'));
+      console.log('[FairFare:HANDOFF_DEBUG] Deep link params:', Object.fromEntries(dlUrl.searchParams));
+    } catch (e) {
+      console.log('[FairFare:HANDOFF_DEBUG] Could not parse deep link:', e.message);
+    }
+    console.log('='.repeat(60));
+    // ============================================================
+    // END DEBUG LOGGING
+    // ============================================================
+
     logHandoffEvent('HANDOFF_EXECUTE', {
       provider,
       deepLink,
@@ -2331,6 +2377,7 @@ function App() {
     try {
       if (!useWebFallback && deepLink) {
         // Try to open native app first via deep link
+        console.log('[FairFare:HANDOFF_DEBUG] >>> FIRING DEEP LINK NOW:', deepLink);
         const result = await openExternalUrl(deepLink, true);
         
         if (result.success) {
@@ -3792,10 +3839,22 @@ I'll text you when the driver is assigned.`);
                 <button
                   className="handoff-btn primary large"
                   onClick={async () => {
+                    // ============================================================
+                    // DEBUG LOGGING - MANUAL BUTTON TAP (Requested by user)
+                    // ============================================================
+                    console.log('='.repeat(60));
+                    console.log('[FairFare:HANDOFF_DEBUG] *** MANUAL BUTTON TAP ***');
+                    console.log('[FairFare:HANDOFF_DEBUG] handoffState.deepLink:', handoffState.deepLink);
+                    console.log('[FairFare:HANDOFF_DEBUG] handoffState.webLink:', handoffState.webLink);
+                    console.log('[FairFare:HANDOFF_DEBUG] handoffState.provider:', handoffState.provider);
+                    console.log('='.repeat(60));
+                    // ============================================================
+
                     logHandoffEvent('HANDOFF_PRIMARY_TAP', { provider: handoffState.provider });
                     
                     // Try native app first
                     if (handoffState.deepLink) {
+                      console.log('[FairFare:HANDOFF_DEBUG] >>> MANUAL TAP: FIRING DEEP LINK:', handoffState.deepLink);
                       const appResult = await openExternalUrl(handoffState.deepLink, true);
                       if (appResult.success) {
                         setHandoffState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
@@ -3805,6 +3864,7 @@ I'll text you when the driver is assigned.`);
                     
                     // Automatic fallback to web
                     if (handoffState.webLink) {
+                      console.log('[FairFare:HANDOFF_DEBUG] >>> MANUAL TAP: FALLING BACK TO WEB:', handoffState.webLink);
                       logHandoffEvent('HANDOFF_AUTO_FALLBACK_WEB', { provider: handoffState.provider });
                       const webResult = await openExternalUrl(handoffState.webLink, false);
                       if (webResult.success) {

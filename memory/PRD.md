@@ -206,3 +206,8 @@ Build a lightweight, mobile-first PWA called "FairFare" to help users decide whe
 - **March 2025:** Reduced neon glow on cards by 40% for consumer-friendly feel
 - **March 2025:** Visual polish - reduced neon/techy feel, more consumer-friendly appearance
 - **March 2025:** Crash-proof handoff system with modal, timeout safety, and fallback buttons
+- **March 31, 2025:** Added comprehensive debug logging for native Uber/Lyft handoff. Logs include:
+  - `pickupLocation` and `destinationLocation` objects (lat, lng, address)
+  - Full deep link URL being fired
+  - Parsed deep link parameters for verification
+  - Logging in `executeHandoff()`, `openDeepLink()`, and manual button tap handler
