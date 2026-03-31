@@ -716,6 +716,53 @@ async def get_place_details(request: PlaceDetailsRequest):
         raise HTTPException(status_code=500, detail="Error getting place details")
 
 
+# IP Geolocation endpoint - proxies to ipapi.co to avoid CORS issues
+class IPGeoResponse(BaseModel):
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    city: Optional[str] = None
+    region: Optional[str] = None
+    country: Optional[str] = None
+
+@api_router.get("/ip-geolocation", response_model=IPGeoResponse)
+async def get_ip_geolocation():
+    """Get approximate location based on IP address - for location-biased search fallback"""
+    try:
+        async with httpx.AsyncClient() as http_client:
+            # Try ip-api.com first (no rate limit issues, allows 45 requests/minute)
+            response = await http_client.get("http://ip-api.com/json/?fields=status,lat,lon,city,regionName,country", timeout=5.0)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == "success":
+                    return IPGeoResponse(
+                        latitude=data.get("lat"),
+                        longitude=data.get("lon"),
+                        city=data.get("city"),
+                        region=data.get("regionName"),
+                        country=data.get("country")
+                    )
+            
+            # Fallback to ipapi.co
+            response = await http_client.get("https://ipapi.co/json/", timeout=5.0)
+            if response.status_code == 200:
+                data = response.json()
+                return IPGeoResponse(
+                    latitude=data.get("latitude"),
+                    longitude=data.get("longitude"),
+                    city=data.get("city"),
+                    region=data.get("region"),
+                    country=data.get("country_name")
+                )
+            else:
+                logger.warning(f"IP geolocation APIs returned errors")
+                raise HTTPException(status_code=502, detail="IP geolocation service unavailable")
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="IP geolocation service timeout")
+    except Exception as e:
+        logger.error(f"IP geolocation error: {e}")
+        raise HTTPException(status_code=500, detail="IP geolocation failed")
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
@@ -726,6 +773,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Configure logging
 logging.basicConfig(

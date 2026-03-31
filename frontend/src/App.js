@@ -177,6 +177,26 @@ function App() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
+    // Silently try IP geolocation for location context (doesn't block UI)
+    // This provides fallback location bias for autocomplete even if GPS fails
+    const initIPGeolocation = async () => {
+      try {
+        const response = await axios.get(`${API}/ip-geolocation`, { timeout: 5000 });
+        if (response.data.latitude && response.data.longitude && !userLocation.current) {
+          userLocation.current = { lat: response.data.latitude, lng: response.data.longitude };
+          console.log('[FairFare:Location] IP geolocation initialized:', {
+            lat: response.data.latitude, 
+            lng: response.data.longitude,
+            city: response.data.city,
+            region: response.data.region
+          });
+        }
+      } catch (e) {
+        console.warn('[FairFare:Location] IP geolocation init failed (non-critical):', e.message);
+      }
+    };
+    initIPGeolocation();
+    
     // Auto-detect location on load
     detectLocation();
     
@@ -1135,7 +1155,10 @@ function App() {
 
   // Search for address suggestions using Google Places API
   const searchAddress = async (query, isPickup, retryCount = 0) => {
+    console.log('[FairFare:SEARCH] searchAddress called:', { query, isPickup, retryCount });
+    
     if (!query || query.length < 2) {
+      console.log('[FairFare:SEARCH] Query too short, clearing suggestions');
       if (isPickup) setPickupSuggestions([]);
       else setDestSuggestions([]);
       setSearchLoading(false);
@@ -1144,7 +1167,7 @@ function App() {
 
     // Check network status
     if (!navigator.onLine) {
-      console.warn('[FairFare] Search skipped - offline');
+      console.warn('[FairFare:SEARCH] Search skipped - offline');
       return;
     }
 
@@ -1246,13 +1269,15 @@ function App() {
         setDestSuggestions(combined);
       }
       
-      console.log(`[FairFare] Google Places search completed in ${Date.now() - startTime}ms (${suggestions.length} results)`);
+      console.log(`[FairFare:SEARCH] Google Places search completed in ${Date.now() - startTime}ms (${suggestions.length} results)`);
       
     } catch (error) {
-      console.error("[FairFare] Google Places search error:", {
+      console.error("[FairFare:SEARCH] Google Places search error:", {
         query,
         error: error.message,
-        code: error.code
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status
       });
       
       // Show user-friendly message on network errors
@@ -1312,6 +1337,9 @@ function App() {
         lng = position.coords.longitude;
         console.log('[FairFare:Location] Got native GPS coordinates:', { lat, lng });
         
+        // CRITICAL: Set userLocation.current immediately for location-biased search
+        userLocation.current = { lat, lng };
+        
       } else if (navigator.geolocation) {
         // Web browser fallback
         const position = await new Promise((resolve, reject) => {
@@ -1324,6 +1352,10 @@ function App() {
         lat = position.coords.latitude;
         lng = position.coords.longitude;
         console.log('[FairFare:Location] Got browser GPS coordinates:', { lat, lng });
+        
+        // CRITICAL: Set userLocation.current immediately for location-biased search
+        userLocation.current = { lat, lng };
+        
       } else {
         throw new Error("Geolocation not available");
       }
@@ -1357,6 +1389,28 @@ function App() {
       
     } catch (error) {
       console.error('[FairFare:Location] Detection error:', error);
+      
+      // FALLBACK: Try IP-based geolocation for location-biased search
+      // This won't set the pickup address, but will help autocomplete show nearby results
+      try {
+        console.log('[FairFare:Location] Attempting IP-based geolocation fallback...');
+        const ipGeoResponse = await axios.get(`${API}/ip-geolocation`, { timeout: 5000 });
+        if (ipGeoResponse.data.latitude && ipGeoResponse.data.longitude) {
+          userLocation.current = { 
+            lat: ipGeoResponse.data.latitude, 
+            lng: ipGeoResponse.data.longitude 
+          };
+          console.log('[FairFare:Location] IP geolocation fallback successful:', {
+            lat: ipGeoResponse.data.latitude,
+            lng: ipGeoResponse.data.longitude,
+            city: ipGeoResponse.data.city,
+            region: ipGeoResponse.data.region
+          });
+        }
+      } catch (ipError) {
+        console.warn('[FairFare:Location] IP geolocation fallback failed:', ipError.message);
+      }
+      
       if (error.code === 1) { // PERMISSION_DENIED
         toast.error("Location permission denied", { duration: 3000 });
       } else {
@@ -1369,6 +1423,7 @@ function App() {
   };
 
   const handlePickupChange = (value) => {
+    console.log('[FairFare:INPUT] handlePickupChange called with value:', value);
     setPickup(value);
     // Keep using detected GPS coords if they exist and user is just editing the displayed address
     // Only clear coords if user completely clears the field
@@ -1382,6 +1437,7 @@ function App() {
     
     // Show suggestions dropdown
     if (value.length >= 2) {
+      console.log('[FairFare:INPUT] Showing pickup suggestions dropdown, triggering search');
       setShowPickupSuggestions(true);
     }
     
@@ -1391,6 +1447,7 @@ function App() {
     }
     
     autocompleteTimer.current = setTimeout(() => {
+      console.log('[FairFare:INPUT] Debounce complete, calling searchAddress for:', value);
       searchAddress(value, true);
     }, 150);
   };
