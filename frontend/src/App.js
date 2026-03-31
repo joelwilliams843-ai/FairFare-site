@@ -635,6 +635,115 @@ function App() {
   // Session token for Google Places billing optimization
   const sessionToken = useRef(null);
 
+  // ============================================================
+  // UNIFIED LOCATION SYSTEM - Single Source of Truth
+  // ============================================================
+  
+  // Validate a location object has all required fields
+  const isValidLocation = (loc) => {
+    if (!loc) return false;
+    if (typeof loc.lat !== 'number' || isNaN(loc.lat)) return false;
+    if (typeof loc.lng !== 'number' || isNaN(loc.lng)) return false;
+    if (typeof loc.address !== 'string' || loc.address.length < 3) return false;
+    return true;
+  };
+
+  // Set pickup with unified object - syncs to legacy state
+  const setUnifiedPickup = (locationObj) => {
+    console.log('[FairFare:Location] Setting unified pickup:', locationObj);
+    
+    if (locationObj && isValidLocation(locationObj)) {
+      setPickupLocation(locationObj);
+      setPickup(locationObj.address);
+      setPickupCoords({ lat: locationObj.lat, lng: locationObj.lng });
+      userLocation.current = { lat: locationObj.lat, lng: locationObj.lng };
+    } else if (locationObj === null) {
+      setPickupLocation(null);
+      setPickup("");
+      setPickupCoords(null);
+    } else {
+      console.warn('[FairFare:Location] Invalid pickup object:', locationObj);
+    }
+  };
+
+  // Set destination with unified object - syncs to legacy state
+  const setUnifiedDestination = (locationObj) => {
+    console.log('[FairFare:Location] Setting unified destination:', locationObj);
+    
+    if (locationObj && isValidLocation(locationObj)) {
+      setDestinationLocation(locationObj);
+      setDestination(locationObj.address);
+      setDestCoords({ lat: locationObj.lat, lng: locationObj.lng });
+    } else if (locationObj === null) {
+      setDestinationLocation(null);
+      setDestination("");
+      setDestCoords(null);
+    } else {
+      console.warn('[FairFare:Location] Invalid destination object:', locationObj);
+    }
+  };
+
+  // Validate both locations before comparison/handoff
+  const validateLocationsForHandoff = () => {
+    const errors = [];
+    
+    if (!isValidLocation(pickupLocation)) {
+      errors.push('Pickup location is incomplete');
+      console.error('[FairFare:Location] Pickup validation failed:', pickupLocation);
+    }
+    
+    if (!isValidLocation(destinationLocation)) {
+      errors.push('Destination location is incomplete');
+      console.error('[FairFare:Location] Destination validation failed:', destinationLocation);
+    }
+    
+    if (errors.length > 0) {
+      return { valid: false, errors };
+    }
+    
+    console.log('[FairFare:Location] Validation passed:', {
+      pickup: pickupLocation,
+      destination: destinationLocation
+    });
+    
+    return { valid: true, pickup: pickupLocation, destination: destinationLocation };
+  };
+
+  // Build deep links from validated location objects ONLY
+  const buildValidatedDeepLinks = (pickup, dest) => {
+    if (!isValidLocation(pickup) || !isValidLocation(dest)) {
+      console.error('[FairFare:DeepLink] Cannot build links - invalid locations');
+      return null;
+    }
+
+    const pickupLabel = encodeURIComponent(shortenAddress(pickup.address, 50));
+    const destLabel = encodeURIComponent(shortenAddress(dest.address, 50));
+    
+    console.log('[FairFare:DeepLink] Building links with:', {
+      pickupLat: pickup.lat,
+      pickupLng: pickup.lng,
+      pickupAddress: pickup.address,
+      destLat: dest.lat,
+      destLng: dest.lng,
+      destAddress: dest.address
+    });
+
+    return {
+      uber: {
+        deepLink: `uber://?action=setPickup&pickup[latitude]=${pickup.lat}&pickup[longitude]=${pickup.lng}&pickup[nickname]=${pickupLabel}&dropoff[latitude]=${dest.lat}&dropoff[longitude]=${dest.lng}&dropoff[nickname]=${destLabel}`,
+        webLink: `https://m.uber.com/ul/?action=setPickup&pickup[latitude]=${pickup.lat}&pickup[longitude]=${pickup.lng}&pickup[nickname]=${pickupLabel}&dropoff[latitude]=${dest.lat}&dropoff[longitude]=${dest.lng}&dropoff[nickname]=${destLabel}`
+      },
+      lyft: {
+        deepLink: `lyft://ridetype?id=lyft&pickup[latitude]=${pickup.lat}&pickup[longitude]=${pickup.lng}&pickup[address]=${pickupLabel}&destination[latitude]=${dest.lat}&destination[longitude]=${dest.lng}&destination[address]=${destLabel}`,
+        webLink: `https://ride.lyft.com/?pickup[latitude]=${pickup.lat}&pickup[longitude]=${pickup.lng}&pickup[address]=${pickupLabel}&destination[latitude]=${dest.lat}&destination[longitude]=${dest.lng}&destination[address]=${destLabel}`
+      }
+    };
+  };
+
+  // ============================================================
+  // END UNIFIED LOCATION SYSTEM
+  // ============================================================
+
   // Common POI keywords that should prioritize local results
   const POI_KEYWORDS = [
     // Grocery stores
