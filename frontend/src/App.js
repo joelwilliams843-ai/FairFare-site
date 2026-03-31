@@ -892,11 +892,12 @@ function App() {
       if (response.data && response.data.formatted_address) {
         return response.data.formatted_address;
       }
-      return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      // Fallback to user-friendly text instead of raw coordinates
+      return "Current location";
     } catch (error) {
       console.error("[FairFare] Reverse geocoding error:", error);
-      // Fallback to coordinates display
-      return `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      // Fallback to user-friendly text instead of raw coordinates
+      return "Current location";
     }
   };
 
