@@ -943,8 +943,15 @@ function App() {
         return reverseGeocode(lat, lng, retryCount + 1);
       }
       
-      // Final fallback - return a location description, not "Current location"
-      return `Near ${lat.toFixed(3)}°, ${lng.toFixed(3)}°`;
+      // Check if we got any address components (city/neighborhood)
+      if (response.data?.address_components) {
+        const components = response.data.address_components;
+        if (components.city) return `Near ${components.city}`;
+        if (components.state) return `Near ${components.state}`;
+      }
+      
+      // Final fallback - clean human-readable text, NO coordinates
+      return "Current location";
     } catch (error) {
       console.error("[FairFare] Reverse geocoding error:", error);
       
@@ -955,8 +962,8 @@ function App() {
         return reverseGeocode(lat, lng, retryCount + 1);
       }
       
-      // Return coordinates in a more readable format as last resort
-      return `Near ${lat.toFixed(3)}°, ${lng.toFixed(3)}°`;
+      // Final fallback - clean human-readable text, NO coordinates
+      return "Current location";
     }
   };
 
