@@ -1532,34 +1532,34 @@ function App() {
   };
 
   const selectRecentLocation = async (location, isPickup) => {
+    console.log('[FairFare:Location] Selecting recent location:', { location, isPickup });
+    
+    // Always geocode to get validated coordinates
+    toast.info("Getting location coordinates...");
+    const coords = await geocodeAddress(location);
+    
+    if (!coords) {
+      toast.error("Could not find coordinates. Please select from suggestions.");
+      return;
+    }
+    
+    // Create unified location object
+    const unifiedLocation = {
+      lat: coords.lat,
+      lng: coords.lng,
+      address: coords.formatted_address || location
+    };
+    
+    console.log('[FairFare:Location] Recent location geocoded:', unifiedLocation);
+    
     if (isPickup) {
-      setPickup(location);
-      setPickupCoords(null);
+      setUnifiedPickup(unifiedLocation);
       setShowPickupSuggestions(false);
-      
-      // Auto-geocode the recent location
-      toast.info("Getting location coordinates...");
-      const coords = await geocodeAddress(location);
-      if (coords) {
-        setPickupCoords(coords);
-        console.log('Pickup geocoded:', { address: location, ...coords });
-      } else {
-        toast.error("Could not find coordinates. Please select from suggestions.");
-      }
+      console.log('[FairFare:Location] Pickup set from recent:', unifiedLocation);
     } else {
-      setDestination(location);
-      setDestCoords(null);
+      setUnifiedDestination(unifiedLocation);
       setShowDestSuggestions(false);
-      
-      // Auto-geocode the recent location
-      toast.info("Getting location coordinates...");
-      const coords = await geocodeAddress(location);
-      if (coords) {
-        setDestCoords(coords);
-        console.log('Destination geocoded:', { address: location, ...coords });
-      } else {
-        toast.error("Could not find coordinates. Please select from suggestions.");
-      }
+      console.log('[FairFare:Location] Destination set from recent:', unifiedLocation);
     }
   };
 
