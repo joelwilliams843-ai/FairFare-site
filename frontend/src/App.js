@@ -922,7 +922,7 @@ function App() {
   };
 
   // Reverse geocode coordinates to address with better formatting
-  const reverseGeocode = async (lat, lng) => {
+  const reverseGeocode = async (lat, lng, retryCount = 0) => {
     try {
       // Use Google Geocoding API via backend for accurate addresses
       const response = await axios.post(`${API}/places/reverse-geocode`, {
@@ -935,12 +935,28 @@ function App() {
       if (response.data && response.data.formatted_address) {
         return response.data.formatted_address;
       }
-      // Fallback to user-friendly text instead of raw coordinates
-      return "Current location";
+      
+      // If no address returned but no error, retry once
+      if (retryCount < 1) {
+        console.log("[FairFare] No address in response, retrying...");
+        await new Promise(r => setTimeout(r, 500));
+        return reverseGeocode(lat, lng, retryCount + 1);
+      }
+      
+      // Final fallback - return a location description, not "Current location"
+      return `Near ${lat.toFixed(3)}°, ${lng.toFixed(3)}°`;
     } catch (error) {
       console.error("[FairFare] Reverse geocoding error:", error);
-      // Fallback to user-friendly text instead of raw coordinates
-      return "Current location";
+      
+      // Retry once on timeout/network error
+      if (retryCount < 1 && (error.code === 'ECONNABORTED' || error.message?.includes('timeout'))) {
+        console.log("[FairFare] Reverse geocode timeout, retrying...");
+        await new Promise(r => setTimeout(r, 1000));
+        return reverseGeocode(lat, lng, retryCount + 1);
+      }
+      
+      // Return coordinates in a more readable format as last resort
+      return `Near ${lat.toFixed(3)}°, ${lng.toFixed(3)}°`;
     }
   };
 
