@@ -2465,6 +2465,12 @@ body {
   color: var(--bg-primary);
 }
 
+.handoff-btn.primary.large {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
 .handoff-btn.primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px var(--accent-green-glow);
@@ -2498,18 +2504,26 @@ body {
 .route-label {
   font-size: 0.75rem;
   color: var(--text-muted);
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.5rem 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.route-text {
-  font-size: 0.8125rem;
+.handoff-route-info .route-text {
+  font-size: 0.875rem;
   color: var(--text-secondary);
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.handoff-route-info .route-pickup svg {
+  color: var(--accent-green);
+}
+
+.handoff-route-info .route-dest svg {
+  color: #f59e0b;
 }
 
 
