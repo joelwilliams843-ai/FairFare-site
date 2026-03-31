@@ -1040,8 +1040,10 @@ function App() {
     };
   };
 
-  // Reverse geocode coordinates to address with better formatting
+  // Reverse geocode coordinates to address - ALWAYS returns a real address or throws
   const reverseGeocode = async (lat, lng, retryCount = 0) => {
+    console.log('[FairFare:Location] Reverse geocoding:', { lat, lng, attempt: retryCount + 1 });
+    
     try {
       // Use Google Geocoding API via backend for accurate addresses
       const response = await axios.post(`${API}/places/reverse-geocode`, {
@@ -1051,38 +1053,47 @@ function App() {
         timeout: 10000
       });
       
-      if (response.data && response.data.formatted_address) {
+      if (response.data && response.data.formatted_address && response.data.formatted_address.length > 5) {
+        console.log('[FairFare:Location] Reverse geocode success:', response.data.formatted_address);
         return response.data.formatted_address;
-      }
-      
-      // If no address returned but no error, retry once
-      if (retryCount < 1) {
-        console.log("[FairFare] No address in response, retrying...");
-        await new Promise(r => setTimeout(r, 500));
-        return reverseGeocode(lat, lng, retryCount + 1);
       }
       
       // Check if we got any address components (city/neighborhood)
       if (response.data?.address_components) {
         const components = response.data.address_components;
-        if (components.city) return `Near ${components.city}`;
-        if (components.state) return `Near ${components.state}`;
+        if (components.city && components.state) {
+          const fallback = `${components.city}, ${components.state}`;
+          console.log('[FairFare:Location] Using city fallback:', fallback);
+          return fallback;
+        }
+        if (components.city) {
+          console.log('[FairFare:Location] Using city only:', components.city);
+          return components.city;
+        }
       }
       
-      // Final fallback - clean human-readable text, NO coordinates
-      return "Current location";
-    } catch (error) {
-      console.error("[FairFare] Reverse geocoding error:", error);
+      // If no address returned but no error, retry once
+      if (retryCount < 2) {
+        console.log('[FairFare:Location] No address in response, retrying...');
+        await new Promise(r => setTimeout(r, 500));
+        return reverseGeocode(lat, lng, retryCount + 1);
+      }
       
-      // Retry once on timeout/network error
-      if (retryCount < 1 && (error.code === 'ECONNABORTED' || error.message?.includes('timeout'))) {
-        console.log("[FairFare] Reverse geocode timeout, retrying...");
+      // If all retries fail, throw to trigger error handling
+      throw new Error('Could not resolve address from coordinates');
+      
+    } catch (error) {
+      console.error('[FairFare:Location] Reverse geocoding error:', error.message);
+      
+      // Retry on timeout/network error
+      if (retryCount < 2 && (error.code === 'ECONNABORTED' || error.message?.includes('timeout') || error.message?.includes('Network'))) {
+        console.log('[FairFare:Location] Reverse geocode network error, retrying...');
         await new Promise(r => setTimeout(r, 1000));
         return reverseGeocode(lat, lng, retryCount + 1);
       }
       
-      // Final fallback - clean human-readable text, NO coordinates
-      return "Current location";
+      // Rethrow - caller must handle the error
+      throw error;
     }
   };
 
