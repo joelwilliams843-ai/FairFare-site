@@ -1774,20 +1774,21 @@ function App() {
     };
     
     try {
+      // Use validated unified location objects
       const requestPayload = {
         pickup: {
-          address: pickup,
-          lat: finalPickupCoords.lat,
-          lng: finalPickupCoords.lng,
+          address: finalPickup.address,
+          lat: finalPickup.lat,
+          lng: finalPickup.lng,
         },
         destination: {
-          address: destination,
-          lat: finalDestCoords.lat,
-          lng: finalDestCoords.lng,
+          address: finalDest.address,
+          lat: finalDest.lat,
+          lng: finalDest.lng,
         },
       };
       
-      console.log('[FairFare] Sending compare request:', JSON.stringify(requestPayload));
+      console.log('[FairFare:Location] Sending compare request with validated data:', JSON.stringify(requestPayload));
       
       let response;
       try {
