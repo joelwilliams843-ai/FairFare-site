@@ -1427,6 +1427,8 @@ function App() {
   };
 
   const selectSuggestion = async (suggestion, isPickup) => {
+    console.log('[FairFare:Location] Selecting suggestion:', { suggestion, isPickup });
+    
     // Handle coordinate fetching FIRST - this is critical for accuracy
     let coords = null;
     let displayAddress = '';
@@ -1444,7 +1446,7 @@ function App() {
         coords = { lat: placeDetails.lat, lng: placeDetails.lng };
         // CRITICAL: Use EXACT formatted address from Google - no modifications
         displayAddress = placeDetails.formatted_address;
-        console.log('[FairFare] Using exact Google address:', displayAddress);
+        console.log('[FairFare:Location] Google Place details:', { coords, displayAddress });
       } else {
         toast.error('Could not get location details. Please try another address.');
         return;
@@ -1456,14 +1458,23 @@ function App() {
       return;
     }
     
-    if (!coords) {
+    if (!coords || !displayAddress) {
       toast.error('Could not verify location. Please try another address.');
       return;
     }
     
+    // Create unified location object
+    const unifiedLocation = {
+      lat: coords.lat,
+      lng: coords.lng,
+      address: displayAddress
+    };
+    
+    console.log('[FairFare:Location] Created unified location:', unifiedLocation);
+    
     if (isPickup) {
-      setPickup(displayAddress);
-      setPickupCoords(coords);
+      // Set unified pickup
+      setUnifiedPickup(unifiedLocation);
       setPickupPlaceId(suggestion.place_id || null);
       setDetectedCoords(null);
       setPickupSuggestions([]);
@@ -1474,15 +1485,10 @@ function App() {
         toast.success(`✈️ ${suggestion.code} selected`, { duration: 2000 });
       }
       
-      console.log('[FairFare] Pickup LOCKED:', {
-        address: displayAddress,
-        lat: coords.lat,
-        lng: coords.lng,
-        place_id: suggestion.place_id
-      });
+      console.log('[FairFare:Location] Pickup LOCKED:', unifiedLocation);
     } else {
-      setDestination(displayAddress);
-      setDestCoords(coords);
+      // Set unified destination
+      setUnifiedDestination(unifiedLocation);
       setDestPlaceId(suggestion.place_id || null);
       setDestSuggestions([]);
       setShowDestSuggestions(false);
@@ -1492,12 +1498,7 @@ function App() {
         toast.success(`✈️ ${suggestion.code} selected`, { duration: 2000 });
       }
       
-      console.log('[FairFare] Destination LOCKED:', {
-        address: displayAddress,
-        lat: coords.lat,
-        lng: coords.lng,
-        place_id: suggestion.place_id
-      });
+      console.log('[FairFare:Location] Destination LOCKED:', unifiedLocation);
     }
   };
 
