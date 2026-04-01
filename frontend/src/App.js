@@ -1102,8 +1102,10 @@ function App() {
         return reverseGeocode(lat, lng, retryCount + 1);
       }
       
-      // If all retries fail, throw to trigger error handling
-      throw new Error('Could not resolve address from coordinates');
+      // FALLBACK: Return formatted coordinates if all retries fail
+      const fallbackAddress = `Near ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      console.log('[FairFare:Location] All retries exhausted, using coordinate fallback:', fallbackAddress);
+      return fallbackAddress;
       
     } catch (error) {
       console.error('[FairFare:Location] Reverse geocoding error:', error.message);
@@ -1115,8 +1117,11 @@ function App() {
         return reverseGeocode(lat, lng, retryCount + 1);
       }
       
-      // Rethrow - caller must handle the error
-      throw error;
+      // FALLBACK: Return formatted coordinates instead of throwing
+      // This ensures the user can always proceed with valid GPS coordinates
+      const fallbackAddress = `Near ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      console.log('[FairFare:Location] Using coordinate fallback:', fallbackAddress);
+      return fallbackAddress;
     }
   };
 
