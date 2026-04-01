@@ -1777,20 +1777,11 @@ function App() {
 
     setLoading(true);
     
-    // Get the validated locations (use state or freshly set values)
-    const finalPickup = pickupLocation || {
-      lat: pickupCoords?.lat,
-      lng: pickupCoords?.lng,
-      address: pickup
-    };
-    
-    const finalDest = destinationLocation || {
-      lat: destCoords?.lat,
-      lng: destCoords?.lng,
-      address: destination
-    };
+    // ONLY use validated unified location objects - never fall back to legacy pickupCoords/destCoords
+    const finalPickup = pickupLocation;
+    const finalDest = destinationLocation;
 
-    // Final validation check
+    // Final validation check - locations MUST be set via unified setters
     if (!isValidLocation(finalPickup) || !isValidLocation(finalDest)) {
       setLoading(false);
       const errorMsg = "Location data is incomplete. Please re-select your addresses.";
