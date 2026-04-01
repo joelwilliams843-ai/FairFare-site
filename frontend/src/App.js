@@ -9,8 +9,14 @@ import { Browser } from '@capacitor/browser';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Geolocation } from '@capacitor/geolocation';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Production backend URL - hardcoded as fallback if env var missing
+const PRODUCTION_BACKEND = 'https://fairfare-api.onrender.com';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || PRODUCTION_BACKEND;
 const API = `${BACKEND_URL}/api`;
+
+// Log the API URL for debugging
+console.log('[FairFare:Config] Backend URL:', BACKEND_URL);
+console.log('[FairFare:Config] API endpoint:', API);
 
 function App() {
   const [view, setView] = useState("input");
