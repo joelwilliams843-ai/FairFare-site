@@ -1073,7 +1073,7 @@ function App() {
         latitude: lat,
         longitude: lng
       }, {
-        timeout: 15000  // Increased timeout for cold starts on Render free tier
+        timeout: 10000
       });
       
       console.log('[FairFare:Location] Reverse geocode response:', JSON.stringify(response.data));
