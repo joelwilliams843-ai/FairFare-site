@@ -1063,7 +1063,7 @@ function App() {
     };
   };
 
-  // Reverse geocode coordinates to address - ALWAYS returns a real address or throws
+  // Reverse geocode coordinates to address - ALWAYS returns a real address or fallback
   const reverseGeocode = async (lat, lng, retryCount = 0) => {
     console.log('[FairFare:Location] Reverse geocoding:', { lat, lng, attempt: retryCount + 1 });
     
@@ -1073,12 +1073,18 @@ function App() {
         latitude: lat,
         longitude: lng
       }, {
-        timeout: 10000
+        timeout: 15000  // Increased timeout for cold starts on Render free tier
       });
       
+      console.log('[FairFare:Location] Reverse geocode response:', JSON.stringify(response.data));
+      
       if (response.data && response.data.formatted_address && response.data.formatted_address.length > 5) {
-        console.log('[FairFare:Location] Reverse geocode success:', response.data.formatted_address);
-        return response.data.formatted_address;
+        // Check it's not just coordinates
+        if (!response.data.formatted_address.startsWith('Location (') && 
+            !response.data.formatted_address.startsWith('Near ')) {
+          console.log('[FairFare:Location] Reverse geocode success:', response.data.formatted_address);
+          return response.data.formatted_address;
+        }
       }
       
       // Check if we got any address components (city/neighborhood)
