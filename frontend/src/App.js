@@ -3057,11 +3057,14 @@ I'll text you when the driver is assigned.`);
                             key={idx}
                             className={`suggestion-item ${suggestion.isAirport ? 'airport' : ''} ${suggestion.isPOI ? 'poi' : ''}`}
                             data-testid={`pickup-suggestion-${idx}`}
+                            onClick={() => selectSuggestion(suggestion, true)}
+                            onTouchEnd={(e) => {
+                              e.preventDefault();
+                              selectSuggestion(suggestion, true);
+                            }}
+                            style={{ cursor: 'pointer' }}
                           >
-                            <div 
-                              className="suggestion-content"
-                              onClick={() => selectSuggestion(suggestion, true)}
-                            >
+                            <div className="suggestion-content">
                               {suggestion.isAirport ? (
                                 <>
                                   <span className="airport-badge">✈ {suggestion.code}</span>
@@ -3225,11 +3228,14 @@ I'll text you when the driver is assigned.`);
                             key={idx}
                             className={`suggestion-item ${suggestion.isAirport ? 'airport' : ''} ${suggestion.isPOI ? 'poi' : ''}`}
                             data-testid={`dest-suggestion-${idx}`}
+                            onClick={() => selectSuggestion(suggestion, false)}
+                            onTouchEnd={(e) => {
+                              e.preventDefault();
+                              selectSuggestion(suggestion, false);
+                            }}
+                            style={{ cursor: 'pointer' }}
                           >
-                            <div 
-                              className="suggestion-content"
-                              onClick={() => selectSuggestion(suggestion, false)}
-                            >
+                            <div className="suggestion-content">
                               {suggestion.isAirport ? (
                                 <>
                                   <span className="airport-badge">✈ {suggestion.code}</span>
