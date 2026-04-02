@@ -2124,8 +2124,8 @@ function App() {
     const distance = results.distance_miles || 10;
     const duration = results.duration_minutes || 30;
     
-    // Base rate calculation (reduced 30% to match actual fares): $1.75 base + $1.05/mile + $0.25/min
-    const basePrice = 1.75 + (distance * 1.05) + (duration * 0.25);
+    // Base rate calculation: $2.50 base + $1.50/mile + $0.35/min
+    const basePrice = 2.50 + (distance * 1.50) + (duration * 0.35);
     
     // Time-of-day multiplier (subtle)
     const hour = new Date().getHours();
