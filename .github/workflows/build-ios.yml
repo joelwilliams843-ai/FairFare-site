@@ -92,7 +92,10 @@ jobs:
           -configuration Release \
           -archivePath "${{ env.ARCHIVE_PATH }}" \
           archive \
-          DEVELOPMENT_TEAM=D454QMYLJ7
+          DEVELOPMENT_TEAM=D454QMYLJ7 \
+          CODE_SIGN_STYLE=Manual \
+          PROVISIONING_PROFILE_SPECIFIER="FairFare App Store Profile" \
+          PRODUCT_BUNDLE_IDENTIFIER=com.tryfairfare.app
         
         echo "Archive created at: ${{ env.ARCHIVE_PATH }}"
         ls -la "${{ env.ARCHIVE_PATH }}" || echo "Archive not found!"
