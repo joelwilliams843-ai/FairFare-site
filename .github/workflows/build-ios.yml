@@ -61,32 +61,46 @@ jobs:
         CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       run: |
+        # Create and configure keychain
         KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
         security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
         security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
         
+        # Import certificate
         CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
         echo -n "$CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
         security import $CERTIFICATE_PATH -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+        
+        # Set keychain as default and allow codesign access
         security list-keychain -d user -s $KEYCHAIN_PATH
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        
+        # Export keychain path for later steps
+        echo "KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> $GITHUB_ENV
     
     - name: Install Provisioning Profile
       env:
         PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
       run: |
+        # Decode provisioning profile
         echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
+        
+        # Create profiles directory
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         
         # Extract UUID from provisioning profile
         PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i profile.mobileprovision))
         echo "Profile UUID: $PROFILE_UUID"
         
-        # Copy with UUID as filename (required by Xcode)
+        # Copy with UUID as filename (REQUIRED by Xcode)
         cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+        
+        # Verify installation
+        echo "Installed provisioning profiles:"
         ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
         
-        # Export for use in build step
+        # Export UUID for use in later steps
         echo "PROFILE_UUID=${PROFILE_UUID}" >> $GITHUB_ENV
     
     - name: Create build directory
@@ -94,8 +108,6 @@ jobs:
     
     - name: Configure Code Signing
       working-directory: frontend/ios/App
-      env:
-        PROFILE_UUID: ${{ env.PROFILE_UUID }}
       run: |
         # Install xcodeproj gem
         gem install xcodeproj
@@ -141,7 +153,12 @@ jobs:
 
     - name: Build iOS Archive
       working-directory: frontend/ios/App
+      env:
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       run: |
+        # Unlock keychain before build
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        
         xcodebuild -workspace App.xcworkspace \
           -scheme App \
           -sdk iphoneos \
@@ -151,19 +168,32 @@ jobs:
           -allowProvisioningUpdates
         
         echo "Archive created at: ${{ env.ARCHIVE_PATH }}"
-        ls -la "${{ env.ARCHIVE_PATH }}" || echo "Archive not found!"
-    
+        ls -la "${{ env.ARCHIVE_PATH }}"
+
     - name: Export IPA
+      env:
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       run: |
+        # Unlock keychain before export
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        
+        # Create ExportOptions.plist with provisioningProfiles dict
         cat > ${{ env.EXPORT_PATH }}/ExportOptions.plist << EOF
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
         <dict>
             <key>method</key>
-            <string>app-store</string>
+            <string>app-store-connect</string>
             <key>teamID</key>
             <string>D454QMYLJ7</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+                <key>com.tryfairfare.app</key>
+                <string>FairFare App Store Profile</string>
+            </dict>
             <key>uploadBitcode</key>
             <false/>
             <key>uploadSymbols</key>
@@ -172,13 +202,17 @@ jobs:
         </plist>
         EOF
         
+        echo "ExportOptions.plist contents:"
+        cat ${{ env.EXPORT_PATH }}/ExportOptions.plist
+        
         xcodebuild -exportArchive \
           -archivePath "${{ env.ARCHIVE_PATH }}" \
           -exportOptionsPlist "${{ env.EXPORT_PATH }}/ExportOptions.plist" \
           -exportPath "${{ env.EXPORT_PATH }}"
         
+        echo "Export completed. Contents:"
         ls -la "${{ env.EXPORT_PATH }}"
-    
+
     - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
