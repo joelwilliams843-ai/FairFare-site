@@ -77,8 +77,17 @@ jobs:
       run: |
         echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > profile.mobileprovision
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-        ls -la ~/Library/MobileDevice/Provisioning\ Profiles
+        
+        # Extract UUID from provisioning profile
+        PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i profile.mobileprovision))
+        echo "Profile UUID: $PROFILE_UUID"
+        
+        # Copy with UUID as filename (required by Xcode)
+        cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+        ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
+        
+        # Export for use in build step
+        echo "PROFILE_UUID=${PROFILE_UUID}" >> $GITHUB_ENV
     
     - name: Create build directory
       run: mkdir -p ${{ env.EXPORT_PATH }}
@@ -95,7 +104,7 @@ jobs:
           DEVELOPMENT_TEAM=D454QMYLJ7 \
           CODE_SIGN_STYLE=Manual \
           CODE_SIGN_IDENTITY="Apple Distribution" \
-          PROVISIONING_PROFILE_SPECIFIER="FairFare App Store Profile" \
+          PROVISIONING_PROFILE="${{ env.PROFILE_UUID }}" \
           PRODUCT_BUNDLE_IDENTIFIER=com.tryfairfare.app
         
         echo "Archive created at: ${{ env.ARCHIVE_PATH }}"
