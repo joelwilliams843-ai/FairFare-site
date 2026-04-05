@@ -17,6 +17,10 @@ jobs:
     name: Build iOS App
     runs-on: macos-latest
     
+    env:
+      ARCHIVE_PATH: ${{ github.workspace }}/build/FairFare.xcarchive
+      EXPORT_PATH: ${{ github.workspace }}/build
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -76,6 +80,9 @@ jobs:
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
     
+    - name: Create build directory
+      run: mkdir -p ${{ env.EXPORT_PATH }}
+    
     - name: Build iOS Archive
       working-directory: frontend/ios/App
       run: |
@@ -83,15 +90,16 @@ jobs:
           -scheme App \
           -sdk iphoneos \
           -configuration Release \
-          -archivePath build/FairFare.xcarchive \
+          -archivePath "${{ env.ARCHIVE_PATH }}" \
           archive \
-          DEVELOPMENT_TEAM=D454QMYLJ7 \
-          | xcpretty
+          DEVELOPMENT_TEAM=D454QMYLJ7
+        
+        echo "Archive created at: ${{ env.ARCHIVE_PATH }}"
+        ls -la "${{ env.ARCHIVE_PATH }}" || echo "Archive not found!"
     
     - name: Export IPA
-      working-directory: frontend/ios/App
       run: |
-        cat > ExportOptions.plist << EOF
+        cat > ${{ env.EXPORT_PATH }}/ExportOptions.plist << EOF
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
@@ -109,16 +117,16 @@ jobs:
         EOF
         
         xcodebuild -exportArchive \
-          -archivePath build/FairFare.xcarchive \
-          -exportOptionsPlist ExportOptions.plist \
-          -exportPath build/
+          -archivePath "${{ env.ARCHIVE_PATH }}" \
+          -exportOptionsPlist "${{ env.EXPORT_PATH }}/ExportOptions.plist" \
+          -exportPath "${{ env.EXPORT_PATH }}"
         
-        ls -la build/
+        ls -la "${{ env.EXPORT_PATH }}"
     
     - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
         name: fairfare-ios-ipa
-        path: frontend/ios/App/build/*.ipa
+        path: ${{ env.EXPORT_PATH }}/*.ipa
         retention-days: 90
         if-no-files-found: error
