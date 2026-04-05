@@ -47,32 +47,27 @@ jobs:
     - name: Update version numbers
       working-directory: frontend/ios/App
       run: |
-        # Update version in project
         /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ github.event.inputs.version_name }}" App/Info.plist
         /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ github.event.inputs.build_number }}" App/Info.plist
         echo "Version set to ${{ github.event.inputs.version_name }} (${{ github.event.inputs.build_number }})"
     
     - name: Import Code Signing Certificate
-      if: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
       env:
         CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
         CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       run: |
-        # Create temporary keychain
         KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
         security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
         security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
         
-        # Import certificate
         CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
         echo -n "$CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
         security import $CERTIFICATE_PATH -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
         security list-keychain -d user -s $KEYCHAIN_PATH
     
     - name: Install Provisioning Profile
-      if: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 != '' }}
       env:
         PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
       run: |
@@ -81,8 +76,7 @@ jobs:
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
     
-    - name: Build iOS App (Signed)
-      if: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
+    - name: Build iOS Archive
       working-directory: frontend/ios/App
       run: |
         xcodebuild -workspace App.xcworkspace \
@@ -92,27 +86,9 @@ jobs:
           -archivePath build/FairFare.xcarchive \
           archive \
           DEVELOPMENT_TEAM=D454QMYLJ7 \
-          CODE_SIGN_STYLE=Manual \
           | xcpretty
     
-    - name: Build iOS App (Unsigned - for testing)
-      if: ${{ secrets.APPLE_CERTIFICATE_BASE64 == '' }}
-      working-directory: frontend/ios/App
-      run: |
-        xcodebuild -workspace App.xcworkspace \
-          -scheme App \
-          -sdk iphoneos \
-          -configuration Release \
-          -archivePath build/FairFare.xcarchive \
-          archive \
-          CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
-          DEVELOPMENT_TEAM=D454QMYLJ7 \
-          | xcpretty
-    
-    - name: Export IPA (Signed)
-      if: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
+    - name: Export IPA
       working-directory: frontend/ios/App
       run: |
         cat > ExportOptions.plist << EOF
@@ -139,40 +115,10 @@ jobs:
         
         ls -la build/
     
-    - name: Create unsigned IPA (for testing)
-      if: ${{ secrets.APPLE_CERTIFICATE_BASE64 == '' }}
-      working-directory: frontend/ios/App
-      run: |
-        mkdir -p build/Payload
-        cp -r build/FairFare.xcarchive/Products/Applications/App.app build/Payload/
-        cd build
-        zip -r FairFare-unsigned.ipa Payload
-        ls -la FairFare-unsigned.ipa
-    
-    - name: Upload IPA (Signed)
-      if: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
+    - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
-        name: fairfare-ios-signed
+        name: fairfare-ios-ipa
         path: frontend/ios/App/build/*.ipa
         retention-days: 90
         if-no-files-found: error
-    
-    - name: Upload IPA (Unsigned)
-      if: ${{ secrets.APPLE_CERTIFICATE_BASE64 == '' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: fairfare-ios-unsigned
-        path: frontend/ios/App/build/FairFare-unsigned.ipa
-        retention-days: 90
-        if-no-files-found: error
-
-# SETUP INSTRUCTIONS:
-# 1. In Apple Developer Portal, create an App Store distribution certificate
-# 2. Create an App Store provisioning profile for com.tryfairfare.app
-# 3. Export certificate as .p12 file
-# 4. Add GitHub secrets:
-#    - APPLE_CERTIFICATE_BASE64: base64 encoded .p12 file
-#    - APPLE_CERTIFICATE_PASSWORD: password for .p12 file
-#    - APPLE_PROVISIONING_PROFILE_BASE64: base64 encoded .mobileprovision file
-#    - KEYCHAIN_PASSWORD: any password for temporary keychain
