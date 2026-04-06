@@ -220,3 +220,45 @@ jobs:
         path: ${{ env.EXPORT_PATH }}/*.ipa
         retention-days: 90
         if-no-files-found: error
+
+    - name: Upload to App Store Connect
+      env:
+        APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      run: |
+        echo "=== Preparing App Store Connect API Key ==="
+        
+        # Create private_keys directory for altool
+        mkdir -p ~/.private_keys
+        
+        # Decode API key from base64 and save as .p8 file
+        echo "$APP_STORE_CONNECT_API_KEY" | base64 --decode > ~/.private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
+        
+        echo "API Key file created at: ~/.private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+        
+        # Find the IPA file
+        IPA_PATH=$(find ${{ env.EXPORT_PATH }} -name "*.ipa" -type f | head -1)
+        
+        if [ -z "$IPA_PATH" ]; then
+          echo "❌ ERROR: No IPA file found in ${{ env.EXPORT_PATH }}"
+          exit 1
+        fi
+        
+        echo "=== Uploading IPA to App Store Connect ==="
+        echo "IPA Path: $IPA_PATH"
+        echo "Key ID: $APP_STORE_CONNECT_KEY_ID"
+        echo "Issuer ID: $APP_STORE_CONNECT_ISSUER_ID"
+        
+        xcrun altool --upload-app \
+          --type ios \
+          --file "$IPA_PATH" \
+          --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+          --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+        
+        if [ $? -eq 0 ]; then
+          echo "✅ SUCCESS: IPA uploaded to App Store Connect"
+        else
+          echo "❌ FAILED: Upload to App Store Connect failed"
+          exit 1
+        fi
